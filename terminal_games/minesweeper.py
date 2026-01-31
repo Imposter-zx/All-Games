@@ -1,6 +1,7 @@
 import random
 import time
-from arcade_utils import clear_screen, get_key, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, update_stats, load_stats
+import os
+from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, update_stats, load_stats
 
 NUM_COLORS = {1: "\033[34m", 2: "\033[32m", 3: "\033[31m", 4: "\033[35m", 5: "\033[33m", 6: "\033[36m", 7: "\033[30m", 8: "\033[37m"}
 
@@ -19,54 +20,89 @@ def create_board(rows, cols, mines):
             board[r][c] = cnt
     return board, mine_pos
 
-def print_board(board, revealed, flagged, cursor, elapsed, mines, exploded=None):
+def draw_header(elapsed, flags, mines):
+    header_lines = [
+        f"⏱ TIME: {elapsed//60:02}:{elapsed%60:02}  |  ⚑ FLAGS: {flags}/{mines}",
+        f"💣 MINES TOTAL: {mines}"
+    ]
+    draw_retro_box(45, "💣 MINESWEEPER ULTIMATE", header_lines, color=C_YELLOW)
+
+def print_board(board, revealed, flagged, cursor, elapsed, mines, exploded=None, flash_red=False):
     rows, cols = len(board), len(board[0])
     clear_screen()
     f_count = sum(row.count(True) for row in flagged)
-    print(f"{C_CYAN}╔═══════════════════════════════════════════════╗")
-    print(f"║ ⏱  Time: {elapsed:>3}s | ⚑ Flags: {f_count:>2}/{mines} | 💣 Mines: {mines} ║")
-    print(f"╚═══════════════════════════════════════════════╝{C_RESET}")
     
-    print("    " + " ".join([f"{C_CYAN}{i+1:2}{C_RESET}" for i in range(cols)]))
-    print("   " + f"{C_CYAN}╔" + "═══" * cols + "╗{C_RESET}")
+    draw_header(elapsed, f_count, mines)
+    
+    term_width = 80
+    try: term_width = os.get_terminal_size().columns
+    except: pass
+    
+    padding = (term_width - (cols * 3 + 2)) // 2
+    indent = " " * padding
+    
+    border_color = C_RED if flash_red else C_CYAN
+    
+    print(indent + f"{border_color}╔" + "═══" * cols + "═╗{C_RESET}")
     
     for r in range(rows):
-        line = f" {C_CYAN}{r+1:2} ║{C_RESET}"
-        for c in range(cols):
+        line = indent + f"{border_color}║{C_RESET} "
+        for c in range(rows if rows == cols else cols): # Using cols logic
+            if c >= cols: break
             style = ""
-            if (r, c) == cursor: style = "\033[47m"
+            if (r, c) == cursor: style = "\033[47;30m"
             
-            if (r, c) == exploded: char = f"{style}\033[31m💥{C_RESET} "
+            if (r, c) == exploded: char = f"{style}{C_RED}💥{C_RESET}"
             elif flagged[r][c]: char = f"{style}{C_YELLOW}⚑{C_RESET} "
             elif revealed[r][c]:
                 val = board[r][c]
-                if val == 'M': char = f"{style}{C_RED}💣{C_RESET} "
-                elif val == 0: char = f"{style}{C_BLACK}.{C_RESET} "
+                if val == 'M': char = f"{style}{C_RED}💣{C_RESET}"
+                elif val == 0: char = f"{style}{C_BLACK}·{C_RESET} "
                 else: char = f"{style}{NUM_COLORS.get(val, '')}{val}{C_RESET} "
             else: char = f"{style}{C_WHITE}■{C_RESET} "
-            line += " " + char
-        print(line + f"{C_CYAN}║{C_RESET}")
-    print("   " + f"{C_CYAN}╚" + "═══" * cols + "╝{C_RESET}")
-    print(f"{C_YELLOW}Arrows: Move | Enter/R: Reveal | F: Flag | Q: Exit{C_RESET}")
+            line += char + " "
+        print(line + f"{border_color}║{C_RESET}")
+    print(indent + f"{border_color}╚" + "═══" * cols + "═╝{C_RESET}")
+    
+    controls = "ARROWS: Move | ENTER: Reveal | F: Flag | Q: Exit"
+    ctrl_indent = (term_width - len(controls)) // 2
+    print("\n" + " " * ctrl_indent + f"{C_WHITE}{controls}{C_RESET}")
 
-def reveal(board, revealed, flagged, r, c):
+def reveal(board, revealed, flagged, r, c, animate=True):
     if not (0 <= r < len(board) and 0 <= c < len(board[0])) or revealed[r][c] or flagged[r][c]: return
     revealed[r][c] = True
+    if animate and board[r][c] == 0:
+        time.sleep(0.02) # Small reveal delay
+    
     if board[r][c] == 0:
         for dr in [-1,0,1]:
             for dc in [-1,0,1]:
-                reveal(board, revealed, flagged, r+dr, c+dc)
+                reveal(board, revealed, flagged, r+dr, c+dc, animate=animate)
+
+def explosion_effect(board, revealed, flagged, cursor, elapsed, mines, cr, cc):
+    beep("lose")
+    for _ in range(3):
+        print_board(board, revealed, flagged, tuple(cursor), elapsed, mines, exploded=(cr, cc), flash_red=True)
+        time.sleep(0.1)
+        print_board(board, revealed, flagged, tuple(cursor), elapsed, mines, exploded=(cr, cc), flash_red=False)
+        time.sleep(0.1)
+    
+    for r in range(len(board)):
+        for c in range(len(board[0])):
+            if board[r][c] == 'M': revealed[r][c] = True
+    print_board(board, revealed, flagged, tuple(cursor), elapsed, mines, exploded=(cr, cc))
+    show_popup("BOOM! GAME OVER", color=C_RED)
 
 def play_minesweeper():
     clear_screen()
-    print(f"{C_MAGENTA}MINESWEEPER: (1) Beginner (2) Intermediate (3) Expert (Q) Back{C_RESET}")
+    draw_retro_box(50, "SELECT DIFFICULTY", ["(1) BEGINNER", "(2) INTERMEDIATE", "(3) EXPERT", "(Q) BACK"], color=C_YELLOW)
     while True:
         choice = get_key()
         if choice in ['q', 'Q']: return
         if choice in ['1', '2', '3']: break
 
     diff_name = {"2": "intermediate", "3": "expert"}.get(choice, "beginner")
-    r, c, mines = {"beginner": (8, 8, 10), "intermediate": (16, 16, 40), "expert": (16, 30, 99)}[diff_name]
+    r, c, mines = {"beginner": (8, 8, 10), "intermediate": (12, 12, 25), "expert": (14, 20, 50)}[diff_name] # Adjusted for visibility
     
     board, mine_pos = create_board(r, c, mines)
     revealed = [[False for _ in range(c)] for _ in range(r)]
@@ -79,29 +115,32 @@ def play_minesweeper():
         print_board(board, revealed, flagged, tuple(cursor), elapsed, mines)
         
         if sum(1 for i in range(r) for j in range(c) if not revealed[i][j] and board[i][j] != 'M') == 0:
-            print(f"\n{C_GREEN}🎉 YOU WIN! Field Cleared!{C_RESET}")
+            beep("win")
+            show_popup("VICTORY! FIELD CLEARED", color=C_GREEN)
             stats = load_stats().get("minesweeper", {})
             update_stats("minesweeper", "wins", stats.get("wins", {}).get(diff_name, 0) + 1, diff_name)
-            if sum(row.count(True) for row in flagged) == 0:
-                update_stats("minesweeper", "no_flag_wins", stats.get("no_flag_wins", 0) + 1)
-            time.sleep(2); break
+            break
 
         key = get_key()
         if key in ['q', 'Q']: break
-        elif key == 'up': cursor[0] = max(0, cursor[0] - 1)
-        elif key == 'down': cursor[0] = min(r - 1, cursor[0] + 1)
-        elif key == 'left': cursor[1] = max(0, cursor[1] - 1)
-        elif key == 'right': cursor[1] = min(c - 1, cursor[1] + 1)
+        elif key == 'up': cursor[0] = max(0, cursor[0] - 1); beep("correct")
+        elif key == 'down': cursor[0] = min(r - 1, cursor[0] + 1); beep("correct")
+        elif key == 'left': cursor[1] = max(0, cursor[1] - 1); beep("correct")
+        elif key == 'right': cursor[1] = min(c - 1, cursor[1] + 1); beep("correct")
         elif key in ['\r', '\n', ' ', 'r', 'R']:
             cr, cc = cursor
+            if flagged[cr][cc]: continue
             if board[cr][cc] == 'M':
-                for mr, mc in mine_pos: revealed[mr][mc] = True
-                print_board(board, revealed, flagged, tuple(cursor), elapsed, mines, exploded=(cr, cc))
-                print(f"\n{C_RED}💥 BOOM! GAME OVER.{C_RESET}")
-                time.sleep(2); break
+                explosion_effect(board, revealed, flagged, cursor, elapsed, mines, cr, cc)
+                break
             reveal(board, revealed, flagged, cr, cc)
+            beep("correct")
         elif key in ['f', 'F']:
             flagged[cursor[0]][cursor[1]] = not flagged[cursor[0]][cursor[1]]
+            beep("correct")
+
+if __name__ == "__main__":
+    play_minesweeper()
 
 if __name__ == "__main__":
     play_minesweeper()

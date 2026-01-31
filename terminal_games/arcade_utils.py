@@ -21,8 +21,26 @@ BG_LIGHT = "\033[48;5;250m"
 BG_CUR = "\033[48;5;220m"
 BG_SEL = "\033[48;5;34m"
 BG_RED = "\033[41m"
+BG_BLUE = "\033[44m"
 
 STATS_FILE = "player_stats.json"
+
+def beep(event="correct"):
+    """Terminal beeps for arcade feedback."""
+    if event == "correct":
+        print("\a", end="", flush=True)
+    elif event == "invalid":
+        print("\a", end="", flush=True)
+        time.sleep(0.1)
+        print("\a", end="", flush=True)
+    elif event == "win":
+        for _ in range(3):
+            print("\a", end="", flush=True)
+            time.sleep(0.15)
+    elif event == "lose":
+        for _ in range(2):
+            print("\a", end="", flush=True)
+            time.sleep(0.4)
 
 def get_input_util():
     if os.name == 'nt':
@@ -78,7 +96,36 @@ def update_stats(game, key, value, subkey=None):
     with open(STATS_FILE, 'w') as f:
         json.dump(stats, f, indent=4)
 
-def show_popup(msg, color=C_CYAN):
-    print(f"\n{color}╔" + "═" * (len(msg) + 2) + "╗")
-    print(f"║ {msg} ║")
-    print(f"╚" + "═" * (len(msg) + 2) + "╝{C_RESET}")
+def draw_retro_box(width, title, content_lines, color=C_CYAN, title_color=C_YELLOW):
+    """Draws a centered retro box with a title and multi-line content."""
+    terminal_width = 80 # Default
+    try:
+        terminal_width = os.get_terminal_size().columns
+    except: pass
+    
+    padding = (terminal_width - width) // 2
+    indent = " " * padding
+    
+    print(indent + f"{color}╔" + "═" * (width - 2) + "╗")
+    
+    # Title line
+    title_padding = (width - 2 - len(title)) // 2
+    title_line = " " * title_padding + f"{title_color}{C_BOLD}{title}{C_RESET}{color}"
+    title_line += " " * (width - 2 - len(title) - title_padding)
+    print(indent + f"║{title_line}║")
+    
+    print(indent + f"╠" + "═" * (width - 2) + "╣")
+    
+    for line in content_lines:
+        content_padding = (width - 2 - len(line)) // 2
+        l_text = " " * content_padding + f"{C_WHITE}{line}{C_RESET}{color}"
+        l_text += " " * (width - 2 - len(line) - content_padding)
+        print(indent + f"║{l_text}║")
+        
+    print(indent + f"╚" + "═" * (width - 2) + "╝{C_RESET}")
+
+def show_popup(msg, color=C_CYAN, delay=2):
+    clear_screen()
+    print("\n" * 5)
+    draw_retro_box(40, "POPUP", [msg], color=color)
+    time.sleep(delay)
