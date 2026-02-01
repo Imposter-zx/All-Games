@@ -41,6 +41,12 @@ def beep(event="correct"):
         for _ in range(2):
             print("\a", end="", flush=True)
             time.sleep(0.4)
+    elif event == "game_over": # Slower, sadder beep
+        for _ in range(3):
+            print("\a", end="", flush=True)
+            time.sleep(0.6)
+    elif event == "eat": # Quick high beep simulation
+        print("\a", end="", flush=True)
 
 def get_input_util():
     if os.name == 'nt':
@@ -84,6 +90,10 @@ def load_stats():
         except: return {}
     return {}
 
+def save_stats(stats):
+    with open(STATS_FILE, 'w') as f:
+        json.dump(stats, f, indent=4)
+
 def update_stats(game, key, value, subkey=None):
     stats = load_stats()
     if game not in stats: stats[game] = {}
@@ -93,8 +103,26 @@ def update_stats(game, key, value, subkey=None):
         stats[game][key][subkey] = value
     else:
         stats[game][key] = value
-    with open(STATS_FILE, 'w') as f:
-        json.dump(stats, f, indent=4)
+    save_stats(stats)
+
+def animated_flash(color=C_RED, duration=0.1, count=1):
+    """Flashes the screen background color."""
+    for _ in range(count):
+        print(f"\033[41m" if color == C_RED else f"\033[47m", end="", flush=True) # Simple red or white flash
+        clear_screen()
+        time.sleep(duration)
+        print(C_RESET, end="", flush=True)
+        clear_screen()
+        time.sleep(duration)
+
+def print_big_title(text, color=C_CYAN):
+    """Prints a large ASCII title (simplified for now)."""
+    # In a full implementation, this would use a large font dict.
+    # For now, we will just use bold large text with borders.
+    border = "═" * (len(text) + 4)
+    print(f"{color}╔{border}╗")
+    print(f"║  {C_BOLD}{text}{C_RESET}{color}  ║")
+    print(f"╚{border}╝{C_RESET}")
 
 def draw_retro_box(width, title, content_lines, color=C_CYAN, title_color=C_YELLOW):
     """Draws a centered retro box with a title and multi-line content."""
@@ -103,7 +131,7 @@ def draw_retro_box(width, title, content_lines, color=C_CYAN, title_color=C_YELL
         terminal_width = os.get_terminal_size().columns
     except: pass
     
-    padding = (terminal_width - width) // 2
+    padding = max(0, (terminal_width - width) // 2)
     indent = " " * padding
     
     print(indent + f"{color}╔" + "═" * (width - 2) + "╗")
@@ -117,9 +145,17 @@ def draw_retro_box(width, title, content_lines, color=C_CYAN, title_color=C_YELL
     print(indent + f"╠" + "═" * (width - 2) + "╣")
     
     for line in content_lines:
-        content_padding = (width - 2 - len(line)) // 2
+        content_len = len(line.replace(C_RED, "").replace(C_CYAN, "").replace(C_YELLOW, "").replace(C_GREEN, "").replace(C_BLUE, "").replace(C_MAGENTA, "").replace(C_WHITE, "").replace(C_RESET, "").replace(C_BOLD, ""))
+        content_padding = max(0, (width - 2 - content_len) // 2)
         l_text = " " * content_padding + f"{C_WHITE}{line}{C_RESET}{color}"
-        l_text += " " * (width - 2 - len(line) - content_padding)
+        l_text += " " * (width - 2 - content_len - content_padding)
+        # Ensure exact width matching handling ansi codes is tricky, so simpler approach for now:
+        # We rely on visual length.  If checking strictly, we'd need a regex for ANSI stripping.
+        # For this retro style, slight misalignment is acceptable or we assume lines are pre-measured.
+        # A safer way to align strictly for borders:
+        print_len = width - 2
+        # Simple hack: print start, print content, move cursor to end
+        # But standard print is easier. Let's trust the padding calc for now.
         print(indent + f"║{l_text}║")
         
     print(indent + f"╚" + "═" * (width - 2) + "╝{C_RESET}")
@@ -127,5 +163,5 @@ def draw_retro_box(width, title, content_lines, color=C_CYAN, title_color=C_YELL
 def show_popup(msg, color=C_CYAN, delay=2):
     clear_screen()
     print("\n" * 5)
-    draw_retro_box(40, "POPUP", [msg], color=color)
+    draw_retro_box(40 + len(msg)//2, "POPUP", [msg], color=color)
     time.sleep(delay)

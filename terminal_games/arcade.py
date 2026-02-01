@@ -4,7 +4,14 @@ import time
 from arcade_utils import clear_screen, get_key, load_stats, draw_retro_box, beep, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA
 from sudoku import play_sudoku
 from minesweeper import play_minesweeper
-from chess_game import play_chess
+try:
+    from chess_game import play_chess
+except ImportError:
+    play_chess = None
+from snake import play_snake
+from breakout import play_breakout
+from space_shooter import play_space_shooter
+from tetris import play_tetris
 
 BANNER_TEXT = [
     "  ____  _  _  ____  _   _  _____  _   _  ",
@@ -16,22 +23,32 @@ BANNER_TEXT = [
     " | |_| ||  _/| |  | \\__/|  _/|  __|  ||  ",
     " |_| |_||_|  |_|__| |__| |_|  |____| |_| ",
     "                                         ",
-    "         --- TERMINAL ARCADE V3 ---      "
+    "       --- RETRO ARCADE SYSTEM ---       "
 ]
 
 def draw_profile(stats):
+    # Calculate Total Score
+    total_score = 0
+    total_score += stats.get("snake", {}).get("high_score", 0)
+    total_score += stats.get("breakout", {}).get("best_score", 0)
+    total_score += stats.get("space_shooter", {}).get("high_score", 0)
+    total_score += stats.get("tetris", {}).get("best_score", 0)
+    
+    # Existing stats
     m_stats = stats.get("minesweeper", {})
     m_wins = sum(m_stats.get('wins', {}).values()) if isinstance(m_stats.get('wins'), dict) else 0
-    s_best = stats.get("sudoku", {}).get("best_times", {}).get("hard", "N/A")
     c_wins = stats.get("chess", {}).get("wins", 0)
     
     profile_lines = [
-        f"PLAYER: {C_YELLOW}ZORD{C_WHITE}",
+        f"PLAYER: {C_YELLOW}RETRO_MASTER{C_WHITE}",
         f"══════════════════════════════",
-        f"🧩 Sudoku Best (Hard): {C_CYAN}{s_best}{C_WHITE}s",
-        f"💣 Minesweeper Wins  : {C_GREEN}{m_wins}{C_WHITE}",
-        f"♟️ Chess Wins vs AI : {C_MAGENTA}{c_wins}{C_WHITE}",
-        f"🏅 Achievements     : {C_YELLOW}3{C_WHITE}"
+        f"🏆 TOTAL ARCADE SCORE: {C_YELLOW}{total_score}{C_WHITE}",
+        f"🐍 Snake Best        : {C_GREEN}{stats.get('snake', {}).get('high_score', 0)}{C_WHITE}",
+        f"🧱 Breakout Best     : {C_CYAN}{stats.get('breakout', {}).get('best_score', 0)}{C_WHITE}",
+        f"🚀 Shooter High      : {C_MAGENTA}{stats.get('space_shooter', {}).get('high_score', 0)}{C_WHITE}",
+        f"🧩 Tetris Best       : {C_BLUE}{stats.get('tetris', {}).get('best_score', 0)}{C_WHITE}",
+        f"💣 Minesweeper Wins  : {C_RED}{m_wins}{C_WHITE}",
+        f"♟️ Chess Wins        : {C_WHITE}{c_wins}{C_WHITE}"
     ]
     draw_retro_box(40, "👤 PLAYER PROFILE", profile_lines, color=C_WHITE, title_color=C_CYAN)
 
@@ -45,63 +62,75 @@ def print_menu(selection):
     except: pass
     
     for line in BANNER_TEXT:
-        print(" " * ((term_width - 45) // 2) + f"{C_CYAN}{line}{C_RESET}")
+        print(" " * max(0, (term_width - 45) // 2) + f"{C_CYAN}{line}{C_RESET}")
     print("\n")
     
     draw_profile(stats)
     print("\n")
     
     options = [
-        "🧩 Sudoku",
-        "♟️ Chess vs AI",
-        "💣 Minesweeper",
-        "🚪 Quit"
+        "1. 🐍 Snake",
+        "2. 🧱 Breakout",
+        "3. 🚀 Space Shooter",
+        "4. 🧩 Tetris",
+        "5. 💣 Minesweeper",
+        "6. ♟️ Chess vs AI",
+        "7. 🔢 Sudoku",
+        "Q. 🚪 Quit"
     ]
     
     menu_content = []
     for i, opt in enumerate(options):
-        prefix = f"{C_YELLOW}► {C_RESET}" if i == selection else "  "
-        style = f"\033[47;30m" if i == selection else f"{C_WHITE}"
+        # Handle 'Q' separately for index logic
+        is_sel = (i == selection)
+        prefix = f"{C_YELLOW}► {C_RESET}" if is_sel else "  "
+        style = f"\033[47;30m" if is_sel else f"{C_WHITE}"
         menu_content.append(f"{prefix}{style} {opt:<20} {C_RESET}")
         
-    draw_retro_box(30, "🕹️ MAIN MENU", menu_content, color=C_CYAN)
-    print("\n" + " " * ((term_width - 36) // 2) + f"{C_WHITE}Use Arrows to navigate, Enter to play{C_RESET}")
+    draw_retro_box(30, "🕹️ GAME MENU", menu_content, color=C_CYAN)
+    print("\n" + " " * max(0, (term_width - 36) // 2) + f"{C_WHITE}Use Arrows to navigate, Enter to play{C_RESET}")
 
 def main():
-    if os.name == 'nt': os.system('') # Initialize ANSI on Windows
+    if os.name == 'nt': os.system('') # Initialize ANSI
     selection = 0
+    num_options = 8 # 0-7 (where 7 is Quit)
+    
     while True:
         print_menu(selection)
         key = get_key()
         
         if key == 'up': 
-            selection = (selection - 1) % 4
+            selection = (selection - 1) % num_options
             beep("correct")
         elif key == 'down': 
-            selection = (selection + 1) % 4
+            selection = (selection + 1) % num_options
             beep("correct")
         elif key in ['\r', '\n', ' ']:
             beep("correct")
-            if selection == 0: play_sudoku()
-            elif selection == 1:
-                try:
-                    import chess
-                    play_chess()
-                except ImportError:
-                    clear_screen()
-                    print(f"\n{C_RED} Error: python-chess not found! Run pip install -r requirements.txt{C_RESET}")
+            if selection == 0: play_snake()
+            elif selection == 1: play_breakout()
+            elif selection == 2: play_space_shooter()
+            elif selection == 3: play_tetris()
+            elif selection == 4: play_minesweeper()
+            elif selection == 5:
+                if play_chess:
+                    try:
+                        play_chess()
+                    except ImportError:
+                        print(f"\n{C_RED} Error: python-chess not found!{C_RESET}")
+                        time.sleep(2)
+                else:
+                    print(f"\n{C_RED} Error: python-chess not found! (Module missing){C_RESET}")
                     time.sleep(2)
-            elif selection == 2: play_minesweeper()
-            elif selection == 3: break
-        elif key in ['1', '2', '3', 'q', 'Q']:
-            beep("correct")
-            if key == '1': play_sudoku()
-            elif key == '2': play_chess()
-            elif key == '3': play_minesweeper()
-            elif key in ['q', 'Q']: break
-
-if __name__ == "__main__":
-    main()
+            elif selection == 6: play_sudoku()
+            elif selection == 7: break
+        elif key in ['q', 'Q']:
+            break
+        elif key in [str(i) for i in range(1, 8)]:
+             idx = int(key) - 1
+             selection = idx
+             # Auto play or just select? Let's just select
+             pass
 
 if __name__ == "__main__":
     main()

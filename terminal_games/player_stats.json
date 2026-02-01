@@ -20,5 +20,17 @@
             "expert": 0
         },
         "no_flag_wins": 0
+    },
+    "snake": {
+        "high_score": 0
+    },
+    "breakout": {
+        "best_score": 0
+    },
+    "space_shooter": {
+        "high_score": 0
+    },
+    "tetris": {
+        "best_score": 0
     }
 }
