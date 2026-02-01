@@ -43,7 +43,7 @@ def print_board(board, revealed, flagged, cursor, elapsed, mines, exploded=None,
     
     border_color = C_RED if flash_red else C_CYAN
     
-    print(indent + f"{border_color}╔" + "═══" * cols + "═╗{C_RESET}")
+    print(indent + f"{border_color}╔" + "═══" * cols + f"═╗{C_RESET}")
     
     for r in range(rows):
         line = indent + f"{border_color}║{C_RESET} "
@@ -62,7 +62,7 @@ def print_board(board, revealed, flagged, cursor, elapsed, mines, exploded=None,
             else: char = f"{style}{C_WHITE}■{C_RESET} "
             line += char + " "
         print(line + f"{border_color}║{C_RESET}")
-    print(indent + f"{border_color}╚" + "═══" * cols + "═╝{C_RESET}")
+    print(indent + f"{border_color}╚" + "═══" * cols + f"═╝{C_RESET}")
     
     controls = "ARROWS: Move | ENTER: Reveal | F: Flag | Q: Exit"
     ctrl_indent = (term_width - len(controls)) // 2
