@@ -158,7 +158,7 @@ def draw_retro_box(width, title, content_lines, color=C_CYAN, title_color=C_YELL
         # But standard print is easier. Let's trust the padding calc for now.
         print(indent + f"║{l_text}║")
         
-    print(indent + f"╚" + "═" * (width - 2) + f"╝{C_RESET}")
+    print(indent + f"╚" + "═" * (width - 2) + "╝{C_RESET}")
 
 def show_popup(msg, color=C_CYAN, delay=2):
     clear_screen()
