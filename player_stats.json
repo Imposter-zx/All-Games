@@ -1,0 +1,17 @@
+{
+    "snake": {
+        "high_score": 120
+    },
+    "breakout": {
+        "best_score": 30
+    },
+    "space_shooter": {
+        "high_score": 110
+    },
+    "tetris": {
+        "best_score": 24
+    },
+    "pacman": {
+        "wins": 1
+    }
+}

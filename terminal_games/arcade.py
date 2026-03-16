@@ -1,7 +1,7 @@
 import os
 import sys
 import time
-from arcade_utils import clear_screen, get_key, load_stats, draw_retro_box, beep, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA
+from arcade_utils import clear_screen, get_key, load_stats, draw_retro_box, beep, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA
 from sudoku import play_sudoku
 from minesweeper import play_minesweeper
 try:
@@ -12,6 +12,8 @@ from snake import play_snake
 from breakout import play_breakout
 from space_shooter import play_space_shooter
 from tetris import play_tetris
+
+from pacman import play_pacman
 
 BANNER_TEXT = [
     "  ____  _  _  ____  _   _  _____  _   _  ",
@@ -33,11 +35,13 @@ def draw_profile(stats):
     total_score += stats.get("breakout", {}).get("best_score", 0)
     total_score += stats.get("space_shooter", {}).get("high_score", 0)
     total_score += stats.get("tetris", {}).get("best_score", 0)
+    total_score += stats.get("pacman", {}).get("high_score", 0)
     
     # Existing stats
     m_stats = stats.get("minesweeper", {})
     m_wins = sum(m_stats.get('wins', {}).values()) if isinstance(m_stats.get('wins'), dict) else 0
     c_wins = stats.get("chess", {}).get("wins", 0)
+    p_wins = stats.get("pacman", {}).get("wins", 0)
     
     profile_lines = [
         f"PLAYER: {C_YELLOW}RETRO_MASTER{C_WHITE}",
@@ -47,6 +51,7 @@ def draw_profile(stats):
         f"🧱 Breakout Best     : {C_CYAN}{stats.get('breakout', {}).get('best_score', 0)}{C_WHITE}",
         f"🚀 Shooter High      : {C_MAGENTA}{stats.get('space_shooter', {}).get('high_score', 0)}{C_WHITE}",
         f"🧩 Tetris Best       : {C_BLUE}{stats.get('tetris', {}).get('best_score', 0)}{C_WHITE}",
+        f"🟡 Pacman Wins       : {C_YELLOW}{p_wins}{C_WHITE}",
         f"💣 Minesweeper Wins  : {C_RED}{m_wins}{C_WHITE}",
         f"♟️ Chess Wins        : {C_WHITE}{c_wins}{C_WHITE}"
     ]
@@ -56,7 +61,6 @@ def print_menu(selection):
     clear_screen()
     stats = load_stats()
     
-    # Center banner
     term_width = 80
     try: term_width = os.get_terminal_size().columns
     except: pass
@@ -73,15 +77,15 @@ def print_menu(selection):
         "2. 🧱 Breakout",
         "3. 🚀 Space Shooter",
         "4. 🧩 Tetris",
-        "5. 💣 Minesweeper",
-        "6. ♟️ Chess vs AI",
-        "7. 🔢 Sudoku",
+        "5. 🟡 Pacman",
+        "6. 💣 Minesweeper",
+        "7. ♟️ Chess vs AI",
+        "8. 🔢 Sudoku",
         "Q. 🚪 Quit"
     ]
     
     menu_content = []
     for i, opt in enumerate(options):
-        # Handle 'Q' separately for index logic
         is_sel = (i == selection)
         prefix = f"{C_YELLOW}► {C_RESET}" if is_sel else "  "
         style = f"\033[47;30m" if is_sel else f"{C_WHITE}"
@@ -93,7 +97,7 @@ def print_menu(selection):
 def main():
     if os.name == 'nt': os.system('') # Initialize ANSI
     selection = 0
-    num_options = 8 # 0-7 (where 7 is Quit)
+    num_options = 9 # Updated for Pacman
     
     while True:
         print_menu(selection)
@@ -111,8 +115,9 @@ def main():
             elif selection == 1: play_breakout()
             elif selection == 2: play_space_shooter()
             elif selection == 3: play_tetris()
-            elif selection == 4: play_minesweeper()
-            elif selection == 5:
+            elif selection == 4: play_pacman()
+            elif selection == 5: play_minesweeper()
+            elif selection == 6:
                 if play_chess:
                     try:
                         play_chess()
@@ -122,15 +127,17 @@ def main():
                 else:
                     print(f"\n{C_RED} Error: python-chess not found! (Module missing){C_RESET}")
                     time.sleep(2)
-            elif selection == 6: play_sudoku()
-            elif selection == 7: break
+            elif selection == 7: play_sudoku()
+            elif selection == 8: break
         elif key in ['q', 'Q']:
             break
-        elif key in [str(i) for i in range(1, 8)]:
+        elif key in [str(i) for i in range(1, 10)]:
              idx = int(key) - 1
              selection = idx
-             # Auto play or just select? Let's just select
              pass
+
+if __name__ == "__main__":
+    main()
 
 if __name__ == "__main__":
     main()

@@ -2,6 +2,11 @@ import os
 import sys
 import json
 import time
+import re
+
+def strip_ansi(text):
+    """Removes ANSI escape codes from a string to get its visual length."""
+    return re.sub(r'\x1b\[[0-9;]*[mGJKH]', '', text)
 
 # ANSI Color Codes
 C_RESET = "\033[0m"
@@ -137,25 +142,20 @@ def draw_retro_box(width, title, content_lines, color=C_CYAN, title_color=C_YELL
     print(indent + f"{color}╔" + "═" * (width - 2) + "╗")
     
     # Title line
-    title_padding = (width - 2 - len(title)) // 2
+    stripped_title = strip_ansi(title)
+    title_padding = (width - 2 - len(stripped_title)) // 2
     title_line = " " * title_padding + f"{title_color}{C_BOLD}{title}{C_RESET}{color}"
-    title_line += " " * (width - 2 - len(title) - title_padding)
+    title_line += " " * (width - 2 - len(stripped_title) - title_padding)
     print(indent + f"║{title_line}║")
     
     print(indent + f"╠" + "═" * (width - 2) + "╣")
     
     for line in content_lines:
-        content_len = len(line.replace(C_RED, "").replace(C_CYAN, "").replace(C_YELLOW, "").replace(C_GREEN, "").replace(C_BLUE, "").replace(C_MAGENTA, "").replace(C_WHITE, "").replace(C_RESET, "").replace(C_BOLD, ""))
+        stripped_line = strip_ansi(line)
+        content_len = len(stripped_line)
         content_padding = max(0, (width - 2 - content_len) // 2)
         l_text = " " * content_padding + f"{C_WHITE}{line}{C_RESET}{color}"
         l_text += " " * (width - 2 - content_len - content_padding)
-        # Ensure exact width matching handling ansi codes is tricky, so simpler approach for now:
-        # We rely on visual length.  If checking strictly, we'd need a regex for ANSI stripping.
-        # For this retro style, slight misalignment is acceptable or we assume lines are pre-measured.
-        # A safer way to align strictly for borders:
-        print_len = width - 2
-        # Simple hack: print start, print content, move cursor to end
-        # But standard print is easier. Let's trust the padding calc for now.
         print(indent + f"║{l_text}║")
         
     print(indent + f"╚" + "═" * (width - 2) + "╝{C_RESET}")
