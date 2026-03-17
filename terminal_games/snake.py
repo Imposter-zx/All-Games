@@ -1,7 +1,7 @@
 import random
 import time
 import os
-from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, update_stats, load_stats, animated_flash, print_big_title, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
+from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, update_stats, load_stats, animated_flash, print_big_title, add_xp, screen_shake, particle_effect, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
 
 BOARD_WIDTH = 30
 BOARD_HEIGHT = 15
@@ -117,6 +117,7 @@ def play_snake():
             new_head[1] < 0 or new_head[1] >= BOARD_WIDTH or 
             new_head in snake):
             beep("game_over")
+            screen_shake(0.3, 2)
             animated_flash(C_RED)
             show_popup(f"GAME OVER! Score: {score}", C_RED)
             if score > high_score:
@@ -128,6 +129,9 @@ def play_snake():
         
         if new_head == food:
             score += 10
+            add_xp(10)
+            screen_shake(0.05, 1)
+            particle_effect(char="+", color=C_GREEN, count=3)
             beep("eat")
             food = create_food(snake)
             if score % 50 == 0: speed = max(0.05, speed - 0.01) # Speed up

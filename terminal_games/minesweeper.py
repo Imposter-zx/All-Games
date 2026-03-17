@@ -1,7 +1,7 @@
 import random
 import time
 import os
-from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, update_stats, load_stats
+from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, update_stats, load_stats, add_xp, screen_shake, particle_effect
 
 NUM_COLORS = {1: "\033[34m", 2: "\033[32m", 3: "\033[31m", 4: "\033[35m", 5: "\033[33m", 6: "\033[36m", 7: "\033[30m", 8: "\033[37m"}
 
@@ -81,6 +81,8 @@ def reveal(board, revealed, flagged, r, c, animate=True):
 
 def explosion_effect(board, revealed, flagged, cursor, elapsed, mines, cr, cc):
     beep("lose")
+    screen_shake(0.5, 3)
+    particle_effect(char="X", color=C_RED, count=15)
     for _ in range(3):
         print_board(board, revealed, flagged, tuple(cursor), elapsed, mines, exploded=(cr, cc), flash_red=True)
         time.sleep(0.1)
@@ -117,6 +119,7 @@ def play_minesweeper():
         if sum(1 for i in range(r) for j in range(c) if not revealed[i][j] and board[i][j] != 'M') == 0:
             beep("win")
             show_popup("VICTORY! FIELD CLEARED", color=C_GREEN)
+            add_xp(500 if diff_name == "expert" else (250 if diff_name == "intermediate" else 100))
             stats = load_stats().get("minesweeper", {})
             update_stats("minesweeper", "wins", stats.get("wins", {}).get(diff_name, 0) + 1, diff_name)
             break

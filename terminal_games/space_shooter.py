@@ -1,7 +1,7 @@
 import time
 import os
 import random
-from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, update_stats, load_stats, animated_flash, print_big_title, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
+from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, update_stats, load_stats, animated_flash, print_big_title, add_xp, screen_shake, particle_effect, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
 
 WIDTH = 30
 HEIGHT = 20
@@ -52,6 +52,9 @@ def play_space_shooter():
                     bullets.remove(b)
                     enemies.remove(e)
                     score += 10
+                    add_xp(5)
+                    screen_shake(0.05, 1)
+                    particle_effect(char="*", color=C_RED, count=3)
                     beep("eat")
                     hit = True
                     break
@@ -70,6 +73,7 @@ def play_space_shooter():
                  hit_player = True
         
         if hit_player:
+            screen_shake(0.3, 2)
             animated_flash(C_RED)
             beep("lose")
             if lives <= 0:

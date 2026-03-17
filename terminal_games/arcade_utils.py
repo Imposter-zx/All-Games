@@ -110,6 +110,55 @@ def update_stats(game, key, value, subkey=None):
         stats[game][key] = value
     save_stats(stats)
 
+def add_xp(amount):
+    """Adds XP to the player profile and handles leveling."""
+    stats = load_stats()
+    profile = stats.get("profile", {"xp": 0, "level": 1})
+    profile["xp"] += amount
+    
+    # Simple leveling logic: level = sqrt(xp/100) + 1
+    import math
+    new_level = int(math.sqrt(profile["xp"] / 100)) + 1
+    if new_level > profile["level"]:
+        profile["level"] = new_level
+        show_popup(f"LEVEL UP! REACHED LEVEL {new_level}", C_YELLOW, delay=1.5)
+        beep("win")
+    
+    stats["profile"] = profile
+    save_stats(stats)
+    return profile
+
+def get_level_info():
+    stats = load_stats()
+    profile = stats.get("profile", {"xp": 0, "level": 1})
+    xp = profile["xp"]
+    level = profile["level"]
+    next_level_xp = (level ** 2) * 100
+    prev_level_xp = ((level - 1) ** 2) * 100
+    progress = (xp - prev_level_xp) / (next_level_xp - prev_level_xp) if next_level_xp > prev_level_xp else 1
+    return level, xp, progress
+
+def screen_shake(duration=0.3, intensity=1):
+    """Simulates a screen shake by clearing and re-printing with offsets."""
+    # Terminal screen shake is tricky; we simulate it with rapid clearing/flashing
+    # and slight ANSI cursor offsets if the terminal supports it.
+    for _ in range(3):
+        print("\033[1;1H", end="") # Move to top
+        if intensity > 0:
+            print(" " * intensity) # Slight offset simulation
+        time.sleep(duration / 6)
+        clear_screen()
+        time.sleep(duration / 6)
+
+def particle_effect(char="*", color=C_WHITE, count=10):
+    """Prints a burst of particles at the current cursor position (simplified)."""
+    # In terminal, we just print a localized burst of characters
+    print(color, end="")
+    for _ in range(count):
+        print(char, end=" ", flush=True)
+        time.sleep(0.01)
+    print(C_RESET)
+
 def animated_flash(color=C_RED, duration=0.1, count=1):
     """Flashes the screen background color."""
     for _ in range(count):

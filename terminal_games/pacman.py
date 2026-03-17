@@ -1,7 +1,7 @@
 import time
 import os
 import random
-from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, update_stats, load_stats, animated_flash, print_big_title, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
+from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, update_stats, load_stats, animated_flash, print_big_title, add_xp, screen_shake, particle_effect, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
 
 # Pacman Map
 # 1 = Wall, 0 = Pellet, 2 = Power Pellet, 3 = Empty
@@ -77,6 +77,9 @@ def play_pacman():
                     score += 200
                     # Reset ghost (simplified)
                     ghosts[ghosts.index([gx, gy])] = [7, 7]
+                    screen_shake(0.1, 1)
+                    particle_effect(char="*", color=C_CYAN, count=5)
+                    add_xp(50)
                     beep("win")
                 else:
                     beep("lose")

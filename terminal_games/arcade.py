@@ -1,7 +1,7 @@
 import os
 import sys
 import time
-from arcade_utils import clear_screen, get_key, load_stats, draw_retro_box, beep, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA
+from arcade_utils import clear_screen, get_key, load_stats, draw_retro_box, beep, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, get_level_info, add_xp
 from sudoku import play_sudoku
 from minesweeper import play_minesweeper
 try:
@@ -14,6 +14,10 @@ from space_shooter import play_space_shooter
 from tetris import play_tetris
 
 from pacman import play_pacman
+try:
+    from dungeon import play_dungeon
+except ImportError:
+    play_dungeon = None
 
 BANNER_TEXT = [
     "  ____  _  _  ____  _   _  _____  _   _  ",
@@ -43,8 +47,14 @@ def draw_profile(stats):
     c_wins = stats.get("chess", {}).get("wins", 0)
     p_wins = stats.get("pacman", {}).get("wins", 0)
     
+    level, xp, progress = get_level_info()
+    bar_width = 20
+    filled = int(progress * bar_width)
+    xp_bar = f"[{C_GREEN}{'█' * filled}{C_BLACK}{'░' * (bar_width - filled)}{C_WHITE}]"
+    
     profile_lines = [
-        f"PLAYER: {C_YELLOW}RETRO_MASTER{C_WHITE}",
+        f"PLAYER: {C_YELLOW}RETRO_MASTER{C_WHITE}  LVL: {C_CYAN}{level}{C_WHITE}",
+        f"XP: {xp} {xp_bar}",
         f"══════════════════════════════",
         f"🏆 TOTAL ARCADE SCORE: {C_YELLOW}{total_score}{C_WHITE}",
         f"🐍 Snake Best        : {C_GREEN}{stats.get('snake', {}).get('high_score', 0)}{C_WHITE}",
@@ -78,9 +88,10 @@ def print_menu(selection):
         "3. 🚀 Space Shooter",
         "4. 🧩 Tetris",
         "5. 🟡 Pacman",
-        "6. 💣 Minesweeper",
-        "7. ♟️ Chess vs AI",
-        "8. 🔢 Sudoku",
+        "6. ⚔️ Dungeon Crawler",
+        "7. 💣 Minesweeper",
+        "8. ♟️ Chess vs AI",
+        "9. 🔢 Sudoku",
         "Q. 🚪 Quit"
     ]
     
@@ -97,7 +108,7 @@ def print_menu(selection):
 def main():
     if os.name == 'nt': os.system('') # Initialize ANSI
     selection = 0
-    num_options = 9 # Updated for Pacman
+    num_options = 10 # Updated for Dungeon Crawler
     
     while True:
         print_menu(selection)
@@ -116,8 +127,11 @@ def main():
             elif selection == 2: play_space_shooter()
             elif selection == 3: play_tetris()
             elif selection == 4: play_pacman()
-            elif selection == 5: play_minesweeper()
-            elif selection == 6:
+            elif selection == 5: 
+                if play_dungeon: play_dungeon()
+                else: print("Dungeon module not found!"); time.sleep(1)
+            elif selection == 6: play_minesweeper()
+            elif selection == 7:
                 if play_chess:
                     try:
                         play_chess()
@@ -127,17 +141,15 @@ def main():
                 else:
                     print(f"\n{C_RED} Error: python-chess not found! (Module missing){C_RESET}")
                     time.sleep(2)
-            elif selection == 7: play_sudoku()
-            elif selection == 8: break
+            elif selection == 8: play_sudoku()
+            elif selection == 9: break
         elif key in ['q', 'Q']:
             break
-        elif key in [str(i) for i in range(1, 10)]:
+        elif key in [str(i) for i in range(1, 11)]:
              idx = int(key) - 1
+             if idx == 9: break # Quit
              selection = idx
              pass
-
-if __name__ == "__main__":
-    main()
 
 if __name__ == "__main__":
     main()

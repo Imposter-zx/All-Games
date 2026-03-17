@@ -1,7 +1,7 @@
 import time
 import os
 import random
-from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, update_stats, load_stats, animated_flash, print_big_title, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
+from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, update_stats, load_stats, animated_flash, print_big_title, add_xp, screen_shake, particle_effect, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
 
 WIDTH = 10
 HEIGHT = 20
@@ -158,6 +158,9 @@ def play_tetris():
             lines_cleared = HEIGHT - len(new_board)
             if lines_cleared > 0:
                 score += (100 * lines_cleared)
+                add_xp(25 * lines_cleared)
+                screen_shake(0.1 * lines_cleared, lines_cleared)
+                particle_effect(char="*", color=piece['color'], count=10 * lines_cleared)
                 beep("win") # Clear sound
                 board = [[0] * WIDTH for _ in range(lines_cleared)] + new_board
             
@@ -166,6 +169,7 @@ def play_tetris():
             
             if check_collision(board, piece['shape'], (piece['x'], piece['y'])):
                 beep("game_over")
+                screen_shake(0.3, 2)
                 show_popup(f"GAME OVER! Score: {score}", C_RED)
                 if score > best_score:
                     update_stats('tetris', 'best_score', score)

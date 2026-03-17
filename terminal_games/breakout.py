@@ -1,7 +1,7 @@
 import time
 import os
 import random
-from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, update_stats, load_stats, animated_flash, print_big_title, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
+from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, update_stats, load_stats, animated_flash, print_big_title, add_xp, screen_shake, particle_effect, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
 
 WIDTH = 40
 HEIGHT = 20
@@ -123,6 +123,7 @@ def play_breakout():
             else:
                 lives -= 1
                 beep("lose")
+                screen_shake(0.3, 2)
                 animated_flash(C_RED)
                 if lives == 0:
                     show_popup(f"GAME OVER! Score: {score}", C_RED)
@@ -142,6 +143,9 @@ def play_breakout():
                     b['active'] = False
                     ball_dy *= -1
                     score += 10
+                    add_xp(15)
+                    screen_shake(0.05, 1)
+                    particle_effect(char="*", color=b['color'], count=5)
                     beep("eat")
                     hit = True
                     break

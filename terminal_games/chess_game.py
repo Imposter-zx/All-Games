@@ -2,7 +2,7 @@ import chess
 import chess.engine
 import time
 import os
-from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, BG_DARK, BG_LIGHT, BG_CUR, BG_SEL, BG_RED, update_stats, load_stats
+from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, BG_DARK, BG_LIGHT, BG_CUR, BG_SEL, BG_RED, update_stats, load_stats, add_xp, screen_shake, particle_effect
 
 # --- ASCII ART PIECES ---
 # Each piece is exactly 3 lines high and up to 5 chars wide.
@@ -140,6 +140,10 @@ def play_chess():
                         if (chess.square_rank(cursor) == 7 and board.turn == chess.WHITE) or (chess.square_rank(cursor) == 0 and board.turn == chess.BLACK):
                             move.promotion = chess.QUEEN
                     if move in board.legal_moves:
+                        if board.is_capture(move):
+                            screen_shake(0.1, 1)
+                            particle_effect(char="*", color=C_RED, count=5)
+                            add_xp(20)
                         board.push(move)
                         last_move = move
                         selected = None
@@ -150,6 +154,9 @@ def play_chess():
         else:
             time.sleep(0.5)
             m = get_ai_move(board)
+            if board.is_capture(m):
+                screen_shake(0.1, 1)
+                particle_effect(char="X", color=C_MAGENTA, count=5)
             animate_move(board, m, cursor)
             board.push(m)
             last_move = m
@@ -158,7 +165,9 @@ def play_chess():
     # End of game
     print_board(board, cursor, selected, last_move=last_move)
     res = board.result()
-    beep("win" if (res == "1-0" and u_white) or (res == "0-1" and not u_white) else "lose")
+    won = (res == "1-0" and u_white) or (res == "0-1" and not u_white)
+    if won: add_xp(500)
+    beep("win" if won else "lose")
     show_popup(f"GAME OVER: {res}", color=C_MAGENTA, delay=3)
     
     # Update Stats

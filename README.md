@@ -1,33 +1,36 @@
-# 🕹️ Retro Terminal Arcade V4
+# 🕹️ Retro Terminal Arcade V5: The RPG Update
 
-A premium collection of classic terminal games with a polished, colorful TUI, smooth animations, and persistent statistics.
+A premium collection of classic terminal games with a polished TUI, XP/Leveling system, procedural dungeons, and immersive visual effects.
 
 ## 🎮 Games Included
 
-1.  **🟡 Pac-Man (NEW)**
-    - Classic grid movement with ghost AI.
-    - Power Pellets and score tracking.
-2.  **🐍 Snake**
-    - High-speed survival game with glowing effects.
-3.  **🧱 Breakout**
-    - Physics-based brick destruction.
-4.  **🧩 Tetris**
-    - Modern implementation with line clears and ghost pieces.
-5.  **🚀 Space Shooter**
-    - Fast-paced arcade combat.
-6.  **💣 Minesweeper**
-    - Classic logic-based mine detection.
-7.  **♟️ Chess vs AI**
-    - Play standard chess against a basic AI engine.
-8.  **🔢 Sudoku**
-    - Classic number puzzle.
+1.  **⚔️ Dungeon Crawler (NEW)**
+    - Roguelike exploration with procedural rooms.
+    - Turn-based combat, loot collection, and level progression.
+2.  **🟡 Pac-Man**
+    - Classic grid movement with ghost AI and powerups.
+3.  **🐍 Snake**
+    - High-speed survival with XP rewards for eating.
+4.  **🧱 Breakout**
+    - Physics-based brick destruction with screen shake and particles.
+5.  **🧩 Tetris**
+    - Modern implementation with line clears awarding massive XP.
+6.  **🚀 Space Shooter**
+    - Fast-paced combat with explosive particle effects.
+7.  **💣 Minesweeper**
+    - Classic logic-based mine detection with high XP on victory.
+8.  **♟️ Chess vs AI**
+    - Play against Stockfish; XP for captures and wins.
+9.  **🔢 Sudoku**
+    - Logic puzzles with a persistence bonus.
 
-## ✨ Features
+## ✨ V5 Features: The RPG Update
 
-- **High-Fidelity TUI**: Premium interface using ANSI-safe rendering for perfect alignment.
-- **Micro-Animations**: Visual feedback for moves, wins, and losses.
-- **Global Profile**: Tracks your total arcade score and best performances across all games.
-- **Cross-Platform**: Optimized for Windows (PowerShell/CMD) and Unix terminals.
+- **Global RPG Progression**: Gain XP across ALL games. Level up to see your rank grow on your persistent profile.
+- **Visual Juice**: Immersive screen shakes and particle effects for combat, line clears, and explosions.
+- **Enhanced Profile**: Sleek XP progress bar and level display in the main arcade menu.
+- **ANSI-Safe Rendering**: Premium TUI alignment and design across all game modules.
+- **Cross-Platform**: Optimized for Windows and Unix terminals.
 
 ## 🚀 Installation & Usage
 

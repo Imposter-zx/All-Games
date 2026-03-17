@@ -1,7 +1,7 @@
 import random
 import time
 import os
-from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, update_stats, load_stats
+from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, update_stats, load_stats, add_xp, particle_effect
 
 def solve(board):
     for r in range(9):
@@ -104,6 +104,7 @@ def victory_animation(elapsed):
         clear_screen()
         print("\n" * 10)
         draw_retro_box(40, "🎉 CONGRATULATIONS", [frame, f"Time: {elapsed//60:02}:{elapsed%60:02}"], color=C_GREEN)
+        particle_effect(char="*", color=C_YELLOW, count=2)
         time.sleep(0.1)
     time.sleep(1.5)
 
@@ -129,6 +130,7 @@ def play_sudoku():
         msg = ""
 
         if all(board[r][c] == solution[r][c] for r in range(9) for c in range(9)):
+            add_xp(200 if diff == "hard" else (100 if diff == "medium" else 50))
             victory_animation(elapsed)
             stats = load_stats().get("sudoku", {})
             best = stats.get("best_times", {}).get(diff)
