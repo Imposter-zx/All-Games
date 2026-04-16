@@ -1,7 +1,13 @@
 import time
 import os
 import random
-from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, update_stats, load_stats, animated_flash, print_big_title, add_xp, screen_shake, particle_effect, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
+from arcade_utils import (
+    clear_screen, get_key, draw_retro_box, beep, show_popup, 
+    update_stats, load_stats, animated_flash, print_big_title, 
+    add_xp, screen_shake, particle_effect, 
+    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
+)
+from base_game import BaseGame
 
 WIDTH = 10
 HEIGHT = 20
@@ -21,159 +27,209 @@ COLORS = [C_CYAN, C_YELLOW, C_MAGENTA, C_WHITE, C_BLUE, C_GREEN, C_RED]
 def rotate(shape):
     return [list(row) for row in zip(*shape[::-1])]
 
-def check_collision(board, shape, offset):
-    off_x, off_y = offset
-    for cy, row in enumerate(shape):
-        for cx, cell in enumerate(row):
-            if cell:
-                try:
-                    if off_y + cy >= HEIGHT or off_x + cx < 0 or off_x + cx >= WIDTH or board[off_y + cy][off_x + cx]:
-                        return True
-                except IndexError:
-                    return True
-    return False
+class TetrisGame(BaseGame):
+    """Tetris game implementation using BaseGame."""
+    
+    def __init__(self):
+        super().__init__("tetris")
+        self.board = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
+        self.piece = self._new_piece()
+        self.next_piece = self._new_piece()
+        self.level = 1
+        self.fall_speed = 0.5
+        self.last_fall_time = time.time()
+    
+    def _new_piece(self):
+        shape_idx = random.randint(0, len(SHAPES) - 1)
+        shape = SHAPES[shape_idx]
+        color = COLORS[shape_idx]
+        return {
+            'shape': shape, 
+            'color': color, 
+            'x': WIDTH // 2 - len(shape[0]) // 2, 
+            'y': 0
+        }
 
-def join_matrixes(mat1, mat2, mat2_off):
-    off_x, off_y = mat2_off
-    for cy, row in enumerate(mat2):
-        for cx, val in enumerate(row):
-             if val: mat1[off_y + cy][off_x + cx] += val
-    return mat1
-
-def new_piece():
-    shape = random.choice(SHAPES)
-    color = COLORS[SHAPES.index(shape)]
-    return {'shape': shape, 'color': color, 'x': WIDTH // 2 - len(shape[0]) // 2, 'y': 0}
-
-def play_tetris():
-    clear_screen()
-    print_big_title("TETRIS", color=C_BLUE)
-    time.sleep(1)
-    
-    board = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
-    piece = new_piece()
-    next_piece_obj = new_piece()
-    
-    score = 0
-    start_time = time.time()
-    level = 1
-    
-    stats = load_stats().get('tetris', {})
-    high_score = stats.get('high_score', 0)
-    
-    while True:
-        # Draw
+    def play(self) -> dict:
+        """Main Tetris game loop."""
+        self.start_timer()
         clear_screen()
+        print_big_title("TETRIS", color=C_BLUE)
+        time.sleep(1)
+        
+        while not self.game_over:
+            self._render()
+            self._handle_input()
+            self._update_game_state()
+            
+            # Control game speed based on level
+            self.fall_speed = max(0.1, 0.5 - (self.level * 0.05))
+            time.sleep(0.05) # Small sleep to prevent CPU hogging
+            
+        self.end_timer()
+        
+        # Final stats save handled by caller or here
+        stats = load_stats().get('tetris', {})
+        high_score = stats.get('high_score', 0)
+        if self.score > high_score:
+            update_stats('tetris', 'high_score', self.score)
+            show_popup("NEW HIGH SCORE!", C_YELLOW)
+        
+        self.save_stats({
+            'high_score': max(self.score, high_score),
+            'last_score': self.score,
+            'xp_earned': self.xp_earned
+        })
+        
+        return self.get_final_stats()
+
+    def _render(self):
+        """Render the Tetris board and UI."""
+        clear_screen()
+        stats = load_stats().get('tetris', {})
+        high_score = stats.get('high_score', 0)
+        
         # Header
-        print(f"{C_BLUE}╔{'═' * (WIDTH*2)}╗")
-        print(f"║ SCORE: {score:<6} LVL: {level} ║")
-        print(f"╚{'═' * (WIDTH*2)}╝{C_RESET}")
+        print(f"{C_BLUE}╔{'═' * (WIDTH * 2)}╗")
+        print(f"║ SCORE: {self.score:<6} LVL: {self.level:<3} HI: {high_score:<6} ║")
+        print(f"╚{'═' * (WIDTH * 2)}╝{C_RESET}")
         
-        # Board + Next Piece
-        # We need a buffer to draw
-        temp_board = [row[:] for row in board]
+        # Board + Next Piece Info
+        print(f"{C_BLUE}╔{'═' * (WIDTH * 2)}╗{C_RESET}  NEXT PIECE:")
         
-        # Add piece to temp board for drawing
-        for cy, row in enumerate(piece['shape']):
-            for cx, val in enumerate(row):
-                 if val and 0 <= piece['y'] + cy < HEIGHT and 0 <= piece['x'] + cx < WIDTH:
-                     temp_board[piece['y'] + cy][piece['x'] + cx] = 1 # Just mark as occupied for now, handle color later?
-                     # Ideally we store color in board. 
-                     # Simplifying: board stores 0 or ColorCode
-        
-        # Render Board
-        print(f"{C_BLUE}╔{'═' * (WIDTH*2)}╗{C_RESET}  NEXT:")
         for r in range(HEIGHT):
             line = f"{C_BLUE}║{C_RESET}"
             for c in range(WIDTH):
-                val = board[r][c]
-                # Check dynamic piece
+                # Check for active piece
                 is_piece = False
-                if 0 <= r - piece['y'] < len(piece['shape']) and 0 <= c - piece['x'] < len(piece['shape'][0]):
-                     if piece['shape'][r - piece['y']][c - piece['x']]:
-                         line += f"{piece['color']}██{C_RESET}"
-                         is_piece = True
+                if (0 <= r - self.piece['y'] < len(self.piece['shape']) and 
+                    0 <= c - self.piece['x'] < len(self.piece['shape'][0])):
+                    if self.piece['shape'][r - self.piece['y']][c - self.piece['x']]:
+                        line += f"{self.piece['color']}██{C_RESET}"
+                        is_piece = True
                 
                 if not is_piece:
-                    if val == 0: line += f"{C_BLACK} . {C_RESET}" # grid dot
-                    else: line += f"{val}██{C_RESET}"
+                    val = self.board[r][c]
+                    if val == 0:
+                        line += f"{C_BLACK} . {C_RESET}"
+                    else:
+                        line += f"{val}██{C_RESET}"
             
             line += f"{C_BLUE}║{C_RESET}"
             
-            # Side panel (Next piece)
-            if r == 1: line += f"  {next_piece_obj['color']}"
-            if 1 <= r <= 4:
-                 # draw next piece logic simplified or just text
-                 pass
+            # Next piece preview (simple)
+            if r == 1:
+                line += f"  {self.next_piece['color']}████{C_RESET}" if len(self.next_piece['shape'][0]) > 2 else f"  {self.next_piece['color']}██{C_RESET}"
+            
             print(line)
-        print(f"{C_BLUE}╚{'═' * (WIDTH*2)}╝{C_RESET}")
-        
-        # Input (Blocking with timeout for gravity)
-        if os.name == 'nt':
-             import msvcrt
-             t0 = time.time()
-             has_input = False
-             while time.time() - t0 < max(0.1, 0.5 - (level * 0.05)):
-                 if msvcrt.kbhit():
-                     key = msvcrt.getch()
-                     if key == b'\xe0':
-                         key = msvcrt.getch()
-                         if key == b'H': # Rotate
-                             rotated = rotate(piece['shape'])
-                             if not check_collision(board, rotated, (piece['x'], piece['y'])):
-                                 piece['shape'] = rotated
-                                 beep("move")
-                         elif key == b'K': # Left
-                             if not check_collision(board, piece['shape'], (piece['x'] - 1, piece['y'])):
-                                 piece['x'] -= 1
-                                 beep("move")
-                         elif key == b'M': # Right
-                             if not check_collision(board, piece['shape'], (piece['x'] + 1, piece['y'])):
-                                 piece['x'] += 1
-                                 beep("move")
-                         elif key == b'P': # Down (Soft Drop)
-                             if not check_collision(board, piece['shape'], (piece['x'], piece['y'] + 1)):
-                                 piece['y'] += 1
-                                 score += 1
-                     elif key.lower() == b'q': return
-                     has_input = True
-                     break
-        else:
-            # unix implementation omitted for brevity, similar select logic
-             time.sleep(max(0.1, 0.5 - (level * 0.05)))
-        
+            
+        print(f"{C_BLUE}╚{'═' * (WIDTH * 2)}╝{C_RESET}")
+        print(f"{C_WHITE}Arrows: Move/Rotate | Q: Quit{C_RESET}")
+
+    def _handle_input(self):
+        """Handle user input for movement and rotation."""
+        k = get_key(timeout=0.05)
+        if not k:
+            return
+            
+        if k == 'q':
+            self.game_over = True
+        elif k == 'up': # Rotate
+            rotated = rotate(self.piece['shape'])
+            if not self._check_collision(rotated, (self.piece['x'], self.piece['y'])):
+                self.piece['shape'] = rotated
+                beep("move")
+        elif k == 'left':
+            if not self._check_collision(self.piece['shape'], (self.piece['x'] - 1, self.piece['y'])):
+                self.piece['x'] -= 1
+                beep("move")
+        elif k == 'right':
+            if not self._check_collision(self.piece['shape'], (self.piece['x'] + 1, self.piece['y'])):
+                self.piece['x'] += 1
+                beep("move")
+        elif k == 'down': # Soft Drop
+            if not self._check_collision(self.piece['shape'], (self.piece['x'], self.piece['y'] + 1)):
+                self.piece['y'] += 1
+                self.score += 1
+                beep("move")
+
+    def _update_game_state(self):
+        """Update game logic (gravity, line clears)."""
         # Gravity
-        if not check_collision(board, piece['shape'], (piece['x'], piece['y'] + 1)):
-            piece['y'] += 1
-        else:
-            # Lock
-            for cy, row in enumerate(piece['shape']):
-                for cx, val in enumerate(row):
-                    if val:
-                        board[piece['y'] + cy][piece['x'] + cx] = piece['color']
+        if time.time() - self.last_fall_time > self.fall_speed:
+            if not self._check_collision(self.piece['shape'], (self.piece['x'], self.piece['y'] + 1)):
+                self.piece['y'] += 1
+            else:
+                self._lock_piece()
+                self._clear_lines()
+                self.piece = self.next_piece
+                self.next_piece = self._new_piece()
+                
+                # Check for game over
+                if self._check_collision(self.piece['shape'], (self.piece['x'], self.piece['y'])):
+                    self._trigger_game_over()
             
-            # Clear lines
-            lines_cleared = 0
-            new_board = [row for row in board if any(x == 0 for x in row)]
-            lines_cleared = HEIGHT - len(new_board)
-            if lines_cleared > 0:
-                score += (100 * lines_cleared)
-                add_xp(25 * lines_cleared)
-                screen_shake(0.1 * lines_cleared, lines_cleared)
-                particle_effect(char="*", color=piece['color'], count=10 * lines_cleared)
-                beep("win") # Clear sound
-                board = [[0] * WIDTH for _ in range(lines_cleared)] + new_board
+            self.last_fall_time = time.time()
+
+    def _check_collision(self, shape, offset):
+        """Check if shape collides with walls or board pieces."""
+        off_x, off_y = offset
+        for cy, row in enumerate(shape):
+            for cx, cell in enumerate(row):
+                if cell:
+                    target_x = off_x + cx
+                    target_y = off_y + cy
+                    if (target_x < 0 or target_x >= WIDTH or 
+                        target_y >= HEIGHT or 
+                        (target_y >= 0 and self.board[target_y][target_x])):
+                        return True
+        return False
+
+    def _lock_piece(self):
+        """Lock the current piece into the board."""
+        for cy, row in enumerate(self.piece['shape']):
+            for cx, val in enumerate(row):
+                if val:
+                    y = self.piece['y'] + cy
+                    x = self.piece['x'] + cx
+                    if 0 <= y < HEIGHT:
+                        self.board[y][x] = self.piece['color']
+
+    def _clear_lines(self):
+        """Clear full lines and update score/XP."""
+        lines_cleared = 0
+        new_board = [row for row in self.board if any(cell == 0 for cell in row)]
+        lines_cleared = HEIGHT - len(new_board)
+        
+        if lines_cleared > 0:
+            self.score += (100 * lines_cleared * self.level)
+            self.add_xp(25 * lines_cleared)
+            screen_shake(0.1 * lines_cleared, lines_cleared)
+            particle_effect(char="*", color=self.piece['color'], count=10 * lines_cleared)
+            beep("win")
             
-            piece = next_piece_obj
-            next_piece_obj = new_piece()
+            # Fill top with empty rows
+            for _ in range(lines_cleared):
+                new_board.insert(0, [0] * WIDTH)
+            self.board = new_board
             
-            if check_collision(board, piece['shape'], (piece['x'], piece['y'])):
-                beep("game_over")
-                screen_shake(0.3, 2)
-                show_popup(f"GAME OVER! Score: {score}", C_RED)
-                if score > high_score:
-                    update_stats('tetris', 'high_score', score)
-                break
+            # Level up every 10 lines
+            if self.score // 1000 > self.level:
+                self.level += 1
+                show_popup(f"LEVEL UP: {self.level}", C_CYAN)
+
+    def _trigger_game_over(self):
+        """Handle end of game."""
+        beep("game_over")
+        screen_shake(0.3, 2)
+        animated_flash(C_RED)
+        show_popup(f"GAME OVER! Score: {self.score}", C_RED)
+        self.game_over = True
+
+def play_tetris():
+    """Wrapper function for arcade.py compatibility."""
+    game = TetrisGame()
+    return game.play()
 
 if __name__ == "__main__":
     play_tetris()

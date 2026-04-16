@@ -33,19 +33,22 @@ BANNER_TEXT = [
 ]
 
 def draw_profile(stats):
+    """Render the high-score and XP profile."""
     # Calculate Total Score
+    games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku"]
     total_score = 0
-    total_score += stats.get("snake", {}).get("high_score", 0)
-    total_score += stats.get("breakout", {}).get("high_score", 0)
-    total_score += stats.get("space_shooter", {}).get("high_score", 0)
-    total_score += stats.get("tetris", {}).get("high_score", 0)
-    total_score += stats.get("pacman", {}).get("high_score", 0)
-    
-    # Existing stats
+    for game in games:
+        g_stats = stats.get(game, {})
+        total_score += g_stats.get("high_score", 0)
+        total_score += g_stats.get("score", 0) # Some use 'score' as high_score field
+        
     m_stats = stats.get("minesweeper", {})
     m_wins = sum(m_stats.get('wins', {}).values()) if isinstance(m_stats.get('wins'), dict) else 0
-    c_wins = stats.get("chess", {}).get("wins", 0)
+    c_stats = stats.get("chess", {})
+    c_wins = c_stats.get("wins", 0)
     p_wins = stats.get("pacman", {}).get("wins", 0)
+    d_stats = stats.get("dungeon", {})
+    d_max = d_stats.get("max_level", 1)
     
     level, xp, progress = get_level_info()
     bar_width = 20
@@ -63,19 +66,20 @@ def draw_profile(stats):
         f"🧩 Tetris Best       : {C_BLUE}{stats.get('tetris', {}).get('high_score', 0)}{C_WHITE}",
         f"🟡 Pacman Wins       : {C_YELLOW}{p_wins}{C_WHITE}",
         f"💣 Minesweeper Wins  : {C_RED}{m_wins}{C_WHITE}",
-        f"♟️ Chess Wins        : {C_WHITE}{c_wins}{C_WHITE}"
+        f"⚔️ Dungeon Max Lvl   : {C_MAGENTA}{d_max}{C_WHITE}",
+        f"♟️ Chess Wins        : {C_WHITE}{c_wins}{C_WHITE}",
+        f"🔢 Sudoku Wins       : {C_GREEN}{stats.get('sudoku', {}).get('wins', 0)}{C_WHITE}"
     ]
     draw_retro_box(40, "👤 PLAYER PROFILE", profile_lines, color=C_WHITE, title_color=C_CYAN)
 
 def print_menu(selection):
+    """Render the main arcade menu."""
     clear_screen()
     stats = load_stats()
     
     term_width = 80
-    try: 
-        term_width = os.get_terminal_size().columns
-    except (OSError, ValueError): 
-        pass
+    try: term_width = os.get_terminal_size().columns
+    except: pass
     
     for line in BANNER_TEXT:
         print(" " * max(0, (term_width - 45) // 2) + f"{C_CYAN}{line}{C_RESET}")
@@ -108,9 +112,10 @@ def print_menu(selection):
     print("\n" + " " * max(0, (term_width - 36) // 2) + f"{C_WHITE}Use Arrows to navigate, Enter to play{C_RESET}")
 
 def main():
+    """Application entry point."""
     if os.name == 'nt': os.system('') # Initialize ANSI
     selection = 0
-    num_options = 10 # Updated for Dungeon Crawler
+    num_options = 10 
     
     while True:
         print_menu(selection)
@@ -124,34 +129,30 @@ def main():
             beep("correct")
         elif key in ['\r', '\n', ' ']:
             beep("correct")
-            if selection == 0: play_snake()
+            if selection == 0:   play_snake()
             elif selection == 1: play_breakout()
             elif selection == 2: play_space_shooter()
             elif selection == 3: play_tetris()
             elif selection == 4: play_pacman()
             elif selection == 5: 
                 if play_dungeon: play_dungeon()
-                else: print("Dungeon module not found!"); time.sleep(1)
+                else: show_popup("Dungeon module missing!", C_RED)
             elif selection == 6: play_minesweeper()
             elif selection == 7:
-                if play_chess:
-                    try:
-                        play_chess()
-                    except ImportError:
-                        print(f"\n{C_RED} Error: python-chess not found!{C_RESET}")
-                        time.sleep(2)
-                else:
-                    print(f"\n{C_RED} Error: python-chess not found! (Module missing){C_RESET}")
-                    time.sleep(2)
+                if play_chess: play_chess()
+                else: show_popup("Chess (python-chess) missing!", C_RED)
             elif selection == 8: play_sudoku()
             elif selection == 9: break
         elif key in ['q', 'Q']:
             break
-        elif key in [str(i) for i in range(1, 11)]:
-             idx = int(key) - 1
-             if idx == 9: break # Quit
-             selection = idx
+        elif key in [str(i) for i in range(1, 10)]:
+             selection = int(key) - 1
+             # Immediately play if number pressed? Or just select? 
+             # Let's just select to match the arrow behavior.
              pass
+
+if __name__ == "__main__":
+    main()
 
 if __name__ == "__main__":
     main()
