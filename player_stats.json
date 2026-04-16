@@ -13,5 +13,9 @@
     },
     "pacman": {
         "wins": 1
+    },
+    "profile": {
+        "xp": 370,
+        "level": 2
     }
 }

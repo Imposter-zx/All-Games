@@ -62,7 +62,7 @@ def get_input_util():
                 ch2 = msvcrt.getch()
                 return {b'H': 'up', b'P': 'down', b'K': 'left', b'M': 'right'}.get(ch2, None)
             try: return ch.decode('utf-8')
-            except: return None
+            except (UnicodeDecodeError, AttributeError): return None
         return getch
     else:
         import tty, termios
@@ -92,7 +92,8 @@ def load_stats():
         try:
             with open(STATS_FILE, 'r') as f:
                 return json.load(f)
-        except: return {}
+        except (json.JSONDecodeError, IOError):
+            return {}
     return {}
 
 def save_stats(stats):
@@ -183,7 +184,8 @@ def draw_retro_box(width, title, content_lines, color=C_CYAN, title_color=C_YELL
     terminal_width = 80 # Default
     try:
         terminal_width = os.get_terminal_size().columns
-    except: pass
+    except (OSError, ValueError): 
+        pass
     
     padding = max(0, (terminal_width - width) // 2)
     indent = " " * padding

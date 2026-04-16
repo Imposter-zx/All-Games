@@ -59,7 +59,7 @@ def play_tetris():
     level = 1
     
     stats = load_stats().get('tetris', {})
-    best_score = stats.get('best_score', 0)
+    high_score = stats.get('high_score', 0)
     
     while True:
         # Draw
@@ -171,8 +171,8 @@ def play_tetris():
                 beep("game_over")
                 screen_shake(0.3, 2)
                 show_popup(f"GAME OVER! Score: {score}", C_RED)
-                if score > best_score:
-                    update_stats('tetris', 'best_score', score)
+                if score > high_score:
+                    update_stats('tetris', 'high_score', score)
                 break
 
 if __name__ == "__main__":

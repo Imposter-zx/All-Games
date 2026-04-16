@@ -35,8 +35,10 @@ def print_board(board, revealed, flagged, cursor, elapsed, mines, exploded=None,
     draw_header(elapsed, f_count, mines)
     
     term_width = 80
-    try: term_width = os.get_terminal_size().columns
-    except: pass
+    try: 
+        term_width = os.get_terminal_size().columns
+    except (OSError, ValueError): 
+        pass
     
     padding = (term_width - (cols * 3 + 2)) // 2
     indent = " " * padding

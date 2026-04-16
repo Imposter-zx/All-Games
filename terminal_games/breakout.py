@@ -31,14 +31,14 @@ def play_breakout():
     lives = 3
     
     stats = load_stats().get('breakout', {})
-    best_score = stats.get('best_score', 0)
+    high_score = stats.get('high_score', 0)
     
     while True:
         # Draw
         clear_screen()
         # Header
         print(f"{C_CYAN}╔{'═' * WIDTH}╗")
-        print(f"║ SCORE: {score:<10} BEST: {best_score:<10} LIVES: {lives} ║")
+        print(f"║ SCORE: {score:<10} BEST: {high_score:<10} LIVES: {lives} ║")
         print(f"╚{'═' * WIDTH}╝{C_RESET}")
         
         # Field
@@ -127,8 +127,8 @@ def play_breakout():
                 animated_flash(C_RED)
                 if lives == 0:
                     show_popup(f"GAME OVER! Score: {score}", C_RED)
-                    if score > best_score:
-                        update_stats('breakout', 'best_score', score)
+                    if score > high_score:
+                        update_stats('breakout', 'high_score', score)
                     break
                 else:
                     ball_x, ball_y = WIDTH // 2, HEIGHT - 2
@@ -157,8 +157,8 @@ def play_breakout():
         if all(not b['active'] for b in bricks):
             beep("win")
             show_popup("YOU WON! LEVEL CLEARED", C_GREEN)
-            if score > best_score:
-                update_stats('breakout', 'best_score', score)
+            if score > high_score:
+                update_stats('breakout', 'high_score', score)
             break
             
         time.sleep(0.05)

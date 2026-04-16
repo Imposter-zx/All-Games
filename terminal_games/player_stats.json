@@ -1,36 +1,55 @@
 {
-    "sudoku": {
-        "best_times": {
-            "easy": null,
-            "medium": null,
-            "hard": null
-        },
-        "wins": 0,
-        "no_hint_wins": 0
+  "sudoku": {
+    "best_times": {
+      "easy": null,
+      "medium": null,
+      "hard": null
     },
-    "chess": {
-        "wins": 1,
-        "draws": 0,
-        "losses": 0
+    "wins": 0,
+    "no_hint_wins": 0
+  },
+  "chess": {
+    "wins": 1,
+    "draws": 0,
+    "losses": 0
+  },
+  "minesweeper": {
+    "wins": {
+      "beginner": 0,
+      "intermediate": 0,
+      "expert": 0
     },
-    "minesweeper": {
-        "wins": {
-            "beginner": 0,
-            "intermediate": 0,
-            "expert": 0
-        },
-        "no_flag_wins": 0
-    },
+    "no_flag_wins": 0
+  },
+  "snake": {
+    "high_score": 0
+  },
+  "breakout": {
+    "best_score": 0
+  },
+  "space_shooter": {
+    "high_score": 0
+  },
+  "tetris": {
+    "best_score": 0
+  },
+  "level": 1,
+  "total_xp": 400,
+  "games": {
     "snake": {
-        "high_score": 0
-    },
-    "breakout": {
-        "best_score": 0
-    },
-    "space_shooter": {
-        "high_score": 0
+      "high_score": 100,
+      "wins": 3
     },
     "tetris": {
-        "best_score": 0
+      "high_score": 200,
+      "best_score": 5000
+    },
+    "chess": {
+      "wins": 5
+    },
+    "test_compat_game": {
+      "best_score": 5000
     }
+  },
+  "games_played": 25
 }

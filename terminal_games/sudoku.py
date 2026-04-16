@@ -41,8 +41,10 @@ def is_valid_move(board, row, col, num):
 
 def draw_header(elapsed, difficulty):
     term_width = 80
-    try: term_width = os.get_terminal_size().columns
-    except: pass
+    try: 
+        term_width = os.get_terminal_size().columns
+    except (OSError, ValueError): 
+        pass
     
     header_text = [
         f"DIFFICULTY: {difficulty.upper()}",
@@ -55,8 +57,10 @@ def print_board(board, original_cells, cursor, msg, hints, difficulty, elapsed):
     draw_header(elapsed, difficulty)
     
     term_width = 80
-    try: term_width = os.get_terminal_size().columns
-    except: pass
+    try: 
+        term_width = os.get_terminal_size().columns
+    except (OSError, ValueError): 
+        pass
     
     padding = (term_width - 37) // 2
     indent = " " * padding
@@ -68,7 +72,7 @@ def print_board(board, original_cells, cursor, msg, hints, difficulty, elapsed):
             cell = board[r][c]
             style = ""
             
-            # Cursor blink effect (simulated with time check if this were a render loop, but here just highlight)
+            # Cursor blink effect
             if (r, c) == cursor:
                 style = "\033[47;30m"
             elif (r, c) in original_cells:
@@ -94,6 +98,9 @@ def print_board(board, original_cells, cursor, msg, hints, difficulty, elapsed):
         print("\n" + " " * msg_indent + f"{C_RED}⚠ {msg}{C_RESET}")
     
     controls = "ARROWS: Move | 1-9: Place | H: Hint | Q: Exit"
+    ctrl_indent = (term_width - len(controls)) // 2
+    print(" " * ctrl_indent + f"{C_YELLOW}{controls}{C_RESET}")
+    print(f"\n{C_MAGENTA}Hints remaining: {hints}{C_RESET}")
     ctrl_indent = (term_width - len(controls)) // 2
     print("\n" + " " * ctrl_indent + f"{C_YELLOW}{controls}{C_RESET}")
 

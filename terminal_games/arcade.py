@@ -36,9 +36,9 @@ def draw_profile(stats):
     # Calculate Total Score
     total_score = 0
     total_score += stats.get("snake", {}).get("high_score", 0)
-    total_score += stats.get("breakout", {}).get("best_score", 0)
+    total_score += stats.get("breakout", {}).get("high_score", 0)
     total_score += stats.get("space_shooter", {}).get("high_score", 0)
-    total_score += stats.get("tetris", {}).get("best_score", 0)
+    total_score += stats.get("tetris", {}).get("high_score", 0)
     total_score += stats.get("pacman", {}).get("high_score", 0)
     
     # Existing stats
@@ -58,9 +58,9 @@ def draw_profile(stats):
         f"══════════════════════════════",
         f"🏆 TOTAL ARCADE SCORE: {C_YELLOW}{total_score}{C_WHITE}",
         f"🐍 Snake Best        : {C_GREEN}{stats.get('snake', {}).get('high_score', 0)}{C_WHITE}",
-        f"🧱 Breakout Best     : {C_CYAN}{stats.get('breakout', {}).get('best_score', 0)}{C_WHITE}",
+        f"🧱 Breakout Best     : {C_CYAN}{stats.get('breakout', {}).get('high_score', 0)}{C_WHITE}",
         f"🚀 Shooter High      : {C_MAGENTA}{stats.get('space_shooter', {}).get('high_score', 0)}{C_WHITE}",
-        f"🧩 Tetris Best       : {C_BLUE}{stats.get('tetris', {}).get('best_score', 0)}{C_WHITE}",
+        f"🧩 Tetris Best       : {C_BLUE}{stats.get('tetris', {}).get('high_score', 0)}{C_WHITE}",
         f"🟡 Pacman Wins       : {C_YELLOW}{p_wins}{C_WHITE}",
         f"💣 Minesweeper Wins  : {C_RED}{m_wins}{C_WHITE}",
         f"♟️ Chess Wins        : {C_WHITE}{c_wins}{C_WHITE}"
@@ -72,8 +72,10 @@ def print_menu(selection):
     stats = load_stats()
     
     term_width = 80
-    try: term_width = os.get_terminal_size().columns
-    except: pass
+    try: 
+        term_width = os.get_terminal_size().columns
+    except (OSError, ValueError): 
+        pass
     
     for line in BANNER_TEXT:
         print(" " * max(0, (term_width - 45) // 2) + f"{C_CYAN}{line}{C_RESET}")

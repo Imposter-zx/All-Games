@@ -27,15 +27,17 @@ def get_ai_move(board):
         engine = chess.engine.SimpleEngine.popen_uci("stockfish")
         res = engine.play(board, chess.engine.Limit(time=0.1))
         engine.quit(); return res.move
-    except:
+    except (FileNotFoundError, OSError):
         import random
         return random.choice(list(board.legal_moves))
 
 def print_board(board, cursor, selected, last_move=None, flash_check=False):
     clear_screen()
     term_width = 80
-    try: term_width = os.get_terminal_size().columns
-    except: pass
+    try: 
+        term_width = os.get_terminal_size().columns
+    except (OSError, ValueError): 
+        pass
     
     draw_retro_box(50, "♟️ ULTIMATE CHESS 2D", ["VS STOCKFISH AI"], color=C_MAGENTA)
     
@@ -175,19 +177,6 @@ def play_chess():
     if res == "1-0": update_stats("chess", "wins" if u_white else "losses", stats.get("wins" if u_white else "losses", 0) + 1)
     elif res == "0-1": update_stats("chess", "losses" if u_white else "wins", stats.get("losses" if u_white else "wins", 0) + 1)
     else: update_stats("chess", "draws", stats.get("draws", 0) + 1)
-
-if __name__ == "__main__":
-    play_chess()
-
-    print_board(board, cursor, selected, capt_w, capt_b)
-    res = board.result()
-    print(f"\n{C_BOLD}GAME OVER: {res}{C_RESET}")
-    # Update Stats
-    stats = load_stats().get("chess", {})
-    if res == "1-0": update_stats("chess", "wins" if u_white else "losses", stats.get("wins" if u_white else "losses", 0) + 1)
-    elif res == "0-1": update_stats("chess", "losses" if u_white else "wins", stats.get("losses" if u_white else "wins", 0) + 1)
-    else: update_stats("chess", "draws", stats.get("draws", 0) + 1)
-    time.sleep(2)
 
 if __name__ == "__main__":
     play_chess()
