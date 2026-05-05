@@ -8,6 +8,7 @@ from arcade_utils import (
     C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
 )
 from base_game import BaseGame
+from input_handler import get_safe_input_handler
 
 WIDTH = 10
 HEIGHT = 20
@@ -30,14 +31,15 @@ def rotate(shape):
 class TetrisGame(BaseGame):
     """Tetris game implementation using BaseGame."""
     
-    def __init__(self):
-        super().__init__("tetris")
+    def __init__(self, difficulty='normal'):
+        super().__init__("tetris", difficulty)
         self.board = [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)]
         self.piece = self._new_piece()
         self.next_piece = self._new_piece()
         self.level = 1
         self.fall_speed = 0.5
         self.last_fall_time = time.time()
+        self.input_handler = get_safe_input_handler()
     
     def _new_piece(self):
         shape_idx = random.randint(0, len(SHAPES) - 1)
@@ -68,17 +70,16 @@ class TetrisGame(BaseGame):
             
         self.end_timer()
         
-        # Final stats save handled by caller or here
-        stats = load_stats().get('tetris', {})
-        high_score = stats.get('high_score', 0)
+        # Save stats
+        high_score = self.stats_manager.get_high_score('tetris')
         if self.score > high_score:
-            update_stats('tetris', 'high_score', self.score)
             show_popup("NEW HIGH SCORE!", C_YELLOW)
         
         self.save_stats({
             'high_score': max(self.score, high_score),
             'last_score': self.score,
-            'xp_earned': self.xp_earned
+            'xp_earned': self.xp_earned,
+            'difficulty': self.difficulty
         })
         
         return self.get_final_stats()
@@ -86,8 +87,7 @@ class TetrisGame(BaseGame):
     def _render(self):
         """Render the Tetris board and UI."""
         clear_screen()
-        stats = load_stats().get('tetris', {})
-        high_score = stats.get('high_score', 0)
+        high_score = self.stats_manager.get_high_score('tetris')
         
         # Header
         print(f"{C_BLUE}╔{'═' * (WIDTH * 2)}╗")
@@ -124,34 +124,36 @@ class TetrisGame(BaseGame):
             print(line)
             
         print(f"{C_BLUE}╚{'═' * (WIDTH * 2)}╝{C_RESET}")
-        print(f"{C_WHITE}Arrows: Move/Rotate | Q: Quit{C_RESET}")
+        print(f"{C_WHITE}Arrows/WASD: Move/Rotate | Q: Quit{C_RESET}")
 
     def _handle_input(self):
         """Handle user input for movement and rotation."""
-        k = get_key(timeout=0.05)
+        k = self.input_handler.get_safe_key()
         if not k:
             return
             
         if k == 'q':
             self.game_over = True
-        elif k == 'up': # Rotate
-            rotated = rotate(self.piece['shape'])
-            if not self._check_collision(rotated, (self.piece['x'], self.piece['y'])):
-                self.piece['shape'] = rotated
-                beep("move")
-        elif k == 'left':
-            if not self._check_collision(self.piece['shape'], (self.piece['x'] - 1, self.piece['y'])):
-                self.piece['x'] -= 1
-                beep("move")
-        elif k == 'right':
-            if not self._check_collision(self.piece['shape'], (self.piece['x'] + 1, self.piece['y'])):
-                self.piece['x'] += 1
-                beep("move")
-        elif k == 'down': # Soft Drop
-            if not self._check_collision(self.piece['shape'], (self.piece['x'], self.piece['y'] + 1)):
-                self.piece['y'] += 1
-                self.score += 1
-                beep("move")
+        else:
+            direction = self.input_handler.validator.validate_direction(k)
+            if direction == 'up': # Rotate
+                rotated = rotate(self.piece['shape'])
+                if not self._check_collision(rotated, (self.piece['x'], self.piece['y'])):
+                    self.piece['shape'] = rotated
+                    beep("move")
+            elif direction == 'left':
+                if not self._check_collision(self.piece['shape'], (self.piece['x'] - 1, self.piece['y'])):
+                    self.piece['x'] -= 1
+                    beep("move")
+            elif direction == 'right':
+                if not self._check_collision(self.piece['shape'], (self.piece['x'] + 1, self.piece['y'])):
+                    self.piece['x'] += 1
+                    beep("move")
+            elif direction == 'down': # Soft Drop
+                if not self._check_collision(self.piece['shape'], (self.piece['x'], self.piece['y'] + 1)):
+                    self.piece['y'] += 1
+                    self.score += 1
+                    beep("move")
 
     def _update_game_state(self):
         """Update game logic (gravity, line clears)."""
@@ -203,7 +205,7 @@ class TetrisGame(BaseGame):
         
         if lines_cleared > 0:
             self.score += (100 * lines_cleared * self.level)
-            self.add_xp(25 * lines_cleared)
+            self.award_xp_for_action(lines_cleared * 10) # 10 points per line for XP system
             screen_shake(0.1 * lines_cleared, lines_cleared)
             particle_effect(char="*", color=self.piece['color'], count=10 * lines_cleared)
             beep("win")
@@ -226,9 +228,9 @@ class TetrisGame(BaseGame):
         show_popup(f"GAME OVER! Score: {self.score}", C_RED)
         self.game_over = True
 
-def play_tetris():
+def play_tetris(difficulty='normal'):
     """Wrapper function for arcade.py compatibility."""
-    game = TetrisGame()
+    game = TetrisGame(difficulty)
     return game.play()
 
 if __name__ == "__main__":

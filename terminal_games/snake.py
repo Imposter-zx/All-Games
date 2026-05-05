@@ -3,6 +3,7 @@ import time
 import os
 from arcade_utils import clear_screen, get_key, draw_retro_box, beep, show_popup, update_stats, load_stats, animated_flash, print_big_title, add_xp, screen_shake, particle_effect, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
 from base_game import BaseGame
+from input_handler import get_safe_input_handler
 
 BOARD_WIDTH = 30
 BOARD_HEIGHT = 15
@@ -17,12 +18,13 @@ def create_food(snake):
 class SnakeGame(BaseGame):
     """Snake game implementation using BaseGame."""
     
-    def __init__(self):
-        super().__init__("snake")
+    def __init__(self, difficulty='normal'):
+        super().__init__("snake", difficulty)
         self.snake = []
         self.food = None
         self.direction = (0, 1)
         self.speed = 0.15
+        self.input_handler = get_safe_input_handler()
         self.key_map = {
             'up': (-1, 0), 'down': (1, 0),
             'left': (0, -1), 'right': (0, 1)
@@ -56,28 +58,23 @@ class SnakeGame(BaseGame):
         self.end_timer()
         
         # Save stats
-        stats = load_stats().get('snake', {})
-        high_score = stats.get('high_score', 0)
+        high_score = self.stats_manager.get_high_score('snake')
         if self.score > high_score:
-            update_stats('snake', 'high_score', self.score)
             show_popup("NEW HIGH SCORE!", C_YELLOW)
         
         self.save_stats({
             'high_score': max(self.score, high_score),
             'last_score': self.score,
-            'xp_earned': self.xp_earned
+            'xp_earned': self.xp_earned,
+            'difficulty': self.difficulty
         })
         
-        return {
-            'score': self.score,
-            'xp_earned': self.xp_earned
-        }
+        return self.get_final_stats()
     
     def _render(self):
         """Render game board."""
         clear_screen()
-        stats = load_stats().get('snake', {})
-        high_score = stats.get('high_score', 0)
+        high_score = self.stats_manager.get_high_score('snake')
         
         print(f"{C_YELLOW}╔{'═' * BOARD_WIDTH}╗")
         print(f"║ SCORE: {self.score:<10} HI: {high_score:<10} ║")
@@ -100,29 +97,20 @@ class SnakeGame(BaseGame):
         print(f"{C_GREEN}╚{'═' * BOARD_WIDTH}╝{C_RESET}")
     
     def _handle_input(self):
-        """Handle player input."""
-        if os.name == 'nt':
-            import msvcrt
-            if msvcrt.kbhit():
-                k = get_key()
-                if k == 'q':
-                    self.game_over = True
-                elif k in self.key_map:
-                    test_dir = self.key_map[k]
-                    # Prevent reversing into self
-                    if (test_dir[0] + self.direction[0] != 0) or (test_dir[1] + self.direction[1] != 0):
-                        self.direction = test_dir
+        """Handle player input using SafeInputHandler."""
+        k = self.input_handler.get_safe_key()
+        if not k:
+            return
+            
+        if k == 'q':
+            self.game_over = True
         else:
-            import select
-            import sys
-            if select.select([sys.stdin], [], [], 0)[0]:
-                k = get_key()
-                if k == 'q':
-                    self.game_over = True
-                elif k in self.key_map:
-                    test_dir = self.key_map[k]
-                    if (test_dir[0] + self.direction[0] != 0) or (test_dir[1] + self.direction[1] != 0):
-                        self.direction = test_dir
+            direction_name = self.input_handler.validator.validate_direction(k)
+            if direction_name in self.key_map:
+                test_dir = self.key_map[direction_name]
+                # Prevent reversing into self
+                if (test_dir[0] + self.direction[0] != 0) or (test_dir[1] + self.direction[1] != 0):
+                    self.direction = test_dir
     
     def _update_game_state(self):
         """Update game logic."""
@@ -144,7 +132,7 @@ class SnakeGame(BaseGame):
         
         if new_head == self.food:
             self.score += 10
-            self.add_xp(10)
+            self.award_xp_for_action(10) # 10 points -> XP based on difficulty
             screen_shake(0.05, 1)
             particle_effect(char="+", color=C_GREEN, count=3)
             beep("eat")
@@ -155,9 +143,9 @@ class SnakeGame(BaseGame):
             self.snake.pop()
 
 
-def play_snake():
+def play_snake(difficulty='normal'):
     """Wrapper function to play snake using SnakeGame class."""
-    game = SnakeGame()
+    game = SnakeGame(difficulty)
     return game.play()
             
 if __name__ == "__main__":

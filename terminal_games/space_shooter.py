@@ -8,6 +8,7 @@ from arcade_utils import (
     C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
 )
 from base_game import BaseGame
+from input_handler import get_safe_input_handler
 
 WIDTH = 30
 HEIGHT = 20
@@ -18,8 +19,8 @@ BULLET_CHAR = "|"
 class SpaceShooterGame(BaseGame):
     """Space Shooter game implementation using BaseGame."""
     
-    def __init__(self):
-        super().__init__("space_shooter")
+    def __init__(self, difficulty='normal'):
+        super().__init__("space_shooter", difficulty)
         self.player_x = WIDTH // 2
         self.bullets = []
         self.enemies = []
@@ -27,6 +28,7 @@ class SpaceShooterGame(BaseGame):
         self.spawn_timer = 0
         self.enemy_move_speed = 5 # Higher is slower
         self.frame_count = 0
+        self.input_handler = get_safe_input_handler()
 
     def play(self) -> dict:
         """Main Space Shooter game loop."""
@@ -45,16 +47,15 @@ class SpaceShooterGame(BaseGame):
         self.end_timer()
         
         # Save stats
-        stats = load_stats().get('space_shooter', {})
-        high_score = stats.get('high_score', 0)
+        high_score = self.stats_manager.get_high_score('space_shooter')
         if self.score > high_score:
-            update_stats('space_shooter', 'high_score', self.score)
             show_popup("NEW HIGH SCORE!", C_YELLOW)
             
         self.save_stats({
             'high_score': max(self.score, high_score),
             'last_score': self.score,
-            'xp_earned': self.xp_earned
+            'xp_earned': self.xp_earned,
+            'difficulty': self.difficulty
         })
         
         return self.get_final_stats()
@@ -62,8 +63,7 @@ class SpaceShooterGame(BaseGame):
     def _render(self):
         """Render the game board and UI."""
         clear_screen()
-        stats = load_stats().get('space_shooter', {})
-        high_score = stats.get('high_score', 0)
+        high_score = self.stats_manager.get_high_score('space_shooter')
         
         # Header
         print(f"{C_MAGENTA}╔{'═' * WIDTH}╗")
@@ -91,20 +91,25 @@ class SpaceShooterGame(BaseGame):
             print(line)
             
         print(f"{C_MAGENTA}╚{'═' * WIDTH}╝{C_RESET}")
-        print(f"{C_WHITE}ARROWS: Move | SPACE: Shoot | Q: Quit{C_RESET}")
+        print(f"{C_WHITE}ARROWS/WASD: Move | SPACE: Shoot | Q: Quit{C_RESET}")
 
     def _handle_input(self):
-        """Handle player input."""
-        k = get_key(timeout=0.01)
+        """Handle player input using SafeInputHandler."""
+        k = self.input_handler.get_safe_key()
+        if not k:
+            return
+            
         if k == 'q':
             self.game_over = True
-        elif k == 'left':
-            self.player_x = max(0, self.player_x - 1)
-        elif k == 'right':
-            self.player_x = min(WIDTH - 1, self.player_x + 1)
         elif k == ' ': # Shoot
             self.bullets.append({'x': self.player_x, 'y': HEIGHT - 2})
             beep("correct")
+        else:
+            direction = self.input_handler.validator.validate_direction(k)
+            if direction == 'left':
+                self.player_x = max(0, self.player_x - 1)
+            elif direction == 'right':
+                self.player_x = min(WIDTH - 1, self.player_x + 1)
 
     def _update_game_state(self):
         """Update physics and collisions."""
@@ -132,7 +137,7 @@ class SpaceShooterGame(BaseGame):
                     if b in self.bullets: self.bullets.remove(b)
                     if e in self.enemies: self.enemies.remove(e)
                     self.score += 10
-                    self.add_xp(5)
+                    self.award_xp_for_action(10) # Award XP based on difficulty
                     screen_shake(0.05, 1)
                     particle_effect(char="*", color=C_RED, count=3)
                     beep("eat")
@@ -164,13 +169,10 @@ class SpaceShooterGame(BaseGame):
             show_popup(f"GAME OVER! Score: {self.score}", C_RED)
             self.game_over = True
 
-def play_space_shooter():
+def play_space_shooter(difficulty='normal'):
     """Wrapper function for arcade.py compatibility."""
-    game = SpaceShooterGame()
+    game = SpaceShooterGame(difficulty)
     return game.play()
-
-if __name__ == "__main__":
-    play_space_shooter()
 
 if __name__ == "__main__":
     play_space_shooter()

@@ -3,6 +3,28 @@ import sys
 import json
 import time
 import re
+from stats_manager import get_stats_manager
+
+def u_safe(text, fallback=""):
+    """Return text with only characters encodable in the current stdout."""
+    if not isinstance(text, str): return text
+    
+    # Check entire string
+    try:
+        text.encode(sys.stdout.encoding)
+        return text
+    except:
+        # Fallback character by character
+        safe_chars = []
+        for char in text:
+            try:
+                char.encode(sys.stdout.encoding)
+                safe_chars.append(char)
+            except:
+                # If we have a single char fallback, use it only for the first failure?
+                # No, just skip or use a generic fallback
+                pass
+        return "".join(safe_chars) or fallback
 
 def strip_ansi(text):
     """Removes ANSI escape codes from a string to get its visual length."""
@@ -88,56 +110,41 @@ def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def load_stats():
-    if os.path.exists(STATS_FILE):
-        try:
-            with open(STATS_FILE, 'r') as f:
-                return json.load(f)
-        except (json.JSONDecodeError, IOError):
-            return {}
-    return {}
+    """Load stats using StatsManager."""
+    return get_stats_manager().get_stats()
 
 def save_stats(stats):
-    with open(STATS_FILE, 'w') as f:
-        json.dump(stats, f, indent=4)
+    """Save stats using StatsManager."""
+    mgr = get_stats_manager()
+    mgr.stats = stats
+    mgr.save()
 
 def update_stats(game, key, value, subkey=None):
-    stats = load_stats()
-    if game not in stats: stats[game] = {}
+    """Update stats using StatsManager."""
+    mgr = get_stats_manager()
     if subkey:
-        if key not in stats[game] or not isinstance(stats[game][key], dict):
-            stats[game][key] = {}
-        stats[game][key][subkey] = value
+        stats = mgr.get_stats(game)
+        if key not in stats or not isinstance(stats[key], dict):
+            stats[key] = {}
+        stats[key][subkey] = value
+        mgr.update_game_stats(game, stats)
     else:
-        stats[game][key] = value
-    save_stats(stats)
+        mgr.update_game_stats(game, {key: value})
 
 def add_xp(amount):
-    """Adds XP to the player profile and handles leveling."""
-    stats = load_stats()
-    profile = stats.get("profile", {"xp": 0, "level": 1})
-    profile["xp"] += amount
+    """Adds XP to the player profile via StatsManager."""
+    mgr = get_stats_manager()
+    new_level = mgr.add_xp(amount)
+    level, xp, progress = mgr.get_level_and_xp()
     
-    # Simple leveling logic: level = sqrt(xp/100) + 1
-    import math
-    new_level = int(math.sqrt(profile["xp"] / 100)) + 1
-    if new_level > profile["level"]:
-        profile["level"] = new_level
-        show_popup(f"LEVEL UP! REACHED LEVEL {new_level}", C_YELLOW, delay=1.5)
-        beep("win")
-    
-    stats["profile"] = profile
-    save_stats(stats)
-    return profile
+    # Check if level increased (StatsManager already handled the logic, we just show popup)
+    # Note: StatsManager.add_xp handles the level calculation
+    return mgr.get_stats()
 
 def get_level_info():
-    stats = load_stats()
-    profile = stats.get("profile", {"xp": 0, "level": 1})
-    xp = profile["xp"]
-    level = profile["level"]
-    next_level_xp = (level ** 2) * 100
-    prev_level_xp = ((level - 1) ** 2) * 100
-    progress = (xp - prev_level_xp) / (next_level_xp - prev_level_xp) if next_level_xp > prev_level_xp else 1
-    return level, xp, progress
+    """Get level, XP and progress from StatsManager."""
+    mgr = get_stats_manager()
+    return mgr.get_level_and_xp()
 
 def screen_shake(duration=0.3, intensity=1):
     """Simulates a screen shake by clearing and re-printing with offsets."""
@@ -190,26 +197,37 @@ def draw_retro_box(width, title, content_lines, color=C_CYAN, title_color=C_YELL
     padding = max(0, (terminal_width - width) // 2)
     indent = " " * padding
     
-    print(indent + f"{color}╔" + "═" * (width - 2) + "╗")
+    # Unicode safe box characters
+    try:
+        # Test if we can print unicode
+        "╔═╗".encode(sys.stdout.encoding)
+        b_tl, b_tr, b_bl, b_br, b_h, b_v, b_ml, b_mr = "╔", "╗", "╚", "╝", "═", "║", "╠", "╣"
+    except (UnicodeEncodeError, TypeError):
+        b_tl, b_tr, b_bl, b_br, b_h, b_v, b_ml, b_mr = "+", "+", "+", "+", "-", "|", "|", "|"
+
+    print(indent + f"{color}{b_tl}" + b_h * (width - 2) + f"{b_tr}")
     
     # Title line
-    stripped_title = strip_ansi(title)
+    safe_title = u_safe(title)
+    stripped_title = strip_ansi(safe_title)
     title_padding = (width - 2 - len(stripped_title)) // 2
-    title_line = " " * title_padding + f"{title_color}{C_BOLD}{title}{C_RESET}{color}"
+    title_line = " " * title_padding + f"{title_color}{C_BOLD}{safe_title}{C_RESET}{color}"
     title_line += " " * (width - 2 - len(stripped_title) - title_padding)
-    print(indent + f"║{title_line}║")
+    print(indent + f"{b_v}{title_line}{b_v}")
     
-    print(indent + f"╠" + "═" * (width - 2) + "╣")
+    print(indent + f"{b_ml}" + b_h * (width - 2) + f"{b_mr}")
     
     for line in content_lines:
-        stripped_line = strip_ansi(line)
+        # Strip characters that can't be encoded
+        safe_line = u_safe(line)
+        stripped_line = strip_ansi(safe_line)
         content_len = len(stripped_line)
         content_padding = max(0, (width - 2 - content_len) // 2)
-        l_text = " " * content_padding + f"{C_WHITE}{line}{C_RESET}{color}"
+        l_text = " " * content_padding + f"{C_WHITE}{safe_line}{C_RESET}{color}"
         l_text += " " * (width - 2 - content_len - content_padding)
-        print(indent + f"║{l_text}║")
+        print(indent + f"{b_v}{l_text}{b_v}")
         
-    print(indent + f"╚" + "═" * (width - 2) + "╝{C_RESET}")
+    print(indent + f"{b_bl}" + b_h * (width - 2) + f"{b_br}{C_RESET}")
 
 def show_popup(msg, color=C_CYAN, delay=2):
     clear_screen()

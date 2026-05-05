@@ -8,224 +8,164 @@ from arcade_utils import (
     C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
 )
 from base_game import BaseGame
-
-# Dungeon Symbols
-PLAYER_CHAR = f"{C_CYAN}@{C_RESET}"
-MONSTER_CHAR = f"{C_RED}M{C_RESET}"
-WALL_CHAR = f"{C_WHITE}█{C_RESET}"
-FLOOR_CHAR = f"{C_BLACK}.{C_RESET}"
-TREASURE_CHAR = f"{C_YELLOW}${C_RESET}"
-DOOR_CHAR = f"{C_MAGENTA}∩{C_RESET}"
+from input_handler import get_safe_input_handler
 
 class DungeonGame(BaseGame):
-    """Dungeon Crawler implementation using BaseGame."""
+    """Dungeon Crawler game implementation using BaseGame."""
     
-    def __init__(self):
-        super().__init__("dungeon")
-        self.width = 20
-        self.height = 10
-        self.player_hp = 50
-        self.player_atk = 5
+    def __init__(self, difficulty='normal'):
+        super().__init__("dungeon", difficulty)
+        self.hp = 100
+        self.max_hp = 100
         self.level = 1
-        self.map = []
-        self.monsters = []
-        self.treasure = None
-        self.door = None
-        self.px, self.py = 2, 2
-        self.msg = ""
-        self._generate_room()
+        self.enemies_defeated = 0
+        self.player_pos = [1, 1]
+        self.dungeon_map = self._generate_level()
+        self.input_handler = get_safe_input_handler()
+
+    def _generate_level(self):
+        """Generate a simple random dungeon level."""
+        # 1 = wall, 0 = floor, 2 = enemy, 3 = health, 4 = exit
+        size = 10
+        m = [[1]*size for _ in range(size)]
+        for r in range(1, size-1):
+            for c in range(1, size-1):
+                m[r][c] = 0
+                if random.random() < 0.15: m[r][c] = 2
+                elif random.random() < 0.1: m[r][c] = 3
+        
+        m[size-2][size-2] = 4 # Exit
+        m[1][1] = 0 # Player start
+        return m
 
     def play(self) -> dict:
-        """Main Dungeon Crawler game loop."""
+        """Main Dungeon Crawler loop."""
         self.start_timer()
         clear_screen()
-        print_big_title("DUNGEON CRAWLER", color=C_MAGENTA)
+        print_big_title("DUNGEON", color=C_RED)
         time.sleep(1)
         
         while not self.game_over:
             self._render()
             self._handle_input()
-            self._update_game_state()
+            if self.hp <= 0:
+                self._handle_death()
             time.sleep(0.05)
             
         self.end_timer()
         
         # Save stats
-        stats = load_stats().get('dungeon', {})
-        high_score = stats.get('high_score', 0)
-        max_level = stats.get('max_level', 1)
+        stats = self.stats_manager.get_stats('dungeon')
+        max_lvl = max(stats.get('max_level', 1), self.level)
         
-        if self.score > high_score:
-            update_stats('dungeon', 'high_score', self.score)
-            show_popup("NEW HIGH SCORE!", C_YELLOW)
-            
-        if self.level > max_level:
-            update_stats('dungeon', 'max_level', self.level)
-            
         self.save_stats({
-            'high_score': max(self.score, high_score),
-            'max_level': max(self.level, max_level),
-            'last_score': self.score,
-            'xp_earned': self.xp_earned
+            'max_level': max_lvl,
+            'enemies_defeated': stats.get('enemies_defeated', 0) + self.enemies_defeated,
+            'last_level': self.level,
+            'xp_earned': self.xp_earned,
+            'difficulty': self.difficulty
         })
         
         return self.get_final_stats()
 
-    def _generate_room(self):
-        """Build the dungeon floor."""
-        self.map = [[1 if x == 0 or x == self.width-1 or y == 0 or y == self.height-1 else 0 
-                     for x in range(self.width)] for y in range(self.height)]
-        
-        # Player start
-        self.px, self.py = 2, 2
-        
-        # Monsters
-        self.monsters = []
-        for _ in range(self.level + 1):
-            mx = random.randint(5, self.width-2)
-            my = random.randint(1, self.height-2)
-            self.monsters.append({
-                "x": mx, "y": my, 
-                "hp": 10 + (self.level * 2),
-                "max_hp": 10 + (self.level * 2)
-            })
-            
-        # Treasure
-        self.treasure = (random.randint(5, self.width-2), random.randint(1, self.height-2))
-        
-        # Door
-        self.door = (self.width-2, self.height // 2)
-
     def _render(self):
         """Render the dungeon map and UI."""
         clear_screen()
-        print_big_title(f"DUNGEON L-{self.level}", color=C_MAGENTA)
+        print(f" LEVEL: {C_YELLOW}{self.level}{C_RESET} | HP: {C_RED}{self.hp}/{self.max_hp}{C_RESET} | KILLS: {C_MAGENTA}{self.enemies_defeated}{C_RESET}")
         
-        # Stats Bar
-        hp_color = C_GREEN if self.player_hp > 25 else (C_YELLOW if self.player_hp > 10 else C_RED)
-        print(f" HP: {hp_color}{self.player_hp}{C_RESET} | SCORE: {C_YELLOW}{self.score}{C_RESET} | LEVEL: {self.level}")
-        
-        # Map
-        for y in range(self.height):
+        for r, row in enumerate(self.dungeon_map):
             line = ""
-            for x in range(self.width):
-                if (x, y) == (self.px, self.py):
-                    line += PLAYER_CHAR
-                else:
-                    is_monster = False
-                    for m in self.monsters:
-                        if (x, y) == (m["x"], m["y"]):
-                            line += MONSTER_CHAR
-                            is_monster = True
-                            break
-                    
-                    if not is_monster:
-                        if (x, y) == self.treasure: line += TREASURE_CHAR
-                        elif (x, y) == self.door: line += DOOR_CHAR
-                        elif self.map[y][x] == 1: line += WALL_CHAR
-                        else: line += FLOOR_CHAR
+            for c, cell in enumerate(row):
+                if [r, c] == self.player_pos:
+                    line += f"{C_CYAN}@{C_RESET} "
+                elif cell == 1: line += f"{C_WHITE}█{C_RESET} "
+                elif cell == 2: line += f"{C_RED}E{C_RESET} "
+                elif cell == 3: line += f"{C_GREEN}H{C_RESET} "
+                elif cell == 4: line += f"{C_YELLOW}X{C_RESET} "
+                else: line += "  "
             print(line)
-            
-        if self.msg:
-            print(f"\n{C_YELLOW}LOG: {self.msg}{C_RESET}")
-            self.msg = "" # Flash log
-            
-        print(f"\n{C_WHITE}ARROWS: Move | Q: Quit{C_RESET}")
+        print(f"\n{C_WHITE}ARROWS/WASD: Move | Q: Quit{C_RESET}")
 
     def _handle_input(self):
-        """Handle movement keys."""
-        k = get_key(timeout=0.01)
-        dx, dy = 0, 0
+        """Handle movement and combat using SafeInputHandler."""
+        k = self.input_handler.get_safe_key()
+        if not k:
+            return
+            
         if k == 'q':
             self.game_over = True
             return
-        elif k == 'up': dy = -1
-        elif k == 'down': dy = 1
-        elif k == 'left': dx = -1
-        elif k == 'right': dx = 1
+            
+        direction = self.input_handler.validator.validate_direction(k)
+        dr, dc = 0, 0
+        if direction == 'up': dr = -1
+        elif direction == 'down': dr = 1
+        elif direction == 'left': dc = -1
+        elif direction == 'right': dc = 1
         
-        if dx != 0 or dy != 0:
-            self._move_player(dx, dy)
+        if dr != 0 or dc != 0:
+            self._move_player(dr, dc)
 
-    def _move_player(self, dx, dy):
-        """Logic for player movement and collisions."""
-        nx, ny = self.px + dx, self.py + dy
+    def _move_player(self, dr, dc):
+        """Logic for player movement and interactions."""
+        nr, nc = self.player_pos[0] + dr, self.player_pos[1] + dc
         
-        # Wall Collision
-        if self.map[ny][nx] == 1:
+        # Boundary and Wall check
+        if nr < 0 or nr >= len(self.dungeon_map) or nc < 0 or nc >= len(self.dungeon_map[0]):
+            return
+        if self.dungeon_map[nr][nc] == 1:
             beep("invalid")
             return
             
-        # Monster Collision (Combat)
-        for m in self.monsters:
-            if (nx, ny) == (m["x"], m["y"]):
-                self._handle_combat(m)
-                return
-                
-        # Move successfully
-        self.px, self.py = nx, ny
-        
-        # Feature Collisions
-        if (self.px, self.py) == self.treasure:
-            self._handle_treasure()
-        elif (self.px, self.py) == self.door:
-            self._handle_exit()
-
-    def _handle_combat(self, m):
-        """Calculate and apply damage."""
-        dmg = random.randint(self.player_atk, self.player_atk + 3)
-        m["hp"] -= dmg
-        self.msg = f"Hit Monster for {dmg}!"
-        screen_shake(0.05, 1)
-        particle_effect(char="*", color=C_RED, count=3)
-        
-        if m["hp"] <= 0:
-            self.monsters.remove(m)
-            self.score += 50
-            self.add_xp(20)
+        cell = self.dungeon_map[nr][nc]
+        if cell == 2: # Enemy
+            self._combat(nr, nc)
+        elif cell == 3: # Health
+            self.hp = min(self.max_hp, self.hp + 20)
+            self.dungeon_map[nr][nc] = 0
+            show_popup("HEALED +20 HP", C_GREEN, delay=0.5)
             beep("win")
-            self.msg = "Monster Slain!"
-        else:
-            # Monster counter-attacks
-            e_dmg = random.randint(1 + self.level, 4 + self.level)
-            self.player_hp -= e_dmg
-            beep("lose")
-            self.msg += f" (Monster hits back for {e_dmg}!)"
-            animated_flash(C_RED)
+        elif cell == 4: # Exit
+            self._next_level()
+        
+        if cell != 2: # Don't move into enemy, stay and fight
+            self.player_pos = [nr, nc]
 
-    def _handle_treasure(self):
-        """Process picking up items."""
-        self.score += 100
-        self.add_xp(50)
-        self.treasure = (-1, -1) # Remove from map
-        beep("win")
-        self.msg = "You found treasure! (+100)"
-        show_popup("FOUND TREASURE!", C_YELLOW, delay=0.5)
+    def _combat(self, r, c):
+        """Simple combat resolution."""
+        dmg_to_enemy = random.randint(15, 40)
+        dmg_to_player = random.randint(5, 20)
+        
+        self.hp -= dmg_to_player
+        self.enemies_defeated += 1
+        self.dungeon_map[r][c] = 0
+        self.score += 50
+        self.award_xp_for_action(20) # 20 base XP for enemy defeat
+        
+        screen_shake(0.1, 1)
+        particle_effect(char="X", color=C_RED, count=5)
+        beep("eat")
+        show_popup(f"DEFEATED ENEMY! -{dmg_to_player} HP", C_RED, delay=0.5)
 
-    def _handle_exit(self):
-        """Descend to the next floor."""
+    def _next_level(self):
+        """Progress to the next level."""
         self.level += 1
-        beep("win") # Exit sound
-        self.score += 200
-        show_popup(f"DESCENDING TO LEVEL {self.level}...", C_MAGENTA, delay=1.0)
-        self._generate_room()
-
-    def _update_game_state(self):
-        """Check for death."""
-        if self.player_hp <= 0:
-            self._handle_death()
+        self.score += 100
+        self.award_xp_for_action(50) # 50 base XP for level clear
+        beep("win")
+        show_popup(f"DESCENDING TO LEVEL {self.level}", C_YELLOW)
+        self.dungeon_map = self._generate_level()
+        self.player_pos = [1, 1]
 
     def _handle_death(self):
-        """Trigger game over."""
-        beep("lose")
-        screen_shake(0.3, 2)
-        show_popup(f"YOU DIED! Score: {self.score}", C_RED)
-        self.add_xp(10)
+        """Manage player death."""
+        beep("game_over")
+        show_popup(f"DIED IN THE DUNGEON! Level: {self.level}", C_RED)
         self.game_over = True
 
-def play_dungeon():
+def play_dungeon(difficulty='normal'):
     """Wrapper function for arcade.py compatibility."""
-    game = DungeonGame()
+    game = DungeonGame(difficulty)
     return game.play()
 
 if __name__ == "__main__":

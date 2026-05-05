@@ -8,6 +8,7 @@ from arcade_utils import (
     C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
 )
 from base_game import BaseGame
+from input_handler import get_safe_input_handler
 
 # 1 = Wall, 0 = Pellet, 2 = Power Pellet, 3 = Empty
 PACMAN_MAP = [
@@ -36,8 +37,8 @@ WALLchar = f"{C_BLUE}█{C_RESET}"
 class PacmanGame(BaseGame):
     """Pac-Man game implementation using BaseGame."""
     
-    def __init__(self):
-        super().__init__("pacman")
+    def __init__(self, difficulty='normal'):
+        super().__init__("pacman", difficulty)
         self.game_map = [row[:] for row in PACMAN_MAP]
         self.pac_x, self.pac_y = 7, 8
         self.ghosts = [[1, 1], [13, 1], [1, 12], [13, 12]]
@@ -45,6 +46,7 @@ class PacmanGame(BaseGame):
         self.total_pellets = sum(row.count(0) + row.count(2) for row in self.game_map)
         self.pellets_eaten = 0
         self.last_move_time = time.time()
+        self.input_handler = get_safe_input_handler()
 
     def play(self) -> dict:
         """Main Pac-Man game loop."""
@@ -62,19 +64,19 @@ class PacmanGame(BaseGame):
         self.end_timer()
         
         # Save stats
-        stats = load_stats().get('pacman', {})
+        stats = self.stats_manager.get_stats('pacman')
         wins = stats.get('wins', 0)
-        high_score = stats.get('high_score', 0)
+        high_score = self.stats_manager.get_high_score('pacman')
         
         if self.score > high_score:
-            update_stats('pacman', 'high_score', self.score)
             show_popup("NEW HIGH SCORE!", C_YELLOW)
             
         self.save_stats({
             'high_score': max(self.score, high_score),
             'wins': wins + (1 if self.pellets_eaten >= self.total_pellets else 0),
             'last_score': self.score,
-            'xp_earned': self.xp_earned
+            'xp_earned': self.xp_earned,
+            'difficulty': self.difficulty
         })
         
         return self.get_final_stats()
@@ -82,8 +84,7 @@ class PacmanGame(BaseGame):
     def _render(self):
         """Render the Pac-Man map and entities."""
         clear_screen()
-        stats = load_stats().get('pacman', {})
-        high_score = stats.get('high_score', 0)
+        high_score = self.stats_manager.get_high_score('pacman')
         
         print(f" SCORE: {C_GREEN}{self.score:<6}{C_RESET} | HI: {high_score:<6} | POWER: {f'{C_CYAN}{self.power_timer}{C_RESET}' if self.power_timer > 0 else 'OFF'}")
         
@@ -111,20 +112,24 @@ class PacmanGame(BaseGame):
                     elif cell == 2: line += POWERchar + " "
                     else: line += "  "
             print(line)
-        print(f"\n{C_WHITE}Arrows: Move | Q: Quit{C_RESET}")
+        print(f"\n{C_WHITE}ARROWS/WASD: Move | Q: Quit{C_RESET}")
 
     def _handle_input(self):
-        """Handle movement input."""
-        k = get_key(timeout=0.05)
+        """Handle movement input using SafeInputHandler."""
+        k = self.input_handler.get_safe_key()
+        if not k:
+            return
+            
         if k == 'q':
             self.game_over = True
             return
             
+        direction = self.input_handler.validator.validate_direction(k)
         dx, dy = 0, 0
-        if k == 'up': dy = -1
-        elif k == 'down': dy = 1
-        elif k == 'left': dx = -1
-        elif k == 'right': dx = 1
+        if direction == 'up': dy = -1
+        elif direction == 'down': dy = 1
+        elif direction == 'left': dx = -1
+        elif direction == 'right': dx = 1
         
         if dx != 0 or dy != 0:
             self._move_pacman(dx, dy)
@@ -145,13 +150,13 @@ class PacmanGame(BaseGame):
         if cell == 0: # Pellet
             self.game_map[y][x] = 3
             self.score += 10
-            self.add_xp(5)
+            self.award_xp_for_action(10) # Award XP based on difficulty
             self.pellets_eaten += 1
             beep("eat")
         elif cell == 2: # Power Pellet
             self.game_map[y][x] = 3
             self.score += 50
-            self.add_xp(25)
+            self.award_xp_for_action(50)
             self.power_timer = 30
             self.pellets_eaten += 1
             beep("win") # Powerup sound
@@ -205,7 +210,7 @@ class PacmanGame(BaseGame):
                 if self.power_timer > 0:
                     # Eat ghost
                     self.score += 200
-                    self.add_xp(50)
+                    self.award_xp_for_action(100)
                     self.ghosts[i] = [7, 7] # Send to house
                     screen_shake(0.1, 1)
                     particle_effect(char="*", color=C_CYAN, count=5)
@@ -225,16 +230,12 @@ class PacmanGame(BaseGame):
         """Handle level completion."""
         beep("win")
         show_popup(f"LEVEL CLEAR! YOU WIN! Score: {self.score}", C_YELLOW)
-        update_stats("pacman", "wins", 1)
         self.game_over = True
 
-def play_pacman():
+def play_pacman(difficulty='normal'):
     """Wrapper function for arcade.py compatibility."""
-    game = PacmanGame()
+    game = PacmanGame(difficulty)
     return game.play()
-
-if __name__ == "__main__":
-    play_pacman()
 
 if __name__ == "__main__":
     play_pacman()

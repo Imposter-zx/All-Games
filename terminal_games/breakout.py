@@ -8,6 +8,7 @@ from arcade_utils import (
     C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
 )
 from base_game import BaseGame
+from input_handler import get_safe_input_handler
 
 WIDTH = 40
 HEIGHT = 20
@@ -16,8 +17,8 @@ PADDLE_WIDTH = 6
 class BreakoutGame(BaseGame):
     """Breakout game implementation using BaseGame."""
     
-    def __init__(self):
-        super().__init__("breakout")
+    def __init__(self, difficulty='normal'):
+        super().__init__("breakout", difficulty)
         self.paddle_x = WIDTH // 2 - PADDLE_WIDTH // 2
         self.ball_x = WIDTH // 2
         self.ball_y = HEIGHT - 2
@@ -25,6 +26,7 @@ class BreakoutGame(BaseGame):
         self.ball_dy = -1
         self.lives = 3
         self.bricks = self._init_bricks()
+        self.input_handler = get_safe_input_handler()
         
     def _init_bricks(self):
         bricks = []
@@ -50,16 +52,15 @@ class BreakoutGame(BaseGame):
         self.end_timer()
         
         # Save stats
-        stats = load_stats().get('breakout', {})
-        high_score = stats.get('high_score', 0)
+        high_score = self.stats_manager.get_high_score('breakout')
         if self.score > high_score:
-            update_stats('breakout', 'high_score', self.score)
             show_popup("NEW HIGH SCORE!", C_YELLOW)
             
         self.save_stats({
             'high_score': max(self.score, high_score),
             'last_score': self.score,
-            'xp_earned': self.xp_earned
+            'xp_earned': self.xp_earned,
+            'difficulty': self.difficulty
         })
         
         return self.get_final_stats()
@@ -67,12 +68,11 @@ class BreakoutGame(BaseGame):
     def _render(self):
         """Render the game board and UI."""
         clear_screen()
-        stats = load_stats().get('breakout', {})
-        high_score = stats.get('high_score', 0)
+        high_score = self.stats_manager.get_high_score('breakout')
         
         # Header
         print(f"{C_CYAN}╔{'═' * WIDTH}╗")
-        print(f"║ SCORE: {self.score:<10} BEST: {high_score:<10} LIVES: {self.lives} ║")
+        print(f"║ SCORE: {self.score:<10} HI: {high_score:<10} LIVES: {self.lives} ║")
         print(f"╚{'═' * WIDTH}╝{C_RESET}")
         
         # Field
@@ -115,13 +115,18 @@ class BreakoutGame(BaseGame):
 
     def _handle_input(self):
         """Handle player movement."""
-        k = get_key(timeout=0.01)
+        k = self.input_handler.get_safe_key()
+        if not k:
+            return
+            
         if k == 'q':
             self.game_over = True
-        elif k == 'left':
-            self.paddle_x = max(0, self.paddle_x - 2)
-        elif k == 'right':
-            self.paddle_x = min(WIDTH - PADDLE_WIDTH, self.paddle_x + 2)
+        else:
+            direction = self.input_handler.validator.validate_direction(k)
+            if direction == 'left':
+                self.paddle_x = max(0, self.paddle_x - 2)
+            elif direction == 'right':
+                self.paddle_x = min(WIDTH - PADDLE_WIDTH, self.paddle_x + 2)
 
     def _update_game_state(self):
         """Update ball physics and collisions."""
@@ -156,7 +161,7 @@ class BreakoutGame(BaseGame):
                     b['active'] = False
                     self.ball_dy *= -1
                     self.score += 10
-                    self.add_xp(15)
+                    self.award_xp_for_action(10) # Award XP based on difficulty
                     screen_shake(0.05, 1)
                     particle_effect(char="*", color=b['color'], count=5)
                     beep("eat")
@@ -189,13 +194,10 @@ class BreakoutGame(BaseGame):
         show_popup("YOU WON! LEVEL CLEARED", C_GREEN)
         self.game_over = True
 
-def play_breakout():
+def play_breakout(difficulty='normal'):
     """Wrapper function for arcade.py compatibility."""
-    game = BreakoutGame()
+    game = BreakoutGame(difficulty)
     return game.play()
-
-if __name__ == "__main__":
-    play_breakout()
 
 if __name__ == "__main__":
     play_breakout()

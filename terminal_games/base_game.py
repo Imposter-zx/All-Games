@@ -6,6 +6,8 @@ Provides consistent interface and common functionality.
 from abc import ABC, abstractmethod
 import time
 import logging
+from stats_manager import get_stats_manager
+from xp_config import get_xp_system
 
 logger = logging.getLogger(__name__)
 
@@ -13,19 +15,23 @@ logger = logging.getLogger(__name__)
 class BaseGame(ABC):
     """Abstract base class for all terminal games."""
     
-    def __init__(self, game_name: str):
+    def __init__(self, game_name: str, difficulty: str = 'normal'):
         """
         Initialize base game.
         
         Args:
             game_name: Name of the game (e.g., 'snake', 'tetris')
+            difficulty: Game difficulty level
         """
         self.game_name = game_name
+        self.difficulty = difficulty
         self.score = 0
         self.xp_earned = 0
         self.start_time = None
         self.end_time = None
         self.game_over = False
+        self.stats_manager = get_stats_manager()
+        self.xp_system = get_xp_system(difficulty)
     
     @abstractmethod
     def play(self) -> dict:
@@ -39,7 +45,7 @@ class BaseGame(ABC):
     
     def add_xp(self, amount: int) -> None:
         """
-        Award XP to player.
+        Award XP to player and update global stats.
         
         Args:
             amount: Amount of XP to award
@@ -47,19 +53,34 @@ class BaseGame(ABC):
         if amount < 0:
             logger.warning(f"Negative XP amount: {amount}")
             return
+        
         self.xp_earned += amount
-        # XP will be added to global stats in arcade.py
+        self.stats_manager.add_xp(amount)
+        logger.debug(f"Awarded {amount} XP in {self.game_name}")
+    
+    def award_xp_for_action(self, base_value: int) -> int:
+        """
+        Calculate and award XP for a specific game action using the XP system.
+        
+        Args:
+            base_value: Base metric for the action
+            
+        Returns:
+            Actual XP awarded
+        """
+        xp = self.xp_system.calculate_xp(self.game_name, base_value)
+        self.add_xp(xp)
+        return xp
     
     def save_stats(self, stats_dict: dict) -> None:
         """
-        Save game stats to persistent storage.
+        Save game stats to persistent storage via StatsManager.
         
         Args:
             stats_dict: Dictionary containing game statistics to save
         """
-        from arcade_utils import update_stats
         try:
-            update_stats(self.game_name, stats_dict)
+            self.stats_manager.update_game_stats(self.game_name, stats_dict)
             logger.debug(f"Saved stats for {self.game_name}: {stats_dict}")
         except Exception as e:
             logger.error(f"Failed to save stats for {self.game_name}: {e}")

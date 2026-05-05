@@ -1,7 +1,16 @@
 import os
 import sys
 import time
-from arcade_utils import clear_screen, get_key, load_stats, draw_retro_box, beep, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, get_level_info, add_xp
+import logging
+from arcade_utils import clear_screen, load_stats, draw_retro_box, beep, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, get_level_info, add_xp, show_popup, u_safe
+from stats_manager import get_stats_manager
+from input_handler import get_safe_input_handler
+from error_handler import safe_game_call
+from logger_setup import setup_logger
+
+# Initialize Logger
+logger = setup_logger()
+
 from sudoku import play_sudoku
 from minesweeper import play_minesweeper
 try:
@@ -32,50 +41,48 @@ BANNER_TEXT = [
     "       --- RETRO ARCADE SYSTEM ---       "
 ]
 
-def draw_profile(stats):
+def draw_profile():
     """Render the high-score and XP profile."""
+    mgr = get_stats_manager()
+    stats = mgr.get_stats()
+    
     # Calculate Total Score
     games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku"]
     total_score = 0
     for game in games:
-        g_stats = stats.get(game, {})
-        total_score += g_stats.get("high_score", 0)
-        total_score += g_stats.get("score", 0) # Some use 'score' as high_score field
+        total_score += mgr.get_high_score(game)
         
-    m_stats = stats.get("minesweeper", {})
-    m_wins = sum(m_stats.get('wins', {}).values()) if isinstance(m_stats.get('wins'), dict) else 0
-    c_stats = stats.get("chess", {})
-    c_wins = c_stats.get("wins", 0)
-    p_wins = stats.get("pacman", {}).get("wins", 0)
-    d_stats = stats.get("dungeon", {})
-    d_max = d_stats.get("max_level", 1)
+    m_wins = sum(mgr.get_stats("minesweeper").get('wins', {}).values()) if isinstance(mgr.get_stats("minesweeper").get('wins'), dict) else 0
+    c_wins = mgr.get_stats("chess").get("wins", 0)
+    p_wins = mgr.get_stats("pacman").get("wins", 0)
+    d_max = mgr.get_stats("dungeon").get("max_level", 1)
     
-    level, xp, progress = get_level_info()
+    level, xp, progress = mgr.get_level_and_xp()
     bar_width = 20
     filled = int(progress * bar_width)
-    xp_bar = f"[{C_GREEN}{'█' * filled}{C_BLACK}{'░' * (bar_width - filled)}{C_WHITE}]"
+    xp_bar = f"[{C_GREEN}{u_safe('█', '#') * filled}{C_BLACK}{u_safe('░', '-') * (bar_width - filled)}{C_WHITE}]"
+    level_bar = f"[{C_YELLOW}{u_safe('★', '*') * (level % 5)}{C_WHITE}]"
     
     profile_lines = [
-        f"PLAYER: {C_YELLOW}RETRO_MASTER{C_WHITE}  LVL: {C_CYAN}{level}{C_WHITE}",
+        f"LEVEL: {level} {level_bar}",
         f"XP: {xp} {xp_bar}",
         f"══════════════════════════════",
         f"🏆 TOTAL ARCADE SCORE: {C_YELLOW}{total_score}{C_WHITE}",
-        f"🐍 Snake Best        : {C_GREEN}{stats.get('snake', {}).get('high_score', 0)}{C_WHITE}",
-        f"🧱 Breakout Best     : {C_CYAN}{stats.get('breakout', {}).get('high_score', 0)}{C_WHITE}",
-        f"🚀 Shooter High      : {C_MAGENTA}{stats.get('space_shooter', {}).get('high_score', 0)}{C_WHITE}",
-        f"🧩 Tetris Best       : {C_BLUE}{stats.get('tetris', {}).get('high_score', 0)}{C_WHITE}",
-        f"🟡 Pacman Wins       : {C_YELLOW}{p_wins}{C_WHITE}",
-        f"💣 Minesweeper Wins  : {C_RED}{m_wins}{C_WHITE}",
-        f"⚔️ Dungeon Max Lvl   : {C_MAGENTA}{d_max}{C_WHITE}",
-        f"♟️ Chess Wins        : {C_WHITE}{c_wins}{C_WHITE}",
-        f"🔢 Sudoku Wins       : {C_GREEN}{stats.get('sudoku', {}).get('wins', 0)}{C_WHITE}"
+        f"{u_safe('🐍', 'S')} Snake Best        : {C_GREEN}{mgr.get_high_score('snake')}{C_WHITE}",
+        f"{u_safe('🧱', 'B')} Breakout Best     : {C_CYAN}{mgr.get_high_score('breakout')}{C_WHITE}",
+        f"{u_safe('🚀', 'X')} Shooter High      : {C_MAGENTA}{mgr.get_high_score('space_shooter')}{C_WHITE}",
+        f"{u_safe('🧩', 'T')} Tetris Best       : {C_BLUE}{mgr.get_high_score('tetris')}{C_WHITE}",
+        f"{u_safe('🟡', 'P')} Pacman Wins       : {C_YELLOW}{p_wins}{C_WHITE}",
+        f"{u_safe('💣', 'M')} Minesweeper Wins  : {C_RED}{m_wins}{C_WHITE}",
+        f"{u_safe('⚔️', 'D')} Dungeon Max Lvl   : {C_MAGENTA}{d_max}{C_WHITE}",
+        f"{u_safe('♟️', 'C')} Chess Wins        : {C_WHITE}{c_wins}{C_WHITE}",
+        f"{u_safe('🔢', '#')} Sudoku Wins       : {C_GREEN}{mgr.get_stats('sudoku').get('wins', 0)}{C_WHITE}"
     ]
-    draw_retro_box(40, "👤 PLAYER PROFILE", profile_lines, color=C_WHITE, title_color=C_CYAN)
+    draw_retro_box(40, f"{u_safe('👤', '')} PLAYER PROFILE", profile_lines, color=C_WHITE, title_color=C_CYAN)
 
 def print_menu(selection):
     """Render the main arcade menu."""
     clear_screen()
-    stats = load_stats()
     
     term_width = 80
     try: term_width = os.get_terminal_size().columns
@@ -85,7 +92,7 @@ def print_menu(selection):
         print(" " * max(0, (term_width - 45) // 2) + f"{C_CYAN}{line}{C_RESET}")
     print("\n")
     
-    draw_profile(stats)
+    draw_profile()
     print("\n")
     
     options = [
@@ -117,9 +124,11 @@ def main():
     selection = 0
     num_options = 10 
     
+    input_handler = get_safe_input_handler()
+    
     while True:
         print_menu(selection)
-        key = get_key()
+        key = input_handler.get_safe_key()
         
         if key == 'up': 
             selection = (selection - 1) % num_options
@@ -129,19 +138,19 @@ def main():
             beep("correct")
         elif key in ['\r', '\n', ' ']:
             beep("correct")
-            if selection == 0:   play_snake()
-            elif selection == 1: play_breakout()
-            elif selection == 2: play_space_shooter()
-            elif selection == 3: play_tetris()
-            elif selection == 4: play_pacman()
+            if selection == 0:   safe_game_call(play_snake, "Snake")
+            elif selection == 1: safe_game_call(play_breakout, "Breakout")
+            elif selection == 2: safe_game_call(play_space_shooter, "Space Shooter")
+            elif selection == 3: safe_game_call(play_tetris, "Tetris")
+            elif selection == 4: safe_game_call(play_pacman, "Pac-Man")
             elif selection == 5: 
-                if play_dungeon: play_dungeon()
+                if play_dungeon: safe_game_call(play_dungeon, "Dungeon Crawler")
                 else: show_popup("Dungeon module missing!", C_RED)
-            elif selection == 6: play_minesweeper()
+            elif selection == 6: safe_game_call(play_minesweeper, "Minesweeper")
             elif selection == 7:
-                if play_chess: play_chess()
+                if play_chess: safe_game_call(play_chess, "Chess")
                 else: show_popup("Chess (python-chess) missing!", C_RED)
-            elif selection == 8: play_sudoku()
+            elif selection == 8: safe_game_call(play_sudoku, "Sudoku")
             elif selection == 9: break
         elif key in ['q', 'Q']:
             break
