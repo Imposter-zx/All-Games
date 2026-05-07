@@ -118,6 +118,41 @@ def print_menu(selection):
     draw_retro_box(30, "🕹️ GAME MENU", menu_content, color=C_CYAN)
     print("\n" + " " * max(0, (term_width - 36) // 2) + f"{C_WHITE}Use Arrows to navigate, Enter to play{C_RESET}")
 
+def select_game_difficulty():
+    """Let player choose difficulty before game starts."""
+    from arcade_utils import draw_retro_box, C_YELLOW, C_RESET, get_key, clear_screen
+    
+    difficulties = ['EASY', 'NORMAL', 'HARD']
+    selection = 1 # Start on NORMAL
+    
+    while True:
+        clear_screen()
+        print("\n" * 2)
+        
+        diff_lines = []
+        for i, diff in enumerate(difficulties):
+            marker = "→ " if i == selection else "  "
+            style = f"{C_YELLOW}{C_BOLD}" if i == selection else f"{C_WHITE}"
+            diff_lines.append(f"{marker}{style}{diff:<10}{C_RESET}")
+        
+        draw_retro_box(30, "⚙️ SELECT DIFFICULTY", diff_lines, color=C_YELLOW)
+        print("\n" + " " * 25 + f"{C_WHITE}[UP/DOWN] Select  [ENTER] Start  [Q] Back{C_RESET}")
+        
+        key = get_key()
+        if key == 'up':
+            selection = (selection - 1) % len(difficulties)
+            beep("correct")
+        elif key == 'down':
+            selection = (selection + 1) % len(difficulties)
+            beep("correct")
+        elif key in ['\r', '\n', ' ', 'enter']:
+            beep("win")
+            return difficulties[selection].lower()
+        elif key and key.lower() == 'q':
+            return None
+        
+        time.sleep(0.05)
+
 def main():
     """Application entry point."""
     if os.name == 'nt': os.system('') # Initialize ANSI
@@ -138,19 +173,25 @@ def main():
             beep("correct")
         elif key in ['\r', '\n', ' ']:
             beep("correct")
-            if selection == 0:   safe_game_call(play_snake, "Snake")
-            elif selection == 1: safe_game_call(play_breakout, "Breakout")
-            elif selection == 2: safe_game_call(play_space_shooter, "Space Shooter")
-            elif selection == 3: safe_game_call(play_tetris, "Tetris")
-            elif selection == 4: safe_game_call(play_pacman, "Pac-Man")
+            
+            # Select difficulty before playing (except for Quit)
+            if selection < 9:
+                difficulty = select_game_difficulty()
+                if not difficulty: continue # Back to menu
+            
+            if selection == 0:   safe_game_call(play_snake, "Snake", difficulty=difficulty)
+            elif selection == 1: safe_game_call(play_breakout, "Breakout", difficulty=difficulty)
+            elif selection == 2: safe_game_call(play_space_shooter, "Space Shooter", difficulty=difficulty)
+            elif selection == 3: safe_game_call(play_tetris, "Tetris", difficulty=difficulty)
+            elif selection == 4: safe_game_call(play_pacman, "Pac-Man", difficulty=difficulty)
             elif selection == 5: 
-                if play_dungeon: safe_game_call(play_dungeon, "Dungeon Crawler")
+                if play_dungeon: safe_game_call(play_dungeon, "Dungeon Crawler", difficulty=difficulty)
                 else: show_popup("Dungeon module missing!", C_RED)
-            elif selection == 6: safe_game_call(play_minesweeper, "Minesweeper")
+            elif selection == 6: safe_game_call(play_minesweeper, "Minesweeper", difficulty=difficulty)
             elif selection == 7:
-                if play_chess: safe_game_call(play_chess, "Chess")
+                if play_chess: safe_game_call(play_chess, "Chess", difficulty=difficulty)
                 else: show_popup("Chess (python-chess) missing!", C_RED)
-            elif selection == 8: safe_game_call(play_sudoku, "Sudoku")
+            elif selection == 8: safe_game_call(play_sudoku, "Sudoku", difficulty=difficulty)
             elif selection == 9: break
         elif key in ['q', 'Q']:
             break
@@ -159,9 +200,6 @@ def main():
              # Immediately play if number pressed? Or just select? 
              # Let's just select to match the arrow behavior.
              pass
-
-if __name__ == "__main__":
-    main()
 
 if __name__ == "__main__":
     main()
