@@ -8,6 +8,7 @@ import time
 import logging
 from stats_manager import get_stats_manager
 from xp_config import get_xp_system
+from arcade_utils import Renderer, show_popup, beep
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ class BaseGame(ABC):
         self.game_over = False
         self.stats_manager = get_stats_manager()
         self.xp_system = get_xp_system(difficulty)
+        self.renderer = Renderer(fps=20) # Default FPS for terminal games
     
     @abstractmethod
     def play(self) -> dict:
@@ -42,6 +44,14 @@ class BaseGame(ABC):
             Dictionary with final game stats (score, xp_earned, etc.)
         """
         pass
+    
+    def unlock_achievement(self, achievement_id: str, name: str) -> None:
+        """
+        Unlock an achievement and show popup.
+        """
+        if self.stats_manager.unlock_achievement(achievement_id):
+            beep("achievement")
+            show_popup(f"🏆 ACHIEVEMENT UNLOCKED: {name}", delay=1.5)
     
     def add_xp(self, amount: int) -> None:
         """

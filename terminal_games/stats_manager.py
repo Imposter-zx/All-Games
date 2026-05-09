@@ -22,6 +22,7 @@ class StatsManager:
         "level": 1,
         "games_played": 0,
         "total_playtime": 0,
+        "achievements": [],
         "games": {}
     }
     
@@ -37,6 +38,8 @@ class StatsManager:
             self.stats['games'] = {}
         if 'games_played' not in self.stats:
             self.stats['games_played'] = 0
+        if 'achievements' not in self.stats:
+            self.stats['achievements'] = []
         logger.info(f"StatsManager initialized. Level: {self.stats.get('level', 1)}, XP: {self.stats.get('total_xp', 0)}")
     
     def _load_stats(self) -> dict:
@@ -130,6 +133,27 @@ class StatsManager:
         except Exception as e:
             logger.error(f"Failed to add XP: {e}")
             return self.stats['level']
+
+    def unlock_achievement(self, achievement_id: str) -> bool:
+        """
+        Unlock an achievement for the player.
+        
+        Args:
+            achievement_id: Unique ID of the achievement
+            
+        Returns:
+            True if newly unlocked, False if already unlocked or failed
+        """
+        try:
+            if achievement_id not in self.stats['achievements']:
+                self.stats['achievements'].append(achievement_id)
+                self.save()
+                logger.info(f"Achievement unlocked: {achievement_id}")
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Failed to unlock achievement {achievement_id}: {e}")
+            return False
     
     def _update_level(self) -> None:
         """

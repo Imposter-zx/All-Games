@@ -60,13 +60,17 @@ class TetrisGame(BaseGame):
         time.sleep(1)
         
         while not self.game_over:
-            self._render()
+            self.renderer.render_frame(self._render)
             self._handle_input()
             self._update_game_state()
             
             # Control game speed based on level
             self.fall_speed = max(0.1, 0.5 - (self.level * 0.05))
             time.sleep(0.05) # Small sleep to prevent CPU hogging
+            
+            # Achievement check
+            if self.score >= 1000:
+                self.unlock_achievement("tetris_1000", "Block Architect")
             
         self.end_timer()
         
@@ -86,7 +90,6 @@ class TetrisGame(BaseGame):
 
     def _render(self):
         """Render the Tetris board and UI."""
-        clear_screen()
         high_score = self.stats_manager.get_high_score('tetris')
         
         # Header

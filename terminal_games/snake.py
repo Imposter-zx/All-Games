@@ -44,16 +44,14 @@ class SnakeGame(BaseGame):
         self.speed = 0.15
         
         while not self.game_over:
-            start_time = time.time()
-            self._render()
+            self.renderer.render_frame(self._render)
             self._handle_input()
             self._update_game_state()
             
-            # Frame rate limiting
-            elapsed = time.time() - start_time
-            sleep_time = self.speed - elapsed
-            if sleep_time > 0:
-                time.sleep(sleep_time)
+            # FPS is handled by self.renderer.render_frame
+            # But snake speed is logic-based, so we still need a small sleep if speed is slower than FPS
+            # Actually, let's just use the logic speed as the FPS target or sleep target.
+            time.sleep(self.speed)
         
         self.end_timer()
         
@@ -73,7 +71,6 @@ class SnakeGame(BaseGame):
     
     def _render(self):
         """Render game board."""
-        clear_screen()
         high_score = self.stats_manager.get_high_score('snake')
         
         print(f"{C_YELLOW}╔{'═' * BOARD_WIDTH}╗")
@@ -137,6 +134,13 @@ class SnakeGame(BaseGame):
             particle_effect(char="+", color=C_GREEN, count=3)
             beep("eat")
             self.food = create_food(self.snake)
+            
+            # Achievement checks
+            if self.score == 100:
+                self.unlock_achievement("snake_100", "Slither Master")
+            elif self.score == 500:
+                self.unlock_achievement("snake_500", "Python King")
+            
             if self.score % 50 == 0:
                 self.speed = max(0.05, self.speed - 0.01)
         else:

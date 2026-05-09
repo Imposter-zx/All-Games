@@ -58,6 +58,7 @@ def draw_profile():
     d_max = mgr.get_stats("dungeon").get("max_level", 1)
     
     level, xp, progress = mgr.get_level_and_xp()
+    achievements = stats.get('achievements', [])
     bar_width = 20
     filled = int(progress * bar_width)
     xp_bar = f"[{C_GREEN}{u_safe('█', '#') * filled}{C_BLACK}{u_safe('░', '-') * (bar_width - filled)}{C_WHITE}]"
@@ -66,8 +67,9 @@ def draw_profile():
     profile_lines = [
         f"LEVEL: {level} {level_bar}",
         f"XP: {xp} {xp_bar}",
+        f"🏆 ACHIEVEMENTS: {C_YELLOW}{len(achievements)}{C_WHITE}",
         f"══════════════════════════════",
-        f"🏆 TOTAL ARCADE SCORE: {C_YELLOW}{total_score}{C_WHITE}",
+        f"🎯 TOTAL SCORE: {C_YELLOW}{total_score}{C_WHITE}",
         f"{u_safe('🐍', 'S')} Snake Best        : {C_GREEN}{mgr.get_high_score('snake')}{C_WHITE}",
         f"{u_safe('🧱', 'B')} Breakout Best     : {C_CYAN}{mgr.get_high_score('breakout')}{C_WHITE}",
         f"{u_safe('🚀', 'X')} Shooter High      : {C_MAGENTA}{mgr.get_high_score('space_shooter')}{C_WHITE}",
@@ -78,6 +80,16 @@ def draw_profile():
         f"{u_safe('♟️', 'C')} Chess Wins        : {C_WHITE}{c_wins}{C_WHITE}",
         f"{u_safe('🔢', '#')} Sudoku Wins       : {C_GREEN}{mgr.get_stats('sudoku').get('wins', 0)}{C_WHITE}"
     ]
+    
+    # Add a mini achievement list if they exist
+    if achievements:
+        from achievements_config import get_achievement
+        recent_ids = achievements[-2:] # Last 2
+        ach_names = [get_achievement(aid)['name'] for aid in recent_ids if get_achievement(aid)]
+        if ach_names:
+            profile_lines.append(f"══════════════════════════════")
+            profile_lines.append(f"RECENT: {', '.join(ach_names)}")
+
     draw_retro_box(40, f"{u_safe('👤', '')} PLAYER PROFILE", profile_lines, color=C_WHITE, title_color=C_CYAN)
 
 def print_menu(selection):

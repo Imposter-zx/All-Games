@@ -53,27 +53,90 @@ BG_BLUE = "\033[44m"
 STATS_FILE = "player_stats.json"
 
 def beep(event="correct"):
-    """Terminal beeps for arcade feedback."""
-    if event == "correct":
-        print("\a", end="", flush=True)
-    elif event == "invalid":
-        print("\a", end="", flush=True)
-        time.sleep(0.1)
-        print("\a", end="", flush=True)
-    elif event == "win":
-        for _ in range(3):
+    """Terminal beeps for arcade feedback with varying patterns."""
+    try:
+        if event == "correct":
             print("\a", end="", flush=True)
-            time.sleep(0.15)
-    elif event == "lose":
-        for _ in range(2):
+        elif event == "invalid":
             print("\a", end="", flush=True)
-            time.sleep(0.4)
-    elif event == "game_over": # Slower, sadder beep
-        for _ in range(3):
+            time.sleep(0.05)
             print("\a", end="", flush=True)
-            time.sleep(0.6)
-    elif event == "eat": # Quick high beep simulation
-        print("\a", end="", flush=True)
+        elif event == "win":
+            # Rising sequence simulation (limited by terminal beep)
+            for i in range(3):
+                print("\a", end="", flush=True)
+                time.sleep(0.1)
+        elif event == "lose":
+            # Falling sequence simulation
+            print("\a", end="", flush=True)
+            time.sleep(0.3)
+            print("\a", end="", flush=True)
+        elif event == "game_over":
+            for _ in range(3):
+                print("\a", end="", flush=True)
+                time.sleep(0.5)
+        elif event == "achievement":
+            # Rapid fancy beep
+            for _ in range(4):
+                print("\a", end="", flush=True)
+                time.sleep(0.05)
+    except:
+        pass
+
+class Renderer:
+    """Handles terminal rendering with FPS control and flicker reduction."""
+    
+    def __init__(self, fps=30):
+        self.fps = fps
+        self.frame_time = 1.0 / fps
+        self.last_frame_time = time.time()
+        self.terminal_width = 80
+        self.terminal_height = 24
+        self._update_terminal_size()
+        
+    def _update_terminal_size(self):
+        try:
+            size = os.get_terminal_size()
+            self.terminal_width = size.columns
+            self.terminal_height = size.lines
+        except (OSError, ValueError):
+            pass
+
+    def clear(self):
+        """Clears the screen. Use only at start of game or major transition."""
+        os.system('cls' if os.name == 'nt' else 'clear')
+
+    def move_to_top(self):
+        """Moves cursor to top-left without clearing, reducing flicker."""
+        print("\033[H", end="", flush=True)
+
+    def render_frame(self, content_callback):
+        """
+        Executes rendering logic and enforces FPS limit.
+        
+        Args:
+            content_callback: Function that prints the game state
+        """
+        now = time.time()
+        elapsed = now - self.last_frame_time
+        
+        # Enforce FPS
+        if elapsed < self.frame_time:
+            time.sleep(self.frame_time - elapsed)
+            now = time.time()
+        
+        # move_to_top() is better than clear_screen() for flicker
+        self.move_to_top()
+        content_callback()
+        
+        self.last_frame_time = now
+
+    def draw_bar(self, current, maximum, width=20, label="", color=C_GREEN):
+        """Draws a progress bar."""
+        percent = min(1.0, max(0.0, current / maximum)) if maximum > 0 else 0
+        filled = int(width * percent)
+        bar = "█" * filled + "░" * (width - filled)
+        print(f"{label} [{color}{bar}{C_RESET}] {int(percent*100)}%")
 
 def get_input_util():
     if os.name == 'nt':
