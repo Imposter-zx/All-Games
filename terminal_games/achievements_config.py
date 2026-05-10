@@ -20,6 +20,13 @@ ACHIEVEMENTS = {
     
     # Sudoku Achievements
     "sudoku_win": {"name": "Logic Wizard", "description": "Complete a Sudoku puzzle", "xp": 300},
+
+    # New Game Specific Achievements
+    "pacman_clear": {"name": "Ghost Hunter", "description": "Clear a level in Pac-Man", "xp": 400},
+    "space_shooter_1000": {"name": "Space Ace", "description": "Score 1000 in Space Shooter", "xp": 300},
+    "breakout_win": {"name": "Wall Breaker", "description": "Clear all bricks in Breakout", "xp": 400},
+    "chess_win": {"name": "Grandmaster", "description": "Win a game of Chess", "xp": 500},
+    "dungeon_escape": {"name": "Legendary Hero", "description": "Escape the dungeon level 5", "xp": 1000},
 }
 
 def get_achievement(achievement_id):

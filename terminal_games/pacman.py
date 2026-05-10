@@ -56,10 +56,10 @@ class PacmanGame(BaseGame):
         time.sleep(1)
         
         while not self.game_over:
-            self._render()
+            self.renderer.render_frame(self._render)
             self._handle_input()
             self._update_game_state()
-            time.sleep(0.1) # Game tick
+            time.sleep(0.05) # Game tick
             
         self.end_timer()
         
@@ -83,7 +83,6 @@ class PacmanGame(BaseGame):
 
     def _render(self):
         """Render the Pac-Man map and entities."""
-        clear_screen()
         high_score = self.stats_manager.get_high_score('pacman')
         
         print(f" SCORE: {C_GREEN}{self.score:<6}{C_RESET} | HI: {high_score:<6} | POWER: {f'{C_CYAN}{self.power_timer}{C_RESET}' if self.power_timer > 0 else 'OFF'}")
@@ -171,6 +170,7 @@ class PacmanGame(BaseGame):
             self.power_timer -= 1
             
         if self.pellets_eaten >= self.total_pellets:
+            self.unlock_achievement("pacman_clear", "Ghost Hunter")
             self._handle_win()
 
     def _move_ghosts(self):

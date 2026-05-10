@@ -58,10 +58,11 @@ class MinesweeperGame(BaseGame):
         time.sleep(1)
         
         while not self.game_over:
-            self._render()
+            self.renderer.render_frame(self._render)
             self._handle_input()
             if self._check_win():
                 self._handle_win()
+            time.sleep(0.01) # Small sleep for responsiveness
             
         self.end_timer()
         
@@ -86,7 +87,6 @@ class MinesweeperGame(BaseGame):
 
     def _render(self):
         """Render the minefield."""
-        clear_screen()
         print(f" MINES: {C_RED}{self.num_mines}{C_RESET} | FLAGS: {C_YELLOW}{sum(row.count(True) for row in self.flags)}{C_RESET}")
         
         print(f"{C_WHITE}╔{'══' * self.width}╗")
@@ -176,6 +176,7 @@ class MinesweeperGame(BaseGame):
         """Handle victory."""
         beep("win")
         self.award_xp_for_action(200) # 200 base XP for win
+        self.unlock_achievement("mines_win", "Demolition Expert")
         show_popup("YOU CLEARED THE MINEFIELD!", C_GREEN)
         self.game_over = True
 

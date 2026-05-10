@@ -80,6 +80,19 @@ def beep(event="correct"):
             for _ in range(4):
                 print("\a", end="", flush=True)
                 time.sleep(0.05)
+        elif event == "move":
+            # Very short subtle beep
+            print("\a", end="", flush=True)
+        elif event == "eat":
+            # Quick double beep
+            print("\a", end="", flush=True)
+            time.sleep(0.05)
+            print("\a", end="", flush=True)
+        elif event == "level_up":
+            # Fast rising sequence
+            for i in range(5):
+                print("\a", end="", flush=True)
+                time.sleep(0.05)
     except:
         pass
 
@@ -93,7 +106,16 @@ class Renderer:
         self.terminal_width = 80
         self.terminal_height = 24
         self._update_terminal_size()
+        self.hide_cursor()
         
+    def hide_cursor(self):
+        """Hides the terminal cursor."""
+        print("\033[?25l", end="", flush=True)
+
+    def show_cursor(self):
+        """Shows the terminal cursor."""
+        print("\033[?25h", end="", flush=True)
+
     def _update_terminal_size(self):
         try:
             size = os.get_terminal_size()

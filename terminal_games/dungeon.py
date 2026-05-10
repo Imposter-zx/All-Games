@@ -46,11 +46,11 @@ class DungeonGame(BaseGame):
         time.sleep(1)
         
         while not self.game_over:
-            self._render()
+            self.renderer.render_frame(self._render)
             self._handle_input()
             if self.hp <= 0:
                 self._handle_death()
-            time.sleep(0.05)
+            time.sleep(0.01)
             
         self.end_timer()
         
@@ -70,7 +70,6 @@ class DungeonGame(BaseGame):
 
     def _render(self):
         """Render the dungeon map and UI."""
-        clear_screen()
         print(f" LEVEL: {C_YELLOW}{self.level}{C_RESET} | HP: {C_RED}{self.hp}/{self.max_hp}{C_RESET} | KILLS: {C_MAGENTA}{self.enemies_defeated}{C_RESET}")
         
         for r, row in enumerate(self.dungeon_map):
@@ -153,6 +152,13 @@ class DungeonGame(BaseGame):
         self.score += 100
         self.award_xp_for_action(50) # 50 base XP for level clear
         beep("win")
+        
+        if self.level >= 5:
+            self.unlock_achievement("dungeon_escape", "Legendary Hero")
+            show_popup("YOU ESCAPED THE DUNGEON!", C_YELLOW)
+            self.game_over = True
+            return
+            
         show_popup(f"DESCENDING TO LEVEL {self.level}", C_YELLOW)
         self.dungeon_map = self._generate_level()
         self.player_pos = [1, 1]

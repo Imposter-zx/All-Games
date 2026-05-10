@@ -33,8 +33,8 @@
   "tetris": {
     "best_score": 0
   },
-  "level": 2,
-  "total_xp": 850,
+  "level": 3,
+  "total_xp": 1200,
   "games": {
     "snake": {
       "high_score": 100,
@@ -51,5 +51,6 @@
       "best_score": 5000
     }
   },
-  "games_played": 41
+  "games_played": 49,
+  "achievements": []
 }

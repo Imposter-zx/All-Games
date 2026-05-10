@@ -2,7 +2,7 @@ import os
 import sys
 import time
 import logging
-from arcade_utils import clear_screen, load_stats, draw_retro_box, beep, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, get_level_info, add_xp, show_popup, u_safe
+from arcade_utils import Renderer, clear_screen, load_stats, draw_retro_box, beep, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, get_level_info, add_xp, show_popup, u_safe
 from stats_manager import get_stats_manager
 from input_handler import get_safe_input_handler
 from error_handler import safe_game_call
@@ -92,10 +92,8 @@ def draw_profile():
 
     draw_retro_box(40, f"{u_safe('👤', '')} PLAYER PROFILE", profile_lines, color=C_WHITE, title_color=C_CYAN)
 
-def print_menu(selection):
+def print_menu(selection, renderer):
     """Render the main arcade menu."""
-    clear_screen()
-    
     term_width = 80
     try: term_width = os.get_terminal_size().columns
     except: pass
@@ -171,20 +169,21 @@ def main():
     selection = 0
     num_options = 10 
     
+    renderer = Renderer(fps=60) # High FPS for menu
     input_handler = get_safe_input_handler()
     
     while True:
-        print_menu(selection)
+        renderer.render_frame(lambda: print_menu(selection, renderer))
         key = input_handler.get_safe_key()
         
         if key == 'up': 
             selection = (selection - 1) % num_options
-            beep("correct")
+            beep("move")
         elif key == 'down': 
             selection = (selection + 1) % num_options
-            beep("correct")
+            beep("move")
         elif key in ['\r', '\n', ' ']:
-            beep("correct")
+            beep("win")
             
             # Select difficulty before playing (except for Quit)
             if selection < 9:
@@ -205,13 +204,16 @@ def main():
                 else: show_popup("Chess (python-chess) missing!", C_RED)
             elif selection == 8: safe_game_call(play_sudoku, "Sudoku", difficulty=difficulty)
             elif selection == 9: break
+            
+            renderer.clear() # Clear after game returns
         elif key in ['q', 'Q']:
+            renderer.show_cursor()
             break
         elif key in [str(i) for i in range(1, 10)]:
              selection = int(key) - 1
-             # Immediately play if number pressed? Or just select? 
-             # Let's just select to match the arrow behavior.
-             pass
+             beep("move")
+    
+    renderer.show_cursor()
 
 if __name__ == "__main__":
     main()

@@ -38,7 +38,7 @@ class SpaceShooterGame(BaseGame):
         time.sleep(1)
         
         while not self.game_over:
-            self._render()
+            self.renderer.render_frame(self._render)
             self._handle_input()
             self._update_game_state()
             time.sleep(0.05)
@@ -62,7 +62,6 @@ class SpaceShooterGame(BaseGame):
 
     def _render(self):
         """Render the game board and UI."""
-        clear_screen()
         high_score = self.stats_manager.get_high_score('space_shooter')
         
         # Header
@@ -130,6 +129,10 @@ class SpaceShooterGame(BaseGame):
             for e in self.enemies:
                 e['y'] += 1
         
+        # Achievement check
+        if self.score >= 1000:
+            self.unlock_achievement("space_shooter_1000", "Space Ace")
+
         # Bullet-Enemy Collision
         for b in self.bullets[:]:
             for e in self.enemies[:]:

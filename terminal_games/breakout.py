@@ -44,7 +44,7 @@ class BreakoutGame(BaseGame):
         time.sleep(1)
         
         while not self.game_over:
-            self._render()
+            self.renderer.render_frame(self._render)
             self._handle_input()
             self._update_game_state()
             time.sleep(0.04) # Control game speed
@@ -67,7 +67,6 @@ class BreakoutGame(BaseGame):
 
     def _render(self):
         """Render the game board and UI."""
-        clear_screen()
         high_score = self.stats_manager.get_high_score('breakout')
         
         # Header
@@ -169,6 +168,7 @@ class BreakoutGame(BaseGame):
         
         # Check Win Condition
         if all(not b['active'] for b in self.bricks):
+            self.unlock_achievement("breakout_win", "Wall Breaker")
             self._handle_win()
 
     def _handle_life_lost(self):

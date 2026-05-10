@@ -49,7 +49,7 @@ class ChessGame(BaseGame):
         
         while not self.game_over:
             is_p_turn = self.board.turn == (chess.WHITE if self.u_white else chess.BLACK)
-            self._render()
+            self.renderer.render_frame(self._render)
             
             if is_p_turn:
                 self._handle_input()
@@ -58,6 +58,8 @@ class ChessGame(BaseGame):
                 
             if self.board.is_game_over():
                 self._handle_game_end()
+            
+            time.sleep(0.01)
                 
         self.end_timer()
         
@@ -93,7 +95,6 @@ class ChessGame(BaseGame):
 
     def _render(self):
         """Render the chess board."""
-        clear_screen()
         turn_color = f"{C_WHITE}WHITE" if self.board.turn == chess.WHITE else f"{C_MAGENTA}BLACK"
         print(f" {C_WHITE}CHESS ARCADE {C_RESET}| Turn: {turn_color}{C_RESET}")
         print("  a b c d e f g h")
@@ -211,6 +212,7 @@ class ChessGame(BaseGame):
         won = (result == "1-0" and self.u_white) or (result == "0-1" and not self.u_white)
         
         if won:
+            self.unlock_achievement("chess_win", "Grandmaster")
             show_popup("VICTORY! YOU WON!", C_GREEN)
             self.award_xp_for_action(100) # 100 base XP for win
         elif result == "1/2-1/2":

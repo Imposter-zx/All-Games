@@ -65,10 +65,11 @@ class SudokuGame(BaseGame):
         time.sleep(1)
         
         while not self.game_over:
-            self._render()
+            self.renderer.render_frame(self._render)
             self._handle_input()
             if self._check_win():
                 self._handle_win()
+            time.sleep(0.01)
             
         self.end_timer()
         
@@ -87,7 +88,6 @@ class SudokuGame(BaseGame):
 
     def _render(self):
         """Render the Sudoku board."""
-        clear_screen()
         print(f" DIFFICULTY: {C_YELLOW}{self.difficulty.upper()}{C_RESET} | SCORE: {C_GREEN}{self.score}{C_RESET}")
         
         print(f"{C_WHITE}╔═══════╦═══════╦═══════╗")
@@ -155,6 +155,7 @@ class SudokuGame(BaseGame):
         """Handle victory."""
         beep("win")
         self.award_xp_for_action(300) # 300 base XP for win
+        self.unlock_achievement("sudoku_win", "Logic Wizard")
         show_popup("SUDOKU COMPLETE! YOU WIN!", C_GREEN)
         self.game_over = True
 
