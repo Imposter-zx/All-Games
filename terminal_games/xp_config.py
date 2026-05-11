@@ -61,6 +61,10 @@ XP_CONFIGS = {
     'pacman': GameXPConfig(
         name='Pac-Man',
         base_multiplier=0.4
+    ),
+    '2048': GameXPConfig(
+        name='2048',
+        base_multiplier=0.2  # score_gain * 0.2 = XP
     )
 }
 

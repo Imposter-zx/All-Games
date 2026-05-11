@@ -23,6 +23,7 @@ from space_shooter import play_space_shooter
 from tetris import play_tetris
 
 from pacman import play_pacman
+from game_2048 import play_2048
 try:
     from dungeon import play_dungeon
 except ImportError:
@@ -47,7 +48,7 @@ def draw_profile():
     stats = mgr.get_stats()
     
     # Calculate Total Score
-    games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku"]
+    games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku", "2048"]
     total_score = 0
     for game in games:
         total_score += mgr.get_high_score(game)
@@ -78,7 +79,8 @@ def draw_profile():
         f"{u_safe('💣', 'M')} Minesweeper Wins  : {C_RED}{m_wins}{C_WHITE}",
         f"{u_safe('⚔️', 'D')} Dungeon Max Lvl   : {C_MAGENTA}{d_max}{C_WHITE}",
         f"{u_safe('♟️', 'C')} Chess Wins        : {C_WHITE}{c_wins}{C_WHITE}",
-        f"{u_safe('🔢', '#')} Sudoku Wins       : {C_GREEN}{mgr.get_stats('sudoku').get('wins', 0)}{C_WHITE}"
+        f"{u_safe('🔢', '#')} Sudoku Wins       : {C_GREEN}{mgr.get_stats('sudoku').get('wins', 0)}{C_WHITE}",
+        f"{u_safe('🔢', '2')} 2048 Best         : {C_YELLOW}{mgr.get_high_score('2048')}{C_WHITE}"
     ]
     
     # Add a mini achievement list if they exist
@@ -115,6 +117,7 @@ def print_menu(selection, renderer):
         "7. 💣 Minesweeper",
         "8. ♟️ Chess vs AI",
         "9. 🔢 Sudoku",
+        "10. 🔢 2048",
         "Q. 🚪 Quit"
     ]
     
@@ -167,7 +170,7 @@ def main():
     """Application entry point."""
     if os.name == 'nt': os.system('') # Initialize ANSI
     selection = 0
-    num_options = 10 
+    num_options = 11 
     
     renderer = Renderer(fps=60) # High FPS for menu
     input_handler = get_safe_input_handler()
@@ -203,7 +206,8 @@ def main():
                 if play_chess: safe_game_call(play_chess, "Chess", difficulty=difficulty)
                 else: show_popup("Chess (python-chess) missing!", C_RED)
             elif selection == 8: safe_game_call(play_sudoku, "Sudoku", difficulty=difficulty)
-            elif selection == 9: break
+            elif selection == 9: safe_game_call(play_2048, "2048", difficulty=difficulty)
+            elif selection == 10: break
             
             renderer.clear() # Clear after game returns
         elif key in ['q', 'Q']:

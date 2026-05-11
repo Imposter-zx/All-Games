@@ -28,6 +28,8 @@ A premium collection of classic terminal games with a polished TUI, XP/Leveling 
     - Play against AI; XP for captures and wins.
 9.  **🔢 Sudoku**
     - Logic puzzles with a persistence bonus.
+10. **🔢 2048**
+    - Merge tiles to reach 2048; XP for every merge.
 
 ## ✨ V5 Features: The RPG Update + Production Infrastructure (✅ Complete)
 
@@ -40,7 +42,7 @@ A premium collection of classic terminal games with a polished TUI, XP/Leveling 
 - **Cross-Platform**: Optimized for Windows and Unix terminals.
 
 ### Production Infrastructure (✅ Complete)
-- **Solid Architecture**: Abstract `BaseGame` class provides consistent interface for all 9 games.
+- **Solid Architecture**: Abstract `BaseGame` class provides consistent interface for all 10 games.
 - **Centralized Stats Management**: Singleton `StatsManager` handles all XP, levels, and game statistics.
 - **XP Config System**: Dynamic XP calculation with difficulty-based multipliers.
 - **Comprehensive Testing**: 32 automated unit tests with 100% pass rate.
@@ -54,7 +56,7 @@ A premium collection of classic terminal games with a polished TUI, XP/Leveling 
 |-----------|--------|---------|
 | Infrastructure | ✅ Complete | BaseGame, StatsManager, Error Handlers, Input Validation |
 | Testing | ✅ Complete | 32/32 tests passing (100% coverage of infrastructure) |
-| Game Migration | ✅ Complete | All 9 games refactored to BaseGame architecture |
+| Game Migration | ✅ Complete | All 10 games refactored to BaseGame architecture |
 | Difficulty System | ✅ Complete | Dynamic speed/XP scaling based on player choice |
 | XP Integration | ✅ Complete | Global progression synced across all modules |
 | Code Quality | ✅ Improved | Fixed 50+ issues; standardized naming, exceptions, patterns |
@@ -131,6 +133,7 @@ All Games/
 │   ├── chess_game.py          # Chess vs AI
 │   ├── sudoku.py              # Sudoku
 │   ├── dungeon.py             # Dungeon Crawler
+│   ├── game_2048.py           # 2048
 │   ├── player_stats.json      # Player progression (persisted)
 │   └── requirements.txt       # Dependencies
 ├── tests/
@@ -145,7 +148,7 @@ All Games/
 ## 📈 Architecture & Design Patterns
 
 ### BaseGame Abstract Class
-All 9 games inherit from `BaseGame` and implement a standardized loop:
+All 10 games inherit from `BaseGame` and implement a standardized loop:
 - `play()` - Main game entry point
 - `_render()` - Frame rendering
 - `_handle_input()` - Input processing  
@@ -171,6 +174,7 @@ XP is calculated dynamically based on game-specific metrics (points, lines, kill
 ### Phase 2: Game Migration ✅ COMPLETE
 - [x] Refactor Tetris, Breakout, Pac-Man, Space Shooter
 - [x] Refactor Chess, Dungeon, Minesweeper, Sudoku
+- [x] Add 2048 Arcade
 - [x] Ensure all games use standardized `high_score` field
 
 ### Phase 3: Advanced Features ✅ COMPLETE
@@ -199,5 +203,5 @@ Created and maintained by Imposter-zx
 
 ---
 
-**Last Updated**: May 2026 | **Current Status**: 🚀 Phase 2 & 3 Complete
+**Last Updated**: May 2026 | **Current Status**: 🚀 Phase 2, 3 & 4 Complete
 

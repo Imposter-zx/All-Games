@@ -27,6 +27,11 @@ ACHIEVEMENTS = {
     "breakout_win": {"name": "Wall Breaker", "description": "Clear all bricks in Breakout", "xp": 400},
     "chess_win": {"name": "Grandmaster", "description": "Win a game of Chess", "xp": 500},
     "dungeon_escape": {"name": "Legendary Hero", "description": "Escape the dungeon level 5", "xp": 1000},
+    
+    # 2048 Achievements
+    "2048_rookie": {"name": "Halfway There", "description": "Reach the 512 tile in 2048", "xp": 200},
+    "2048_expert": {"name": "Millennial", "description": "Reach the 1024 tile in 2048", "xp": 500},
+    "2048_master": {"name": "Ultimate Logic", "description": "Reach the 2048 tile in 2048", "xp": 1000},
 }
 
 def get_achievement(achievement_id):
