@@ -54,6 +54,10 @@ STATS_FILE = "player_stats.json"
 
 def beep(event="correct"):
     """Terminal beeps for arcade feedback with varying patterns."""
+    mgr = get_stats_manager()
+    if not mgr.stats.get('settings', {}).get('sound_enabled', True):
+        return
+        
     try:
         if event == "correct":
             print("\a", end="", flush=True)

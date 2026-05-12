@@ -23,7 +23,11 @@ class StatsManager:
         "games_played": 0,
         "total_playtime": 0,
         "achievements": [],
-        "games": {}
+        "games": {},
+        "settings": {
+            "sound_enabled": True,
+            "player_name": "RETRO_MASTER"
+        }
     }
     
     def __init__(self):
@@ -40,6 +44,8 @@ class StatsManager:
             self.stats['games_played'] = 0
         if 'achievements' not in self.stats:
             self.stats['achievements'] = []
+        if 'settings' not in self.stats:
+            self.stats['settings'] = self.DEFAULT_STATS['settings'].copy()
         logger.info(f"StatsManager initialized. Level: {self.stats.get('level', 1)}, XP: {self.stats.get('total_xp', 0)}")
     
     def _load_stats(self) -> dict:
