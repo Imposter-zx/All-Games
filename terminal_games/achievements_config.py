@@ -36,6 +36,10 @@ ACHIEVEMENTS = {
     # Pong Achievements
     "pong_pro": {"name": "Pong Pro", "description": "Get 10 hits in Pong", "xp": 200},
     "pong_master": {"name": "Pong Master", "description": "Get 25 hits in Pong", "xp": 500},
+    
+    # Asteroids Achievements
+    "asteroids_500": {"name": "Space Pilot", "description": "Score 500 in Asteroids", "xp": 300},
+    "asteroids_1000": {"name": "Void Master", "description": "Score 1000 in Asteroids", "xp": 500},
 }
 
 def get_achievement(achievement_id):

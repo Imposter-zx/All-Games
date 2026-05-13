@@ -25,6 +25,7 @@ from tetris import play_tetris
 from pacman import play_pacman
 from game_2048 import play_2048
 from pong import play_pong
+from asteroids import play_asteroids
 try:
     from dungeon import play_dungeon
 except ImportError:
@@ -50,7 +51,7 @@ def draw_profile():
     player_name = stats.get('settings', {}).get('player_name', 'RETRO_MASTER')
     
     # Calculate Total Score
-    games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku", "2048", "pong"]
+    games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku", "2048", "pong", "asteroids"]
     total_score = 0
     for game in games:
         total_score += mgr.get_high_score(game)
@@ -83,7 +84,8 @@ def draw_profile():
         f"{u_safe('♟️', 'C')} Chess Wins        : {C_WHITE}{c_wins}{C_WHITE}",
         f"{u_safe('🔢', '#')} Sudoku Wins       : {C_GREEN}{mgr.get_stats('sudoku').get('wins', 0)}{C_WHITE}",
         f"{u_safe('🔢', '2')} 2048 Best         : {C_YELLOW}{mgr.get_high_score('2048')}{C_WHITE}",
-        f"{u_safe('🏓', 'O')} Pong High         : {C_BLUE}{mgr.get_high_score('pong')}{C_WHITE}"
+        f"{u_safe('🏓', 'O')} Pong High         : {C_BLUE}{mgr.get_high_score('pong')}{C_WHITE}",
+        f"{u_safe('☄️', 'A')} Asteroids High    : {C_MAGENTA}{mgr.get_high_score('asteroids')}{C_WHITE}"
     ]
     
     # Add a mini achievement list if they exist
@@ -122,6 +124,7 @@ def print_menu(selection, renderer):
         "9. 🔢 Sudoku",
         "10. 🔢 2048",
         "11. 🏓 Pong",
+        "12. ☄️ Asteroids",
         "L. 🏆 Leaderboard",
         "S. ⚙️ Settings",
         "Q. 🚪 Quit"
@@ -176,7 +179,7 @@ def show_leaderboard():
     """Display high scores for all games."""
     from arcade_utils import get_key
     mgr = get_stats_manager()
-    games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku", "2048", "pong"]
+    games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku", "2048", "pong", "asteroids"]
     
     lines = []
     for game in games:
@@ -233,7 +236,7 @@ def main():
     """Application entry point."""
     if os.name == 'nt': os.system('') # Initialize ANSI
     selection = 0
-    num_options = 14 # Games + Leaderboard + Settings + Quit
+    num_options = 15 # Games + Leaderboard + Settings + Quit
     
     renderer = Renderer(fps=60) # High FPS for menu
     input_handler = get_safe_input_handler()
@@ -252,7 +255,7 @@ def main():
             beep("win")
             
             # Select difficulty before playing (except for Leaderboard and Quit)
-            if selection < 11:
+            if selection < 12:
                 difficulty = select_game_difficulty()
                 if not difficulty: continue # Back to menu
             
@@ -271,9 +274,10 @@ def main():
             elif selection == 8: safe_game_call(play_sudoku, "Sudoku", difficulty=difficulty)
             elif selection == 9: safe_game_call(play_2048, "2048", difficulty=difficulty)
             elif selection == 10: safe_game_call(play_pong, "Pong", difficulty=difficulty)
-            elif selection == 11: show_leaderboard()
-            elif selection == 12: show_settings()
-            elif selection == 13: break
+            elif selection == 11: safe_game_call(play_asteroids, "Asteroids", difficulty=difficulty)
+            elif selection == 12: show_leaderboard()
+            elif selection == 13: show_settings()
+            elif selection == 14: break
             
             renderer.clear() # Clear after game returns
         elif key in ['q', 'Q']:
