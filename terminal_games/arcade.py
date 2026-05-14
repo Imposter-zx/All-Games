@@ -2,7 +2,7 @@ import os
 import sys
 import time
 import logging
-from arcade_utils import Renderer, clear_screen, load_stats, draw_retro_box, beep, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, get_level_info, add_xp, show_popup, u_safe
+from arcade_utils import Renderer, clear_screen, load_stats, draw_retro_box, beep, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, get_level_info, add_xp, show_popup, u_safe, apply_theme, THEMES
 from stats_manager import get_stats_manager
 from input_handler import get_safe_input_handler
 from error_handler import safe_game_call
@@ -210,10 +210,12 @@ def show_settings():
         settings = mgr.stats.get('settings', {})
         sound = "ON" if settings.get('sound_enabled', True) else "OFF"
         name = settings.get('player_name', 'RETRO_MASTER')
+        theme = settings.get('theme', 'classic').upper()
         
         lines = [
             f"1. Sound Effects : {C_YELLOW}{sound}{C_RESET}",
             f"2. Player Name   : {C_CYAN}{name}{C_RESET}",
+            f"3. Visual Theme  : {C_GREEN}{theme}{C_RESET}",
             " ",
             f"Q. Back to Menu"
         ]
@@ -238,6 +240,16 @@ def show_settings():
                 settings['player_name'] = new_name
                 mgr.save()
             beep("win")
+        elif key == '3':
+            # Cycle through themes
+            theme_names = list(THEMES.keys())
+            current = settings.get('theme', 'classic')
+            idx = theme_names.index(current) if current in theme_names else 0
+            new_theme = theme_names[(idx + 1) % len(theme_names)]
+            settings['theme'] = new_theme
+            mgr.save()
+            apply_theme()
+            beep("correct")
         elif key and key.lower() == 'q':
             break
 

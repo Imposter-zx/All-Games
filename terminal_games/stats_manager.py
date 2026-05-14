@@ -26,7 +26,8 @@ class StatsManager:
         "games": {},
         "settings": {
             "sound_enabled": True,
-            "player_name": "RETRO_MASTER"
+            "player_name": "RETRO_MASTER",
+            "theme": "classic"
         }
     }
     

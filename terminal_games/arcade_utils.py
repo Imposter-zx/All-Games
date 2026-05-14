@@ -30,17 +30,76 @@ def strip_ansi(text):
     """Removes ANSI escape codes from a string to get its visual length."""
     return re.sub(r'\x1b\[[0-9;]*[mGJKH]', '', text)
 
-# ANSI Color Codes
+class Color:
+    """Dynamic color object that allows theme switching without re-importing."""
+    def __init__(self, value):
+        self.value = value
+    def __str__(self): return self.value
+    def __repr__(self): return self.value
+    def __format__(self, spec): return self.value
+    def __add__(self, other): return self.value + str(other)
+    def __radd__(self, other): return str(other) + self.value
+
+# ANSI Color Codes (initialized as Color objects)
 C_RESET = "\033[0m"
 C_BOLD = "\033[1m"
-C_RED = "\033[31m"
-C_GREEN = "\033[32m"
-C_YELLOW = "\033[33m"
-C_BLUE = "\033[34m"
-C_MAGENTA = "\033[35m"
-C_CYAN = "\033[36m"
-C_WHITE = "\033[37m"
-C_BLACK = "\033[30m"
+C_RED = Color("\033[31m")
+C_GREEN = Color("\033[32m")
+C_YELLOW = Color("\033[33m")
+C_BLUE = Color("\033[34m")
+C_MAGENTA = Color("\033[35m")
+C_CYAN = Color("\033[36m")
+C_WHITE = Color("\033[37m")
+C_BLACK = Color("\033[30m")
+
+THEMES = {
+    "classic": {
+        "red": "\033[31m", "green": "\033[32m", "yellow": "\033[33m", 
+        "blue": "\033[34m", "magenta": "\033[35m", "cyan": "\033[36m", 
+        "white": "\033[37m", "black": "\033[30m"
+    },
+    "neon": {
+        "red": "\033[38;5;196m", "green": "\033[38;5;82m", "yellow": "\033[38;5;226m", 
+        "blue": "\033[38;5;27m", "magenta": "\033[38;5;201m", "cyan": "\033[38;5;51m", 
+        "white": "\033[38;5;231m", "black": "\033[30m"
+    },
+    "retro": {
+        "red": "\033[38;5;124m", "green": "\033[38;5;64m", "yellow": "\033[38;5;172m", 
+        "blue": "\033[38;5;24m", "magenta": "\033[38;5;89m", "cyan": "\033[38;5;30m", 
+        "white": "\033[38;5;250m", "black": "\033[30m"
+    },
+    "monochrome": {
+        "red": "\033[37m", "green": "\033[37m", "yellow": "\033[37m", 
+        "blue": "\033[37m", "magenta": "\033[37m", "cyan": "\033[37m", 
+        "white": "\033[37m", "black": "\033[30m"
+    },
+    "matrix": {
+        "red": "\033[38;5;160m", "green": "\033[38;5;46m", "yellow": "\033[38;5;40m", 
+        "blue": "\033[38;5;22m", "magenta": "\033[38;5;28m", "cyan": "\033[38;5;34m", 
+        "white": "\033[38;5;46m", "black": "\033[30m"
+    }
+}
+
+def apply_theme():
+    """Update all Color objects based on current setting in StatsManager."""
+    mgr = get_stats_manager()
+    theme_name = mgr.stats.get('settings', {}).get('theme', 'classic')
+    theme = THEMES.get(theme_name, THEMES['classic'])
+    
+    C_RED.value = theme['red']
+    C_GREEN.value = theme['green']
+    C_YELLOW.value = theme['yellow']
+    C_BLUE.value = theme['blue']
+    C_MAGENTA.value = theme['magenta']
+    C_CYAN.value = theme['cyan']
+    C_WHITE.value = theme['white']
+    C_BLACK.value = theme['black']
+
+# Apply theme on initial load
+try:
+    apply_theme()
+except:
+    pass
 
 # Backgrounds
 BG_DARK = "\033[48;5;236m"
