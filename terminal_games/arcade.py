@@ -30,6 +30,9 @@ try:
     from dungeon import play_dungeon
 except ImportError:
     play_dungeon = None
+from frogger import play_frogger
+from flappy import play_flappy
+from racing import play_racing
 
 BANNER_TEXT = [
     "  ____  _  _  ____  _   _  _____  _   _  ",
@@ -51,7 +54,7 @@ def draw_profile():
     player_name = stats.get('settings', {}).get('player_name', 'RETRO_MASTER')
     
     # Calculate Total Score
-    games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku", "2048", "pong", "asteroids"]
+    games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku", "2048", "pong", "asteroids", "frogger", "flappy", "racing"]
     total_score = 0
     for game in games:
         total_score += mgr.get_high_score(game)
@@ -85,7 +88,10 @@ def draw_profile():
         f"{u_safe('🔢', '#')} Sudoku Wins       : {C_GREEN}{mgr.get_stats('sudoku').get('wins', 0)}{C_WHITE}",
         f"{u_safe('🔢', '2')} 2048 Best         : {C_YELLOW}{mgr.get_high_score('2048')}{C_WHITE}",
         f"{u_safe('🏓', 'O')} Pong High         : {C_BLUE}{mgr.get_high_score('pong')}{C_WHITE}",
-        f"{u_safe('☄️', 'A')} Asteroids High    : {C_MAGENTA}{mgr.get_high_score('asteroids')}{C_WHITE}"
+        f"{u_safe('☄️', 'A')} Asteroids High    : {C_MAGENTA}{mgr.get_high_score('asteroids')}{C_WHITE}",
+        f"{u_safe('🐸', 'F')} Frogger High      : {C_GREEN}{mgr.get_high_score('frogger')}{C_WHITE}",
+        f"{u_safe('🐦', 'V')} Flappy High       : {C_YELLOW}{mgr.get_high_score('flappy')}{C_WHITE}",
+        f"{u_safe('🏎️', 'R')} Racing High       : {C_RED}{mgr.get_high_score('racing')}{C_WHITE}"
     ]
     
     # Add a mini achievement list if they exist
@@ -125,6 +131,9 @@ def print_menu(selection, renderer):
         "10. 🔢 2048",
         "11. 🏓 Pong",
         "12. ☄️ Asteroids",
+        "13. 🐸 Frogger",
+        "14. 🐦 Flappy Bird",
+        "15. 🏎️ Racing",
         "L. 🏆 Leaderboard",
         "S. ⚙️ Settings",
         "Q. 🚪 Quit"
@@ -179,7 +188,7 @@ def show_leaderboard():
     """Display high scores for all games."""
     from arcade_utils import get_key
     mgr = get_stats_manager()
-    games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku", "2048", "pong", "asteroids"]
+    games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku", "2048", "pong", "asteroids", "frogger", "flappy", "racing"]
     
     lines = []
     for game in games:
@@ -236,7 +245,7 @@ def main():
     """Application entry point."""
     if os.name == 'nt': os.system('') # Initialize ANSI
     selection = 0
-    num_options = 15 # Games + Leaderboard + Settings + Quit
+    num_options = 18 # Games + Leaderboard + Settings + Quit
     
     renderer = Renderer(fps=60) # High FPS for menu
     input_handler = get_safe_input_handler()
@@ -275,9 +284,12 @@ def main():
             elif selection == 9: safe_game_call(play_2048, "2048", difficulty=difficulty)
             elif selection == 10: safe_game_call(play_pong, "Pong", difficulty=difficulty)
             elif selection == 11: safe_game_call(play_asteroids, "Asteroids", difficulty=difficulty)
-            elif selection == 12: show_leaderboard()
-            elif selection == 13: show_settings()
-            elif selection == 14: break
+            elif selection == 12: safe_game_call(play_frogger, "Frogger", difficulty=difficulty)
+            elif selection == 13: safe_game_call(play_flappy, "Flappy Bird", difficulty=difficulty)
+            elif selection == 14: safe_game_call(play_racing, "Racing", difficulty=difficulty)
+            elif selection == 15: show_leaderboard()
+            elif selection == 16: show_settings()
+            elif selection == 17: break
             
             renderer.clear() # Clear after game returns
         elif key in ['q', 'Q']:

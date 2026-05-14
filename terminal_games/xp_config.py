@@ -65,6 +65,26 @@ XP_CONFIGS = {
     '2048': GameXPConfig(
         name='2048',
         base_multiplier=0.2  # score_gain * 0.2 = XP
+    ),
+    'frogger': GameXPConfig(
+        name='Frogger',
+        base_multiplier=1.0  # goals * 100 = XP
+    ),
+    'asteroids': GameXPConfig(
+        name='Asteroids',
+        base_multiplier=0.5
+    ),
+    'pong': GameXPConfig(
+        name='Pong',
+        base_multiplier=10.0
+    ),
+    'flappy': GameXPConfig(
+        name='Flappy Bird',
+        base_multiplier=50.0  # score * 50 = XP
+    ),
+    'racing': GameXPConfig(
+        name='Racing',
+        base_multiplier=1.0  # score * 1.0 = XP
     )
 }
 

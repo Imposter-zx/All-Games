@@ -40,6 +40,19 @@ ACHIEVEMENTS = {
     # Asteroids Achievements
     "asteroids_500": {"name": "Space Pilot", "description": "Score 500 in Asteroids", "xp": 300},
     "asteroids_1000": {"name": "Void Master", "description": "Score 1000 in Asteroids", "xp": 500},
+    
+    # Frogger Achievements
+    "frogger_first": {"name": "Crosser", "description": "Reach the goal for the first time in Frogger", "xp": 200},
+    "frogger_5": {"name": "Highway Hero", "description": "Reach the goal 5 times in one game", "xp": 500},
+    "frogger_10": {"name": "Leap Master", "description": "Reach the goal 10 times in one game", "xp": 1000},
+    
+    # Flappy Achievements
+    "flappy_10": {"name": "Birdie", "description": "Score 10 in Flappy Bird", "xp": 300},
+    "flappy_50": {"name": "Ace Flyer", "description": "Score 50 in Flappy Bird", "xp": 1000},
+    
+    # Racing Achievements
+    "racing_100": {"name": "Speedster", "description": "Score 100 in Racing", "xp": 200},
+    "racing_500": {"name": "Pro Racer", "description": "Score 500 in Racing", "xp": 500},
 }
 
 def get_achievement(achievement_id):
