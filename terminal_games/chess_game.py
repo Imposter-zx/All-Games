@@ -6,8 +6,8 @@ from arcade_utils import (
     clear_screen, get_key, draw_retro_box, beep, show_popup, 
     update_stats, load_stats, animated_flash, print_big_title, 
     add_xp, screen_shake, particle_effect, 
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK,
-    BG_DARK, BG_LIGHT, BG_CUR, BG_SEL, BG_RED
+    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, C_GRAY,
+    BG_DARK, BG_LIGHT, BG_CUR, BG_SEL, BG_RED, u_safe
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -116,7 +116,7 @@ class ChessGame(BaseGame):
                 
                 symbol = " "
                 if piece:
-                    symbol = piece.unicode_symbol()
+                    symbol = u_safe(piece.unicode_symbol(), piece.symbol())
                 
                 # Piece color
                 fg = C_WHITE if piece and piece.color == chess.WHITE else C_MAGENTA
@@ -203,7 +203,7 @@ class ChessGame(BaseGame):
             # engine.quit()
             # return res.move
             return random.choice(list(self.board.legal_moves))
-        except:
+        except Exception:
             return random.choice(list(self.board.legal_moves))
 
     def _handle_game_end(self):

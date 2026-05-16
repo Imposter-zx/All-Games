@@ -6,7 +6,7 @@ from input_handler import get_safe_input_handler
 from arcade_utils import (
     clear_screen, print_big_title, beep, show_popup, 
     screen_shake, particle_effect, animated_flash,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_MAGENTA, C_WHITE, C_BLACK
+    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_MAGENTA, C_WHITE, C_BLACK, u_safe
 )
 
 logger = logging.getLogger(__name__)
@@ -65,16 +65,16 @@ class RacingGame(BaseGame):
         self.road_offset = (self.road_offset + 1) % 4
         for y in range(BOARD_HEIGHT):
             if (y + self.road_offset) % 4 == 0:
-                grid[y][0] = '║'
-                grid[y][BOARD_WIDTH-1] = '║'
+                grid[y][0] = u_safe('║', '|')
+                grid[y][BOARD_WIDTH-1] = u_safe('║', '|')
         
         # Draw enemies
         for ey, ex in self.enemies:
             if 0 <= ey < BOARD_HEIGHT:
-                grid[int(ey)][int(ex)] = '▼'
+                grid[int(ey)][int(ex)] = u_safe('▼', 'V')
         
         # Draw player
-        grid[BOARD_HEIGHT - 2][self.player_x] = '▲'
+        grid[BOARD_HEIGHT - 2][self.player_x] = u_safe('▲', '^')
         
         # Render
         print(f"{C_WHITE}╔{'═' * BOARD_WIDTH}╗{C_RESET}")
@@ -82,9 +82,9 @@ class RacingGame(BaseGame):
             line = f"{C_WHITE}║{C_RESET}"
             for c in range(BOARD_WIDTH):
                 char = grid[r][c]
-                if char == '▲': line += f"{C_CYAN}{char}{C_RESET}"
-                elif char == '▼': line += f"{C_RED}{char}{C_RESET}"
-                elif char == '║': line += f"{C_WHITE}{char}{C_RESET}"
+                if char == u_safe('▲', '^'): line += f"{C_CYAN}{char}{C_RESET}"
+                elif char == u_safe('▼', 'V'): line += f"{C_RED}{char}{C_RESET}"
+                elif char == u_safe('║', '|'): line += f"{C_WHITE}{char}{C_RESET}"
                 else: line += char
             line += f"{C_WHITE}║{C_RESET}"
             print(line)

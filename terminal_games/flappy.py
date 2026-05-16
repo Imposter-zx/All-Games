@@ -6,7 +6,7 @@ from input_handler import get_safe_input_handler
 from arcade_utils import (
     clear_screen, print_big_title, beep, show_popup, 
     screen_shake, particle_effect, animated_flash,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_MAGENTA, C_WHITE
+    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_MAGENTA, C_WHITE, u_safe
 )
 
 logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ class FlappyGame(BaseGame):
         # Draw bird
         by, bx = int(self.bird_pos[0]), int(self.bird_pos[1])
         if 0 <= by < BOARD_HEIGHT:
-            grid[by][bx] = '►'
+            grid[by][bx] = u_safe('►', '>')
             
         # Draw frame
         print(f"{C_CYAN}╔{'═' * BOARD_WIDTH}╗{C_RESET}")

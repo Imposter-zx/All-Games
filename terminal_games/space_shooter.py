@@ -5,14 +5,14 @@ from arcade_utils import (
     clear_screen, get_key, draw_retro_box, beep, show_popup, 
     update_stats, load_stats, animated_flash, print_big_title, 
     add_xp, screen_shake, particle_effect, 
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
+    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, u_safe
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
 
 WIDTH = 30
 HEIGHT = 20
-PLAYER_CHAR = "▲"
+PLAYER_CHAR = u_safe("▲", "^")
 ENEMY_CHAR = "W"
 BULLET_CHAR = "|"
 

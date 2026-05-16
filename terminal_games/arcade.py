@@ -74,9 +74,9 @@ def draw_profile():
     profile_lines = [
         f"LEVEL: {level} {level_bar}",
         f"XP: {xp} {xp_bar}",
-        f"🏆 ACHIEVEMENTS: {C_YELLOW}{len(achievements)}{C_WHITE}",
-        f"══════════════════════════════",
-        f"🎯 TOTAL SCORE: {C_YELLOW}{total_score}{C_WHITE}",
+        f"{u_safe('🏆', 'A')} ACHIEVEMENTS: {C_YELLOW}{len(achievements)}{C_WHITE}",
+        u_safe("══════════════════════════════", "------------------------------"),
+        f"{u_safe('🎯', 'S')} TOTAL SCORE: {C_YELLOW}{total_score}{C_WHITE}",
         f"{u_safe('🐍', 'S')} Snake Best        : {C_GREEN}{mgr.get_high_score('snake')}{C_WHITE}",
         f"{u_safe('🧱', 'B')} Breakout Best     : {C_CYAN}{mgr.get_high_score('breakout')}{C_WHITE}",
         f"{u_safe('🚀', 'X')} Shooter High      : {C_MAGENTA}{mgr.get_high_score('space_shooter')}{C_WHITE}",
@@ -109,7 +109,7 @@ def print_menu(selection, renderer):
     """Render the main arcade menu."""
     term_width = 80
     try: term_width = os.get_terminal_size().columns
-    except: pass
+    except (OSError, ValueError): pass
     
     for line in BANNER_TEXT:
         print(" " * max(0, (term_width - 45) // 2) + f"{C_CYAN}{line}{C_RESET}")
@@ -119,24 +119,24 @@ def print_menu(selection, renderer):
     print("\n")
     
     options = [
-        "1. 🐍 Snake",
-        "2. 🧱 Breakout",
-        "3. 🚀 Space Shooter",
-        "4. 🧩 Tetris",
-        "5. 🟡 Pacman",
-        "6. ⚔️ Dungeon Crawler",
-        "7. 💣 Minesweeper",
-        "8. ♟️ Chess vs AI",
-        "9. 🔢 Sudoku",
-        "10. 🔢 2048",
-        "11. 🏓 Pong",
-        "12. ☄️ Asteroids",
-        "13. 🐸 Frogger",
-        "14. 🐦 Flappy Bird",
-        "15. 🏎️ Racing",
-        "L. 🏆 Leaderboard",
-        "S. ⚙️ Settings",
-        "Q. 🚪 Quit"
+        f"1. {u_safe('🐍', 'S')} Snake",
+        f"2. {u_safe('🧱', 'B')} Breakout",
+        f"3. {u_safe('🚀', 'X')} Space Shooter",
+        f"4. {u_safe('🧩', 'T')} Tetris",
+        f"5. {u_safe('🟡', 'P')} Pacman",
+        f"6. {u_safe('⚔️', 'D')} Dungeon Crawler",
+        f"7. {u_safe('💣', 'M')} Minesweeper",
+        f"8. {u_safe('♟️', 'C')} Chess vs AI",
+        f"9. {u_safe('🔢', '#')} Sudoku",
+        f"10. {u_safe('🔢', '2')} 2048",
+        f"11. {u_safe('🏓', 'O')} Pong",
+        f"12. {u_safe('☄️', 'A')} Asteroids",
+        f"13. {u_safe('🐸', 'F')} Frogger",
+        f"14. {u_safe('🐦', 'V')} Flappy Bird",
+        f"15. {u_safe('🏎️', 'R')} Racing",
+        f"L. {u_safe('🏆', 'L')} Leaderboard",
+        f"S. {u_safe('⚙️', 'S')} Settings",
+        f"Q. {u_safe('🚪', 'Q')} Quit"
     ]
     
     menu_content = []

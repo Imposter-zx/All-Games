@@ -8,7 +8,7 @@ import time
 import logging
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
-from arcade_utils import C_WHITE, C_YELLOW, C_CYAN, C_GREEN, C_MAGENTA, C_RED, C_BLUE, C_BOLD, C_RESET, draw_retro_box, beep
+from arcade_utils import C_WHITE, C_YELLOW, C_CYAN, C_GREEN, C_MAGENTA, C_RED, C_BLUE, C_BOLD, C_RESET, draw_retro_box, beep, u_safe
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +164,7 @@ class Game2048(BaseGame):
             lines.append(row_str)
             lines.append("") # Spacing
             
-        draw_retro_box(40, "🔢 2048 ARCADE", lines, color=C_CYAN)
+        draw_retro_box(40, f"{u_safe('🔢', '#')} 2048 ARCADE", lines, color=C_CYAN)
         print(f"\n{C_WHITE}   [ARROWS] Move  [Q] Quit{C_RESET}")
 
     def play(self):

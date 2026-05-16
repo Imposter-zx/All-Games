@@ -6,7 +6,7 @@ from input_handler import get_safe_input_handler
 from arcade_utils import (
     clear_screen, print_big_title, beep, show_popup, 
     screen_shake, particle_effect, animated_flash,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_MAGENTA, C_WHITE
+    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_MAGENTA, C_WHITE, u_safe
 )
 
 logger = logging.getLogger(__name__)
@@ -98,8 +98,10 @@ class FroggerGame(BaseGame):
     def _render(self):
         """Render the game board."""
         # Header
-        print(f"{C_BOLD}{C_GREEN}FROGGER - LIVES: {f'{C_RED}♥{C_GREEN}' * self.lives} | SCORE: {self.score} | GOALS: {self.goal_reached}{C_RESET}")
-        print(f"{C_BLUE}≈" * BOARD_WIDTH + f"{C_RESET}")
+        heart = u_safe("♥", "v")
+        lives_display = f"{C_RED}{heart}{C_GREEN}" * self.lives
+        print(f"{C_BOLD}{C_GREEN}FROGGER - LIVES: {lives_display} | SCORE: {self.score} | GOALS: {self.goal_reached}{C_RESET}")
+        print(u_safe("≈", "~") * BOARD_WIDTH + f"{C_RESET}")
         
         # Grid
         grid = [[' ' for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
@@ -134,13 +136,13 @@ class FroggerGame(BaseGame):
                     else: 
                         # Background coloring for river/road
                         if 1 <= r <= 3 and char == ' ':
-                            line += f"{C_BLUE}≋{C_RESET}"
+                            line += f"{C_BLUE}{u_safe('≋', '~')}{C_RESET}"
                         elif 5 <= r <= 7 and char == ' ':
-                            line += f"{C_BLACK}▒{C_RESET}"
+                            line += f"{C_BLACK}{u_safe('▒', '#')}{C_RESET}"
                         else:
                             line += f"{row_color}{char}{C_RESET}"
             print(line)
-        print(f"{C_BLUE}≈" * BOARD_WIDTH + f"{C_RESET}")
+        print(f"{C_BLUE}" + u_safe("≈", "~") * BOARD_WIDTH + f"{C_RESET}")
 
     def _handle_input(self):
         """Process player movement."""
@@ -214,7 +216,7 @@ class FroggerGame(BaseGame):
             self.award_xp_for_action(100)
             self.goal_reached += 1
             beep("win")
-            particle_effect(char="★", color=C_YELLOW, count=10)
+            particle_effect(char=u_safe("★", "*"), color=C_YELLOW, count=10)
             show_popup("GOAL REACHED!", C_GREEN)
             self.player_pos = [BOARD_HEIGHT - 1, BOARD_WIDTH // 2]
             

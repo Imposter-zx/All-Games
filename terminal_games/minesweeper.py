@@ -5,8 +5,8 @@ from arcade_utils import (
     clear_screen, get_key, draw_retro_box, beep, show_popup, 
     update_stats, load_stats, animated_flash, print_big_title, 
     add_xp, screen_shake, particle_effect, 
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK,
-    BG_DARK, BG_LIGHT, BG_RED
+    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, C_GRAY,
+    BG_DARK, BG_LIGHT, BG_RED, u_safe
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -103,17 +103,18 @@ class MinesweeperGame(BaseGame):
                 if self.revealed[r][c]:
                     val = self.board[r][c]
                     if val == -1:
-                        char = "💣"
+                        char = u_safe("💣", "X ")
                         bg = BG_RED
                     elif val == 0:
                         char = "  "
-                        bg = C_RESET # Use default empty
+                        color = C_GRAY
+                        bg = C_RESET
                     else:
                         colors = [C_RESET, C_BLUE, C_GREEN, C_RED, C_CYAN, C_MAGENTA, C_YELLOW, C_WHITE, C_BLACK]
                         char = f"{val} "
                         color = colors[val]
                 elif self.flags[r][c]:
-                    char = "🚩"
+                    char = u_safe("🚩", "F ")
                     color = C_YELLOW
                 
                 line += f"{bg}{color}{char}{C_RESET}"

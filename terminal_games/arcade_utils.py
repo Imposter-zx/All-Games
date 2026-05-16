@@ -13,14 +13,14 @@ def u_safe(text, fallback=""):
     try:
         text.encode(sys.stdout.encoding)
         return text
-    except:
+    except (UnicodeEncodeError, AttributeError):
         # Fallback character by character
         safe_chars = []
         for char in text:
             try:
                 char.encode(sys.stdout.encoding)
                 safe_chars.append(char)
-            except:
+            except (UnicodeEncodeError, AttributeError):
                 # If we have a single char fallback, use it only for the first failure?
                 # No, just skip or use a generic fallback
                 pass
@@ -34,11 +34,11 @@ class Color:
     """Dynamic color object that allows theme switching without re-importing."""
     def __init__(self, value):
         self.value = value
-    def __str__(self): return self.value
-    def __repr__(self): return self.value
-    def __format__(self, spec): return self.value
-    def __add__(self, other): return self.value + str(other)
-    def __radd__(self, other): return str(other) + self.value
+    def __str__(self): return str(self.value)
+    def __repr__(self): return str(self.value)
+    def __format__(self, spec): return str(self.value)
+    def __add__(self, other): return str(self.value) + str(other)
+    def __radd__(self, other): return str(other) + str(self.value)
 
 # ANSI Color Codes (initialized as Color objects)
 C_RESET = "\033[0m"
@@ -51,32 +51,33 @@ C_MAGENTA = Color("\033[35m")
 C_CYAN = Color("\033[36m")
 C_WHITE = Color("\033[37m")
 C_BLACK = Color("\033[30m")
+C_GRAY = Color("\033[90m") # Brighter black for grid dots etc.
 
 THEMES = {
     "classic": {
         "red": "\033[31m", "green": "\033[32m", "yellow": "\033[33m", 
         "blue": "\033[34m", "magenta": "\033[35m", "cyan": "\033[36m", 
-        "white": "\033[37m", "black": "\033[30m"
+        "white": "\033[37m", "black": "\033[30m", "gray": "\033[90m"
     },
     "neon": {
         "red": "\033[38;5;196m", "green": "\033[38;5;82m", "yellow": "\033[38;5;226m", 
         "blue": "\033[38;5;27m", "magenta": "\033[38;5;201m", "cyan": "\033[38;5;51m", 
-        "white": "\033[38;5;231m", "black": "\033[30m"
+        "white": "\033[38;5;231m", "black": "\033[30m", "gray": "\033[38;5;244m"
     },
     "retro": {
         "red": "\033[38;5;124m", "green": "\033[38;5;64m", "yellow": "\033[38;5;172m", 
         "blue": "\033[38;5;24m", "magenta": "\033[38;5;89m", "cyan": "\033[38;5;30m", 
-        "white": "\033[38;5;250m", "black": "\033[30m"
+        "white": "\033[38;5;250m", "black": "\033[30m", "gray": "\033[38;5;240m"
     },
     "monochrome": {
         "red": "\033[37m", "green": "\033[37m", "yellow": "\033[37m", 
         "blue": "\033[37m", "magenta": "\033[37m", "cyan": "\033[37m", 
-        "white": "\033[37m", "black": "\033[30m"
+        "white": "\033[37m", "black": "\033[30m", "gray": "\033[37m"
     },
     "matrix": {
         "red": "\033[38;5;160m", "green": "\033[38;5;46m", "yellow": "\033[38;5;40m", 
         "blue": "\033[38;5;22m", "magenta": "\033[38;5;28m", "cyan": "\033[38;5;34m", 
-        "white": "\033[38;5;46m", "black": "\033[30m"
+        "white": "\033[38;5;46m", "black": "\033[30m", "gray": "\033[38;5;22m"
     }
 }
 
@@ -94,11 +95,12 @@ def apply_theme():
     C_CYAN.value = theme['cyan']
     C_WHITE.value = theme['white']
     C_BLACK.value = theme['black']
+    C_GRAY.value = theme.get('gray', "\033[90m")
 
 # Apply theme on initial load
 try:
     apply_theme()
-except:
+except (AttributeError, KeyError, TypeError):
     pass
 
 # Backgrounds
@@ -118,45 +120,33 @@ def beep(event="correct"):
         return
         
     try:
-        if event == "correct":
+        # Standard beep for most things
+        if event in ["correct", "move", "eat"]:
             print("\a", end="", flush=True)
+            if event == "eat": # Double beep for eat
+                time.sleep(0.05)
+                print("\a", end="", flush=True)
         elif event == "invalid":
             print("\a", end="", flush=True)
             time.sleep(0.05)
             print("\a", end="", flush=True)
         elif event == "win":
-            # Rising sequence simulation (limited by terminal beep)
-            for i in range(3):
-                print("\a", end="", flush=True)
-                time.sleep(0.1)
-        elif event == "lose":
-            # Falling sequence simulation
-            print("\a", end="", flush=True)
-            time.sleep(0.3)
-            print("\a", end="", flush=True)
-        elif event == "game_over":
             for _ in range(3):
                 print("\a", end="", flush=True)
-                time.sleep(0.5)
+                time.sleep(0.1)
+        elif event == "lose" or event == "game_over":
+            for _ in range(3):
+                print("\a", end="", flush=True)
+                time.sleep(0.3)
         elif event == "achievement":
-            # Rapid fancy beep
             for _ in range(4):
                 print("\a", end="", flush=True)
                 time.sleep(0.05)
-        elif event == "move":
-            # Very short subtle beep
-            print("\a", end="", flush=True)
-        elif event == "eat":
-            # Quick double beep
-            print("\a", end="", flush=True)
-            time.sleep(0.05)
-            print("\a", end="", flush=True)
         elif event == "level_up":
-            # Fast rising sequence
             for i in range(5):
                 print("\a", end="", flush=True)
                 time.sleep(0.05)
-    except:
+    except (UnicodeEncodeError, AttributeError):
         pass
 
 class Renderer:
@@ -173,11 +163,15 @@ class Renderer:
         
     def hide_cursor(self):
         """Hides the terminal cursor."""
-        print("\033[?25l", end="", flush=True)
+        try:
+            print("\033[?25l", end="", flush=True)
+        except (OSError, ValueError): pass
 
     def show_cursor(self):
         """Shows the terminal cursor."""
-        print("\033[?25h", end="", flush=True)
+        try:
+            print("\033[?25h", end="", flush=True)
+        except (OSError, ValueError): pass
 
     def _update_terminal_size(self):
         try:
