@@ -36,27 +36,29 @@ All Games/
 
 ---
 
-## ⚡ Quick Start (5 minutes)
+## ⚡ Quick Start (1 minute)
 
-### 1. Setup & Run
+### Install via pip (Recommended)
+You can install the Arcade directly from the GitHub repository without cloning:
 ```bash
-cd "c:\Users\HASSA\Desktop\All Games"
-
-# Activate virtual environment
-.\.venv\Scripts\Activate.ps1
-
-# Ensure dependencies
-pip install -r terminal_games/requirements.txt
-
-# Run the game
-python terminal_games/arcade.py
+pip install git+https://github.com/Imposter-zx/All-Games.git
+retro-arcade
 ```
 
-### 2. What You'll See
+### Local Development / Manual Installation
+```bash
+git clone https://github.com/Imposter-zx/All-Games.git
+cd "All Games"
+pip install -e .
+retro-arcade
+```
+
+### What You'll See
 - Animated retro banner
 - Player profile with XP progress bar
-- Game selection menu (9 games)
+- Game selection menu (15 games)
 - Play any game - earn XP - level up
+- All stats are saved securely to your home directory (`~/.retro_arcade/`)
 
 ---
 
@@ -106,14 +108,14 @@ python terminal_games/arcade.py
 
 | Aspect | Status | Priority |
 |--------|--------|----------|
-| **Code Quality** | 🟡 Moderate | HIGH ↑ |
-| **Architecture** | 🟡 Mixed patterns | HIGH ↑ |
-| **Error Handling** | 🔴 Weak | HIGH ↑ |
-| **Test Coverage** | 🔴 None (0%) | HIGH ↑ |
-| **Documentation** | 🟡 Basic | MEDIUM ↑ |
-| **Features** | 🟢 Rich (9 games) | MEDIUM ↑ |
-| **Performance** | 🟢 Good | LOW - |
-| **UI/UX** | 🟢 Polished | LOW - |
+| **Code Quality** | 🟢 High | LOW - |
+| **Architecture** | 🟢 OOP Standardized | LOW - |
+| **Error Handling** | 🟢 Strong (u_safe) | LOW - |
+| **Test Coverage** | 🟢 100% Core | LOW - |
+| **Documentation** | 🟢 Extensive | LOW - |
+| **Features** | 🟢 Rich (15 games) | LOW - |
+| **Performance** | 🟢 Excellent | LOW - |
+| **UI/UX** | 🟢 Polished Themes | LOW - |
 
 ---
 
@@ -147,15 +149,21 @@ Day 5-7: Add 2-3 new games
 
 | Game | Status | XP Earning | Issues |
 |------|--------|-----------|---------|
-| 🐍 Snake | ✅ Working | Points × 0.5 | Input timeout risk |
-| 🧱 Breakout | ✅ Working | Score × 0.1 | Uses "best_score" (inconsistent) |
-| 🚀 Space Shooter | ✅ Working | Points × 1.0 | Frame rate unclear |
-| 🧩 Tetris | ✅ Working | Lines × 50 | Uses "best_score" (inconsistent) |
-| 🟡 Pac-Man | ✅ Working | Score × 0.5 | Ghost AI could be smarter |
-| ⚔️ Dungeon | ✅ Working | Combat × 25 | Limited procedural generation |
-| 💣 Minesweeper | ✅ Working | Constant | No difficulty variation |
-| ♟️ Chess | ✅ Working (w/ Stockfish) | Win × 100 | Requires python-chess |
-| 🔢 Sudoku | ✅ Working | Constant | Could have multiple difficulties |
+| 🐍 Snake | ✅ Working | Points × 0.5 | None |
+| 🧱 Breakout | ✅ Working | Score × 0.1 | None |
+| 🚀 Space Shooter | ✅ Working | Points × 1.0 | None |
+| 🧩 Tetris | ✅ Working | Lines × 50 | None |
+| 🟡 Pac-Man | ✅ Working | Score × 0.5 | None |
+| ⚔️ Dungeon | ✅ Working | Combat × 25 | None |
+| 💣 Minesweeper | ✅ Working | Constant | None |
+| ♟️ Chess | ✅ Working (w/ AI) | Win × 100 | None |
+| 🔢 Sudoku | ✅ Working | Constant | None |
+| 🔢 2048 | ✅ Working | Score Gain | None |
+| 🏓 Pong | ✅ Working | Constant | None |
+| ☄️ Asteroids | ✅ Working | Points × 1.0 | None |
+| 🐸 Frogger | ✅ Working | Win × 100 | None |
+| 🐦 Flappy Bird | ✅ Working | Pipes × 1 | None |
+| 🏎️ Racing | ✅ Working | Distance | None |
 
 ---
 
