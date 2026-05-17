@@ -17,8 +17,8 @@ def setup_logger(name: str = 'arcade', level=logging.INFO) -> logging.Logger:
         Configured logger instance
     """
     # Create log directory if it doesn't exist
-    log_dir = Path("terminal_games")
-    log_dir.mkdir(exist_ok=True)
+    log_dir = Path.home() / ".retro_arcade"
+    log_dir.mkdir(parents=True, exist_ok=True)
     
     log_file = log_dir / "debug.log"
     

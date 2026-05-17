@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class StatsManager:
     """Centralized player statistics manager."""
     
-    STATS_FILE = "terminal_games/player_stats.json"
+    STATS_FILE = str(Path.home() / ".retro_arcade" / "player_stats.json")
     
     DEFAULT_STATS = {
         "player_name": "RETRO_MASTER",

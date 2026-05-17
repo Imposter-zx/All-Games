@@ -55,7 +55,7 @@ def safe_game_call(game_func, game_name: str) -> dict:
             "",
             f"Error: {str(e)[:60]}",
             "",
-            "Check terminal_games/debug.log for details"
+            "Check ~/.retro_arcade/debug.log for details"
         ]
         
         draw_retro_box(

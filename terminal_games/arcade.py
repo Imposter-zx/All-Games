@@ -1,5 +1,8 @@
 import os
 import sys
+
+# Ensure local imports work when installed as a package
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import time
 import logging
 from arcade_utils import Renderer, clear_screen, load_stats, draw_retro_box, beep, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, get_level_info, add_xp, show_popup, u_safe, apply_theme, THEMES

@@ -7,6 +7,34 @@ A premium collection of classic terminal games with a polished TUI, XP/Leveling 
 ![Python](https://img.shields.io/badge/python-3.6%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-blueviolet)
 
+## 🚀 Installation & Usage
+
+You can now easily install and play Retro Terminal Arcade without cloning the repository!
+
+### Install via pip (Recommended)
+You can install directly from the GitHub repository:
+```bash
+pip install git+https://github.com/Imposter-zx/All-Games.git
+```
+*(Use `pip3` if applicable to your environment)*
+
+### Run the Arcade
+Once installed, simply type the following command in any terminal to start playing:
+```bash
+retro-arcade
+```
+
+### Local Development / Manual Installation
+If you prefer to clone and install locally:
+```bash
+git clone https://github.com/Imposter-zx/All-Games.git
+cd "All Games"
+pip install -e .
+retro-arcade
+```
+*(Game data like player stats and debug logs are now safely stored in your home directory at `~/.retro_arcade/`)*
+
+
 ## 🎮 Games Included (All Refactored ✨)
 
 1.  **⚔️ Dungeon Crawler**
