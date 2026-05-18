@@ -43,23 +43,32 @@
 
 ---
 
-## Files Created/Updated (Phase 2 & 3)
+## Files Created/Updated (Phases 2-5)
 
 ```
 UPDATED FILES:
-✅ terminal_games/arcade.py          (Added Difficulty Selection)
-✅ terminal_games/tetris.py          (Full integration)
-✅ terminal_games/breakout.py        (Full integration)
-✅ terminal_games/pacman.py          (Full integration)
-✅ terminal_games/space_shooter.py   (Full integration)
-✅ terminal_games/chess_game.py      (Full integration)
-✅ terminal_games/dungeon.py         (Full integration)
-✅ terminal_games/minesweeper.py     (Full integration)
-✅ terminal_games/sudoku.py          (Full integration)
-✅ terminal_games/game_2048.py       (Full integration)
-✅ terminal_games/pong.py            (New Game)
-✅ terminal_games/asteroids.py       (New Game)
-✅ terminal_games/stats_manager.py   (Added Settings)
+✅ terminal_games/arcade.py          (Added Theme Engine, Difficulty Selection, settings)
+✅ terminal_games/arcade_utils.py    (Refactored visual themes, safe sound beep, u_safe fallback)
+✅ terminal_games/base_game.py       (Central abstract template implementation)
+✅ terminal_games/tetris.py          (Full integration under BaseGame, C_GRAY & u_safe support)
+✅ terminal_games/breakout.py        (Full integration under BaseGame, C_GRAY & u_safe support)
+✅ terminal_games/pacman.py          (Full integration under BaseGame, C_GRAY & u_safe support)
+✅ terminal_games/space_shooter.py   (Full integration under BaseGame, C_GRAY & u_safe support)
+✅ terminal_games/chess_game.py      (Full integration under BaseGame, C_GRAY & u_safe support)
+✅ terminal_games/dungeon.py         (Full integration under BaseGame, C_GRAY & u_safe support)
+✅ terminal_games/minesweeper.py     (Full integration under BaseGame, C_GRAY & u_safe support)
+✅ terminal_games/sudoku.py          (Full integration under BaseGame, C_GRAY & u_safe support)
+✅ terminal_games/game_2048.py       (Full integration under BaseGame, C_GRAY & u_safe support)
+✅ terminal_games/pong.py            (Full integration under BaseGame, C_GRAY & u_safe support)
+✅ terminal_games/asteroids.py       (Full integration under BaseGame, C_GRAY & u_safe support)
+✅ terminal_games/frogger.py         (New Premium Game, u_safe and ANSI-safe rendering)
+✅ terminal_games/flappy.py          (New Premium Game, u_safe and ANSI-safe rendering)
+✅ terminal_games/racing.py          (New Premium Game, u_safe and ANSI-safe rendering)
+✅ terminal_games/stats_manager.py   (Settings support, global home-dir persistence: ~/.retro_arcade/)
+✅ terminal_games/logger_setup.py    (Configured to output to global home-dir logs: ~/.retro_arcade/)
+✅ terminal_games/error_handler.py   (Displays ~/.retro_arcade/ paths to users on unexpected crashes)
+✅ terminal_games/__init__.py        (Python package initialization)
+✅ setup.py                         (PyPI-compliant packaging script with `retro-arcade` console entrypoint)
 ```
 
 ---

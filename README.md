@@ -58,6 +58,16 @@ retro-arcade
     - Logic puzzles with a persistence bonus.
 10. **🔢 2048**
     - Merge tiles to reach 2048; XP for every merge.
+11. **🏓 Pong**
+    - Classic table tennis battle; keep the ball in play to earn XP.
+12. **☄️ Asteroids**
+    - Avoid and shoot space debris in this classic vector shooter.
+13. **🐸 Frogger**
+    - Guide the frog safely across busy roads and rapid rivers.
+14. **🐦 Flappy Bird**
+    - Navigate a flying bird through a series of narrow pipes.
+15. **🏎️ Racing**
+    - Drive at high speeds, dodge oncoming cars, and survive as long as possible.
 
 ## ✨ V5 Features: The RPG Update + Production Infrastructure (✅ Complete)
 
@@ -70,13 +80,14 @@ retro-arcade
 - **Cross-Platform**: Optimized for Windows and Unix terminals.
 
 ### Production Infrastructure (✅ Complete)
-- **Solid Architecture**: Abstract `BaseGame` class provides consistent interface for all 10 games.
+- **Solid Architecture**: Abstract `BaseGame` class provides consistent interface for all 15 games.
 - **Centralized Stats Management**: Singleton `StatsManager` handles all XP, levels, and game statistics.
 - **XP Config System**: Dynamic XP calculation with difficulty-based multipliers.
 - **Comprehensive Testing**: 32 automated unit tests with 100% pass rate.
 - **Professional Error Handling**: Consistent exception handling and input validation via `safe_game_call`.
 - **Safe Input Handler**: Robust, non-blocking input handling with direction validation.
 - **Debug Logging**: Integrated logging system for troubleshooting.
+- **Global Portability**: Packaged with a global console entrypoint (`retro-arcade`) and user home-directory persistent stats (`~/.retro_arcade/`).
 
 ## 📊 Current Status
 
@@ -84,11 +95,12 @@ retro-arcade
 |-----------|--------|---------|
 | Infrastructure | ✅ Complete | BaseGame, StatsManager, Error Handlers, Input Validation |
 | Testing | ✅ Complete | 32/32 tests passing (100% coverage of infrastructure) |
-| Game Migration | ✅ Complete | All 10 games refactored to BaseGame architecture |
+| Game Migration | ✅ Complete | All 15 games refactored to BaseGame architecture |
 | Difficulty System | ✅ Complete | Dynamic speed/XP scaling based on player choice |
 | XP Integration | ✅ Complete | Global progression synced across all modules |
 | Code Quality | ✅ Improved | Fixed 50+ issues; standardized naming, exceptions, patterns |
-| Documentation | ✅ Complete | 7+ comprehensive guides created |
+| Documentation | ✅ Complete | 10+ comprehensive guides and summaries created |
+| Packaging & Dist | ✅ Complete | pip-installable directly from GitHub with command line execution |
 
 ## 🚀 Installation & Usage
 
@@ -162,7 +174,11 @@ All Games/
 │   ├── sudoku.py              # Sudoku
 │   ├── dungeon.py             # Dungeon Crawler
 │   ├── game_2048.py           # 2048
-│   ├── player_stats.json      # Player progression (persisted)
+│   ├── pong.py                # Pong
+│   ├── asteroids.py           # Asteroids
+│   ├── frogger.py             # Frogger
+│   ├── flappy.py              # Flappy Bird
+│   ├── racing.py              # Racing
 │   └── requirements.txt       # Dependencies
 ├── tests/
 │   ├── test_base_game.py      # BaseGame tests (14 tests)
@@ -170,13 +186,14 @@ All Games/
 ├── README.md                  # This file
 ├── SUMMARY.md                 # Completion summary
 ├── DEVELOPMENT_GUIDE.md       # Dev instructions
+├── setup.py                   # pip packaging setup
 └── .gitignore
 ```
 
 ## 📈 Architecture & Design Patterns
 
 ### BaseGame Abstract Class
-All 10 games inherit from `BaseGame` and implement a standardized loop:
+All 15 games inherit from `BaseGame` and implement a standardized loop:
 - `play()` - Main game entry point
 - `_render()` - Frame rendering
 - `_handle_input()` - Input processing  
@@ -210,11 +227,19 @@ XP is calculated dynamically based on game-specific metrics (points, lines, kill
 - [x] Global XP scaling integration
 - [x] Enhanced Main Menu with Profile Stats
 
-### Phase 4: Polish & Performance ⏳ IN PROGRESS
-- [ ] Implement FPS limiter for smoother rendering
-- [ ] Add more sound effects (beeps) for game events
-- [ ] Optimize terminal clearing to reduce flicker
-- [ ] Expand Achievements system
+### Phase 4: Polish & Performance ✅ COMPLETE
+- [x] Implement FPS limiter for smoother rendering (flicker-free double rendering buffer)
+- [x] Add more sound effects (beeps) for game events
+- [x] Optimize terminal clearing to reduce flicker
+- [x] Expand Achievements system (game-specific badges for all games)
+
+### Phase 5: Packaging & Distribution ✅ COMPLETE
+- [x] Create `setup.py` & package configuration
+- [x] Add `retro-arcade` console script entry point
+- [x] Refactor stats & logging to user home directory (`~/.retro_arcade/`)
+- [x] Standardize all terminal symbol encodings with robust fallback (`u_safe`)
+- [x] Eliminate all bare `except:` clauses
+- [x] Add new premium games (Pong, Asteroids, Frogger, Flappy Bird, Racing) to complete a 15-game catalog!
 
 ## 📝 License
 
