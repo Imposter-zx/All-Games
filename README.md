@@ -1,154 +1,84 @@
-# 🕹️ Retro Terminal Arcade V5: The RPG Update
+# 🕹️ Retro Terminal Arcade V2: The Production Release
 
-A premium collection of classic terminal games with a polished TUI, XP/Leveling system, procedural dungeons, and immersive visual effects. **Now with production-ready infrastructure, comprehensive testing, and clean architecture patterns.**
+A premium collection of 15 classic terminal games with a polished TUI, XP/Leveling system, procedural dungeons, and immersive visual effects. **Now with SQLite persistence, sound engine, AI opponents, full type safety, and CI/CD pipeline.**
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Tests](https://img.shields.io/badge/tests-32%2F32%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-41%2F41%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.6%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-blueviolet)
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
 
 ## 🚀 Installation & Usage
 
-You can now easily install and play Retro Terminal Arcade without cloning the repository!
-
-### Install via pip (Recommended)
-You can install directly from the GitHub repository:
 ```bash
 pip install git+https://github.com/Imposter-zx/All-Games.git
-```
-*(Use `pip3` if applicable to your environment)*
-
-### Run the Arcade
-Once installed, simply type the following command in any terminal to start playing:
-```bash
 retro-arcade
 ```
 
-### Local Development / Manual Installation
-If you prefer to clone and install locally:
+For local development:
 ```bash
 git clone https://github.com/Imposter-zx/All-Games.git
 cd "All Games"
 pip install -e .
 retro-arcade
 ```
-*(Game data like player stats and debug logs are now safely stored in your home directory at `~/.retro_arcade/`)*
 
+## 🎮 Games Included
 
-## 🎮 Games Included (All Refactored ✨)
+1.  **⚔️ Dungeon Crawler** — Roguelike exploration with procedural rooms, turn-based combat, loot.
+2.  **🟡 Pac-Man** — Classic grid movement with ghost AI and powerups.
+3.  **🐍 Snake** — High-speed survival with XP rewards.
+4.  **🧱 Breakout** — Physics-based brick destruction with screen shake.
+5.  **🧩 Tetris** — Modern implementation with line clear XP.
+6.  **🚀 Space Shooter** — Fast-paced combat with particle effects.
+7.  **💣 Minesweeper** — Classic logic-based mine detection.
+8.  **♟️ Chess vs AI** — Stockfish engine or heuristic AI; configurable skill level.
+9.  **🔢 Sudoku** — Logic puzzles with persistence bonuses.
+10. **🔢 2048** — Merge tiles to reach 2048.
+11. **🏓 Pong** — CPU opponent with ball trajectory prediction.
+12. **☄️ Asteroids** — Vector shooter with space debris.
+13. **🐸 Frogger** — Guide the frog across roads and rivers.
+14. **🐦 Flappy Bird** — Navigate through pipes.
+15. **🏎️ Racing** — Dodge oncoming cars at high speed.
 
-1.  **⚔️ Dungeon Crawler**
-    - Roguelike exploration with procedural rooms.
-    - Turn-based combat, loot collection, and level progression.
-2.  **🟡 Pac-Man**
-    - Classic grid movement with ghost AI and powerups.
-3.  **🐍 Snake**
-    - High-speed survival with XP rewards for eating.
-4.  **🧱 Breakout**
-    - Physics-based brick destruction with screen shake and particles.
-5.  **🧩 Tetris**
-    - Modern implementation with line clears awarding massive XP.
-6.  **🚀 Space Shooter**
-    - Fast-paced combat with explosive particle effects.
-7.  **💣 Minesweeper**
-    - Classic logic-based mine detection with high XP on victory.
-8.  **♟️ Chess vs AI**
-    - Play against AI; XP for captures and wins.
-9.  **🔢 Sudoku**
-    - Logic puzzles with a persistence bonus.
-10. **🔢 2048**
-    - Merge tiles to reach 2048; XP for every merge.
-11. **🏓 Pong**
-    - Classic table tennis battle; keep the ball in play to earn XP.
-12. **☄️ Asteroids**
-    - Avoid and shoot space debris in this classic vector shooter.
-13. **🐸 Frogger**
-    - Guide the frog safely across busy roads and rapid rivers.
-14. **🐦 Flappy Bird**
-    - Navigate a flying bird through a series of narrow pipes.
-15. **🏎️ Racing**
-    - Drive at high speeds, dodge oncoming cars, and survive as long as possible.
+## ✨ V2.0.0 Features
 
-## ✨ V5 Features: The RPG Update + Production Infrastructure (✅ Complete)
+### Core Gaming
+- **Global RPG Progression**: Gain XP across ALL games, level up, track achievements.
+- **Difficulty Selection**: Easy (0.5x), Normal (1.0x), Hard (2.0x) — affects speed & XP.
+- **Visual Juice**: Screen shakes, particles, ANSI-safe rendering.
+- **AI Opponents**: Chess (Stockfish + heuristic), Pac-Man (4 ghost personalities), Pong (trajectory prediction).
+- **Tutorial System**: Press `H` in any game for contextual help; option 17 in main menu for full tutorial.
 
-### Core Gaming Features
-- **Global RPG Progression**: Gain XP across ALL games. Level up to see your rank grow on your persistent profile.
-- **Difficulty Selection**: Choose between EASY, NORMAL, and HARD. Difficulty affects game speed and XP multipliers (Easy: 0.5x, Normal: 1.0x, Hard: 2.0x).
-- **Visual Juice**: Immersive screen shakes and particle effects for combat, line clears, and explosions.
-- **Enhanced Profile**: Sleek XP progress bar and level display in the main arcade menu.
-- **ANSI-Safe Rendering**: Premium TUI alignment and design across all game modules.
-- **Cross-Platform**: Optimized for Windows and Unix terminals.
-
-### Production Infrastructure (✅ Complete)
-- **Solid Architecture**: Abstract `BaseGame` class provides consistent interface for all 15 games.
-- **Centralized Stats Management**: Singleton `StatsManager` handles all XP, levels, and game statistics.
-- **XP Config System**: Dynamic XP calculation with difficulty-based multipliers.
-- **Comprehensive Testing**: 32 automated unit tests with 100% pass rate.
-- **Professional Error Handling**: Consistent exception handling and input validation via `safe_game_call`.
-- **Safe Input Handler**: Robust, non-blocking input handling with direction validation.
-- **Debug Logging**: Integrated logging system for troubleshooting.
-- **Global Portability**: Packaged with a global console entrypoint (`retro-arcade`) and user home-directory persistent stats (`~/.retro_arcade/`).
+### Infrastructure
+- **SQLite Persistence**: Player stats, sessions, achievements, telemetry stored in `~/.retro_arcade/player.db`.
+- **Sound Engine**: Synthesized WAV audio (sine/square/noise), background music, cross-platform playback.
+- **Full Type Annotations**: mypy-compatible on all 20+ modules.
+- **CI/CD Pipeline**: GitHub Actions — matrix test (3.8–3.11 × Linux/Windows), ruff lint, mypy, pytest with coverage, PyPI publish on release.
+- **Telemetry & Analytics**: Session tracking, app start/stop events, game completions.
 
 ## 📊 Current Status
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| Infrastructure | ✅ Complete | BaseGame, StatsManager, Error Handlers, Input Validation |
-| Testing | ✅ Complete | 32/32 tests passing (100% coverage of infrastructure) |
+| Infrastructure | ✅ Complete | BaseGame, StatsManager (SQLite), Error Handlers, Input Validation |
+| Testing | ✅ Complete | 41/41 tests passing |
 | Game Migration | ✅ Complete | All 15 games refactored to BaseGame architecture |
-| Difficulty System | ✅ Complete | Dynamic speed/XP scaling based on player choice |
+| Difficulty System | ✅ Complete | Dynamic speed/XP scaling |
 | XP Integration | ✅ Complete | Global progression synced across all modules |
-| Code Quality | ✅ Improved | Fixed 50+ issues; standardized naming, exceptions, patterns |
-| Documentation | ✅ Complete | 10+ comprehensive guides and summaries created |
-| Packaging & Dist | ✅ Complete | pip-installable directly from GitHub with command line execution |
-
-## 🚀 Installation & Usage
-
-### Prerequisites
-- Python 3.6 or higher
-- pip (Python package manager)
-
-### Setup
-
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/Imposter-zx/All-Games.git
-    cd All-Games
-    ```
-
-2.  **Create and activate virtual environment (recommended)**
-    ```bash
-    # Windows
-    python -m venv .venv
-    .venv\Scripts\activate
-    
-    # Linux/Mac
-    python3 -m venv .venv
-    source .venv/bin/activate
-    ```
-
-3.  **Install dependencies**
-    ```bash
-    pip install -r terminal_games/requirements.txt
-    ```
-
-4.  **Run the Arcade**
-    ```bash
-    cd terminal_games
-    python arcade.py
-    ```
+| AI Opponents | ✅ Complete | Chess (Stockfish), Pac-Man (ghost personalities), Pong (prediction) |
+| Sound Engine | ✅ Complete | Waveform synthesis, background music, cross-platform |
+| Type Annotations | ✅ Complete | mypy-compatible across all modules |
+| CI/CD Pipeline | ✅ Complete | GitHub Actions — lint, test, type-check, publish |
+| Telemetry | ✅ Complete | Sessions, events, analytics |
+| Tutorial System | ✅ Complete | In-game H key help, dedicated tutorial screen |
+| Packaging & Dist | ✅ Complete | pip-installable via GitHub, `retro-arcade` CLI entry point |
 
 ## 🧪 Running Tests
 
 ```bash
-# Run all tests
-python -m pytest tests/ -v
-
-# Run specific test file
-python -m pytest tests/test_base_game.py -v
-
-# Run with coverage
-python -m pytest tests/ --cov=terminal_games
+pytest tests/ -v
+pytest tests/ --cov=terminal_games
 ```
 
 ## 🛠️ Project Structure
@@ -156,105 +86,47 @@ python -m pytest tests/ --cov=terminal_games
 ```
 All Games/
 ├── terminal_games/
-│   ├── arcade.py              # Main launcher (Difficulty Selection)
-│   ├── base_game.py           # Abstract base class
-│   ├── stats_manager.py       # Centralized stats system
+│   ├── arcade.py              # Main launcher + tutorial screen
+│   ├── base_game.py           # Abstract base class with session/telemetry
+│   ├── stats_manager.py       # SQLite-backed stats, sessions, telemetry
+│   ├── sound_engine.py        # WAV synthesis + background music
 │   ├── error_handler.py       # Error handling wrapper
-│   ├── input_handler.py       # Input validation & Safe key handling
-│   ├── xp_config.py           # XP calculation logic (NEW)
+│   ├── input_handler.py       # Safe input handling
+│   ├── xp_config.py           # XP calculation logic
 │   ├── logger_setup.py        # Logging configuration
 │   ├── arcade_utils.py        # ANSI-safe UI utilities
-│   ├── snake.py               # Snake
-│   ├── pacman.py              # Pac-Man
-│   ├── breakout.py            # Breakout
-│   ├── tetris.py              # Tetris
-│   ├── space_shooter.py       # Space Shooter
-│   ├── minesweeper.py         # Minesweeper
-│   ├── chess_game.py          # Chess vs AI
-│   ├── sudoku.py              # Sudoku
-│   ├── dungeon.py             # Dungeon Crawler
-│   ├── game_2048.py           # 2048
-│   ├── pong.py                # Pong
-│   ├── asteroids.py           # Asteroids
-│   ├── frogger.py             # Frogger
-│   ├── flappy.py              # Flappy Bird
-│   ├── racing.py              # Racing
-│   └── requirements.txt       # Dependencies
+│   ├── achievements_config.py # Achievement definitions
+│   ├── snake.py, pacman.py, breakout.py, tetris.py
+│   ├── space_shooter.py, minesweeper.py, chess_game.py
+│   ├── sudoku.py, dungeon.py, game_2048.py, pong.py
+│   ├── asteroids.py, frogger.py, flappy.py, racing.py
+│   └── requirements.txt
 ├── tests/
-│   ├── test_base_game.py      # BaseGame tests (14 tests)
-│   └── test_stats_manager.py  # StatsManager tests (18 tests)
-├── README.md                  # This file
-├── SUMMARY.md                 # Completion summary
-├── DEVELOPMENT_GUIDE.md       # Dev instructions
-├── setup.py                   # pip packaging setup
-└── .gitignore
+│   ├── test_base_game.py      # BaseGame tests
+│   └── test_stats_manager.py  # StatsManager (SQLite) tests
+├── .github/workflows/
+│   ├── ci.yml                 # Matrix test + lint + typecheck + publish
+│   └── lint.yml               # Black + ruff check
+├── setup.py                   # v2.0.0 packaging
+├── pyproject.toml              # Build/config
+└── README.md
 ```
 
-## 📈 Architecture & Design Patterns
+## 📈 Architecture
 
-### BaseGame Abstract Class
-All 15 games inherit from `BaseGame` and implement a standardized loop:
-- `play()` - Main game entry point
-- `_render()` - Frame rendering
-- `_handle_input()` - Input processing  
-- `_update_game_state()` - Game logic
-
-### StatsManager (Singleton)
-Global stats management with XP/leveling system:
-- `add_xp(amount)` - Award XP with level calculation
-- `update_game_stats(game_name, stats_dict)` - Save game results
-- `get_level_and_xp()` - Get progression info
-
-### XP Config & Difficulty
-XP is calculated dynamically based on game-specific metrics (points, lines, kills) and modified by the chosen difficulty level.
-
-## 📋 Development Roadmap
-
-### Phase 1: Foundation ✅ COMPLETE
-- [x] Create BaseGame abstract class
-- [x] Create StatsManager singleton
-- [x] Setup error handling & input validation
-- [x] Refactor Snake game & setup test suite
-
-### Phase 2: Game Migration ✅ COMPLETE
-- [x] Refactor Tetris, Breakout, Pac-Man, Space Shooter
-- [x] Refactor Chess, Dungeon, Minesweeper, Sudoku
-- [x] Add 2048 Arcade
-- [x] Ensure all games use standardized `high_score` field
-
-### Phase 3: Advanced Features ✅ COMPLETE
-- [x] Difficulty modes (Easy, Normal, Hard)
-- [x] Global XP scaling integration
-- [x] Enhanced Main Menu with Profile Stats
-
-### Phase 4: Polish & Performance ✅ COMPLETE
-- [x] Implement FPS limiter for smoother rendering (flicker-free double rendering buffer)
-- [x] Add more sound effects (beeps) for game events
-- [x] Optimize terminal clearing to reduce flicker
-- [x] Expand Achievements system (game-specific badges for all games)
-
-### Phase 5: Packaging & Distribution ✅ COMPLETE
-- [x] Create `setup.py` & package configuration
-- [x] Add `retro-arcade` console script entry point
-- [x] Refactor stats & logging to user home directory (`~/.retro_arcade/`)
-- [x] Standardize all terminal symbol encodings with robust fallback (`u_safe`)
-- [x] Eliminate all bare `except:` clauses
-- [x] Add new premium games (Pong, Asteroids, Frogger, Flappy Bird, Racing) to complete a 15-game catalog!
+- **BaseGame**: Abstract class — `play()`, `_render()`, `_handle_input()`, `_update_game_state()` — auto-records sessions & telemetry.
+- **StatsManager**: Singleton backed by SQLite — `add_xp()`, `record_session()`, `get_leaderboard()`, `record_telemetry()`.
+- **SoundEngine**: Synthesizes WAV at runtime, falls back to terminal beep gracefully.
+- **AI** — Chess: Stockfish auto-detection + skill levels. Pac-Man: Blinky/Pinky/Inky/Sue personalities. Pong: reaction delay + trajectory prediction.
 
 ## 📝 License
 
-MIT License - See LICENSE file for details
+MIT License
 
 ## 👤 Author
 
 Created and maintained by Imposter-zx
 
-## 🔗 Links
-
-- **GitHub**: https://github.com/Imposter-zx/All-Games
-- **Documentation**: See [SUMMARY.md](SUMMARY.md) for detailed progress
-
 ---
 
-**Last Updated**: May 2026 | **Current Status**: 🚀 Phase 2, 3 & 4 Complete
-
+**Last Updated**: May 2026 | **Version**: 2.0.0
