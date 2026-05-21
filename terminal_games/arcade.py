@@ -1,17 +1,21 @@
 import os
 import sys
 
-# Ensure local imports work when installed as a package
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import time
 import logging
-from arcade_utils import Renderer, clear_screen, load_stats, draw_retro_box, beep, C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, get_level_info, add_xp, show_popup, u_safe, apply_theme, THEMES
+from typing import Optional
+from arcade_utils import (
+    Renderer, clear_screen, load_stats, draw_retro_box, beep, C_RESET, C_BOLD,
+    C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK,
+    get_level_info, add_xp, show_popup, u_safe, apply_theme, THEMES,
+    start_background_music, stop_background_music
+)
 from stats_manager import get_stats_manager
 from input_handler import get_safe_input_handler
 from error_handler import safe_game_call
 from logger_setup import setup_logger
 
-# Initialize Logger
 logger = setup_logger()
 
 from sudoku import play_sudoku
@@ -24,7 +28,6 @@ from snake import play_snake
 from breakout import play_breakout
 from space_shooter import play_space_shooter
 from tetris import play_tetris
-
 from pacman import play_pacman
 from game_2048 import play_2048
 from pong import play_pong
@@ -37,7 +40,7 @@ from frogger import play_frogger
 from flappy import play_flappy
 from racing import play_racing
 
-BANNER_TEXT = [
+BANNER_TEXT: list[str] = [
     "  ____  _  _  ____  _   _  _____  _   _  ",
     " |  _ \\| || ||_  _|| | | ||  _  || \\ | | ",
     " |  __/| \\/ |  ||  | |_| || |_| ||  \\| | ",
@@ -50,31 +53,38 @@ BANNER_TEXT = [
     "       --- RETRO ARCADE SYSTEM ---       "
 ]
 
-def draw_profile():
+GAMES: list[str] = [
+    "snake", "breakout", "space_shooter", "tetris", "pacman",
+    "dungeon", "minesweeper", "chess", "sudoku", "2048",
+    "pong", "asteroids", "frogger", "flappy", "racing"
+]
+
+
+def draw_profile() -> None:
     """Render the high-score and XP profile."""
     mgr = get_stats_manager()
     stats = mgr.get_stats()
-    player_name = stats.get('settings', {}).get('player_name', 'RETRO_MASTER')
-    
-    # Calculate Total Score
-    games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku", "2048", "pong", "asteroids", "frogger", "flappy", "racing"]
+    settings = mgr.get_settings()
+    player_name = settings.get('player_name', 'RETRO_MASTER')
+
     total_score = 0
-    for game in games:
+    for game in GAMES:
         total_score += mgr.get_high_score(game)
-        
-    m_wins = sum(mgr.get_stats("minesweeper").get('wins', {}).values()) if isinstance(mgr.get_stats("minesweeper").get('wins'), dict) else 0
+
+    m_wins_data = mgr.get_stats("minesweeper").get('wins', {})
+    m_wins = sum(m_wins_data.values()) if isinstance(m_wins_data, dict) else 0
     c_wins = mgr.get_stats("chess").get("wins", 0)
     p_wins = mgr.get_stats("pacman").get("wins", 0)
     d_max = mgr.get_stats("dungeon").get("max_level", 1)
-    
+
     level, xp, progress = mgr.get_level_and_xp()
-    achievements = stats.get('achievements', [])
+    achievements = mgr.get_unlocked_achievements()
     bar_width = 20
     filled = int(progress * bar_width)
     xp_bar = f"[{C_GREEN}{u_safe('█', '#') * filled}{C_BLACK}{u_safe('░', '-') * (bar_width - filled)}{C_WHITE}]"
     level_bar = f"[{C_YELLOW}{u_safe('★', '*') * (level % 5)}{C_WHITE}]"
-    
-    profile_lines = [
+
+    profile_lines: list[str] = [
         f"LEVEL: {level} {level_bar}",
         f"XP: {xp} {xp_bar}",
         f"{u_safe('🏆', 'A')} ACHIEVEMENTS: {C_YELLOW}{len(achievements)}{C_WHITE}",
@@ -96,32 +106,34 @@ def draw_profile():
         f"{u_safe('🐦', 'V')} Flappy High       : {C_YELLOW}{mgr.get_high_score('flappy')}{C_WHITE}",
         f"{u_safe('🏎️', 'R')} Racing High       : {C_RED}{mgr.get_high_score('racing')}{C_WHITE}"
     ]
-    
-    # Add a mini achievement list if they exist
+
     if achievements:
         from achievements_config import get_achievement
-        recent_ids = achievements[-2:] # Last 2
+        recent_ids = achievements[-2:]
         ach_names = [get_achievement(aid)['name'] for aid in recent_ids if get_achievement(aid)]
         if ach_names:
-            profile_lines.append(f"══════════════════════════════")
+            profile_lines.append("══════════════════════════════")
             profile_lines.append(f"RECENT: {', '.join(ach_names)}")
 
     draw_retro_box(40, f"{u_safe('👤', '')} {player_name}", profile_lines, color=C_WHITE, title_color=C_CYAN)
 
-def print_menu(selection, renderer):
+
+def print_menu(selection: int, renderer: Renderer) -> None:
     """Render the main arcade menu."""
     term_width = 80
-    try: term_width = os.get_terminal_size().columns
-    except (OSError, ValueError): pass
-    
+    try:
+        term_width = os.get_terminal_size().columns
+    except (OSError, ValueError):
+        pass
+
     for line in BANNER_TEXT:
         print(" " * max(0, (term_width - 45) // 2) + f"{C_CYAN}{line}{C_RESET}")
     print("\n")
-    
+
     draw_profile()
     print("\n")
-    
-    options = [
+
+    options: list[str] = [
         f"1. {u_safe('🐍', 'S')} Snake",
         f"2. {u_safe('🧱', 'B')} Breakout",
         f"3. {u_safe('🚀', 'X')} Space Shooter",
@@ -139,39 +151,41 @@ def print_menu(selection, renderer):
         f"15. {u_safe('🏎️', 'R')} Racing",
         f"L. {u_safe('🏆', 'L')} Leaderboard",
         f"S. {u_safe('⚙️', 'S')} Settings",
+        f"H. Tutorial",
         f"Q. {u_safe('🚪', 'Q')} Quit"
     ]
-    
-    menu_content = []
+
+    menu_content: list[str] = []
     for i, opt in enumerate(options):
         is_sel = (i == selection)
         prefix = f"{C_YELLOW}► {C_RESET}" if is_sel else "  "
         style = f"\033[47;30m" if is_sel else f"{C_WHITE}"
         menu_content.append(f"{prefix}{style} {opt:<20} {C_RESET}")
-        
+
     draw_retro_box(30, "🕹️ GAME MENU", menu_content, color=C_CYAN)
     print("\n" + " " * max(0, (term_width - 36) // 2) + f"{C_WHITE}Use Arrows to navigate, Enter to play{C_RESET}")
 
-def select_game_difficulty():
+
+def select_game_difficulty() -> Optional[str]:
     """Let player choose difficulty before game starts."""
     from arcade_utils import draw_retro_box, C_YELLOW, C_RESET, get_key, clear_screen
-    
+
     difficulties = ['EASY', 'NORMAL', 'HARD']
-    selection = 1 # Start on NORMAL
-    
+    selection = 1
+
     while True:
         clear_screen()
         print("\n" * 2)
-        
-        diff_lines = []
+
+        diff_lines: list[str] = []
         for i, diff in enumerate(difficulties):
             marker = "→ " if i == selection else "  "
             style = f"{C_YELLOW}{C_BOLD}" if i == selection else f"{C_WHITE}"
             diff_lines.append(f"{marker}{style}{diff:<10}{C_RESET}")
-        
+
         draw_retro_box(30, "⚙️ SELECT DIFFICULTY", diff_lines, color=C_YELLOW)
         print("\n" + " " * 25 + f"{C_WHITE}[UP/DOWN] Select  [ENTER] Start  [Q] Back{C_RESET}")
-        
+
         key = get_key()
         if key == 'up':
             selection = (selection - 1) % len(difficulties)
@@ -184,143 +198,233 @@ def select_game_difficulty():
             return difficulties[selection].lower()
         elif key and key.lower() == 'q':
             return None
-        
         time.sleep(0.05)
-        
-def show_leaderboard():
+
+
+def show_leaderboard() -> None:
     """Display high scores for all games."""
     from arcade_utils import get_key
     mgr = get_stats_manager()
-    games = ["snake", "breakout", "space_shooter", "tetris", "pacman", "dungeon", "minesweeper", "chess", "sudoku", "2048", "pong", "asteroids", "frogger", "flappy", "racing"]
-    
-    lines = []
-    for game in games:
+
+    lines: list[str] = []
+    for game in GAMES:
         score = mgr.get_high_score(game)
         lines.append(f"{game.replace('_', ' ').title():<15} : {C_YELLOW}{score:>6}{C_RESET}")
-        
+
     clear_screen()
     print("\n" * 2)
     draw_retro_box(40, "🏆 ARCADE HALL OF FAME", lines, color=C_YELLOW)
     print("\n" + " " * 28 + f"{C_WHITE}[Any Key] Back{C_RESET}")
     get_key()
 
-def show_settings():
+
+def show_settings() -> None:
     """Menu to change arcade settings."""
     from arcade_utils import get_key
     mgr = get_stats_manager()
-    
+
     while True:
-        settings = mgr.stats.get('settings', {})
+        settings = mgr.get_settings()
         sound = "ON" if settings.get('sound_enabled', True) else "OFF"
         name = settings.get('player_name', 'RETRO_MASTER')
         theme = settings.get('theme', 'classic').upper()
-        
-        lines = [
+
+        lines: list[str] = [
             f"1. Sound Effects : {C_YELLOW}{sound}{C_RESET}",
             f"2. Player Name   : {C_CYAN}{name}{C_RESET}",
             f"3. Visual Theme  : {C_GREEN}{theme}{C_RESET}",
             " ",
             f"Q. Back to Menu"
         ]
-        
+
         clear_screen()
         print("\n" * 2)
         draw_retro_box(40, "⚙️ SYSTEM SETTINGS", lines, color=C_WHITE)
-        
+
         key = get_key()
         if key == '1':
             settings['sound_enabled'] = not settings.get('sound_enabled', True)
+            mgr.set_setting('sound_enabled', str(settings['sound_enabled']))
             mgr.save()
             beep("correct")
         elif key == '2':
             clear_screen()
             print("\n" * 5)
             print(" " * 25 + f"{C_WHITE}ENTER NEW NAME: {C_RESET}", end="", flush=True)
-            # Simple input for name
-            import sys
             new_name = input().strip().upper()[:12]
             if new_name:
                 settings['player_name'] = new_name
+                mgr.set_setting('player_name', new_name)
                 mgr.save()
             beep("win")
         elif key == '3':
-            # Cycle through themes
             theme_names = list(THEMES.keys())
             current = settings.get('theme', 'classic')
             idx = theme_names.index(current) if current in theme_names else 0
             new_theme = theme_names[(idx + 1) % len(theme_names)]
-            settings['theme'] = new_theme
+            mgr.set_setting('theme', new_theme)
             mgr.save()
             apply_theme()
             beep("correct")
         elif key and key.lower() == 'q':
             break
 
-def main():
+
+def show_tutorial() -> None:
+    """Display interactive tutorial overlay."""
+    from arcade_utils import get_key
+    clear_screen()
+    tutorial_lines: list[str] = [
+        "",
+        f"{C_BOLD}{C_YELLOW}RETRO TERMINAL ARCADE - QUICK TUTORIAL{C_RESET}",
+        "",
+        f"{C_CYAN}NAVIGATION:{C_RESET}",
+        "  ARROW KEYS or WASD  - Move / Navigate menus",
+        "  ENTER / SPACE       - Select / Confirm",
+        "  Q                   - Quit game / Go back",
+        "  H                   - Show this help (in-game)",
+        "",
+        f"{C_CYAN}DIFFICULTY:{C_RESET}",
+        "  EASY   - 0.5x XP, slower gameplay",
+        "  NORMAL - 1.0x XP, balanced",
+        "  HARD   - 2.0x XP, faster, more challenging",
+        "",
+        f"{C_CYAN}XP & LEVELING:{C_RESET}",
+        "  Gain XP across ALL games to level up.",
+        "  Higher level = higher rank display.",
+        "  Difficulty multiplies XP earned.",
+        "",
+        f"{C_CYAN}ACHIEVEMENTS:{C_RESET}",
+        "  Earn achievements for milestones.",
+        "  Each achievement grants bonus XP.",
+        "",
+        f"{C_CYAN}SETTINGS:{C_RESET}",
+        "  Press S in main menu to change:",
+        "  - Sound ON/OFF",
+        "  - Player Name",
+        "  - Visual Theme (Classic/Neon/Retro/Monochrome/Matrix)",
+        "",
+        f"{C_CYAN}GAMES ({len(GAMES)} total):{C_RESET}",
+        "  Snake, Breakout, Space Shooter, Tetris, Pac-Man,",
+        "  Dungeon Crawler, Minesweeper, Chess, Sudoku, 2048,",
+        "  Pong, Asteroids, Frogger, Flappy Bird, Racing",
+        "",
+        f"{C_WHITE}Press any key to return to menu...{C_RESET}"
+    ]
+    for line in tutorial_lines:
+        print(line)
+    get_key()
+
+
+def main() -> None:
     """Application entry point."""
-    if os.name == 'nt': os.system('') # Initialize ANSI
+    if os.name == 'nt':
+        os.system('')
     selection = 0
-    num_options = 18 # Games + Leaderboard + Settings + Quit
-    
-    renderer = Renderer(fps=60) # High FPS for menu
+    num_options = 19
+
+    renderer = Renderer(fps=60)
     input_handler = get_safe_input_handler()
-    
+
+    # Record app start telemetry
+    mgr = get_stats_manager()
+    mgr.record_telemetry('app_start', 'arcade')
+
+    # Start background music
+    start_background_music(bpm=120)
+
     while True:
         renderer.render_frame(lambda: print_menu(selection, renderer))
         key = input_handler.get_safe_key()
-        
-        if key == 'up': 
+
+        if key == 'up':
             selection = (selection - 1) % num_options
             beep("move")
-        elif key == 'down': 
+        elif key == 'down':
             selection = (selection + 1) % num_options
             beep("move")
         elif key in ['\r', '\n', ' ']:
             beep("win")
-            
-            # Select difficulty before playing (except for Leaderboard and Quit)
-            if selection < 12:
+            stop_background_music()
+
+            difficulty: Optional[str] = None
+            if selection < 15:
                 difficulty = select_game_difficulty()
-                if not difficulty: continue # Back to menu
-            
-            if selection == 0:   safe_game_call(play_snake, "Snake", difficulty=difficulty)
-            elif selection == 1: safe_game_call(play_breakout, "Breakout", difficulty=difficulty)
-            elif selection == 2: safe_game_call(play_space_shooter, "Space Shooter", difficulty=difficulty)
-            elif selection == 3: safe_game_call(play_tetris, "Tetris", difficulty=difficulty)
-            elif selection == 4: safe_game_call(play_pacman, "Pac-Man", difficulty=difficulty)
-            elif selection == 5: 
-                if play_dungeon: safe_game_call(play_dungeon, "Dungeon Crawler", difficulty=difficulty)
-                else: show_popup("Dungeon module missing!", C_RED)
-            elif selection == 6: safe_game_call(play_minesweeper, "Minesweeper", difficulty=difficulty)
+                if not difficulty:
+                    start_background_music()
+                    continue
+
+            if selection == 0:
+                safe_game_call(play_snake, "Snake", difficulty=difficulty)
+            elif selection == 1:
+                safe_game_call(play_breakout, "Breakout", difficulty=difficulty)
+            elif selection == 2:
+                safe_game_call(play_space_shooter, "Space Shooter", difficulty=difficulty)
+            elif selection == 3:
+                safe_game_call(play_tetris, "Tetris", difficulty=difficulty)
+            elif selection == 4:
+                safe_game_call(play_pacman, "Pac-Man", difficulty=difficulty)
+            elif selection == 5:
+                if play_dungeon:
+                    safe_game_call(play_dungeon, "Dungeon Crawler", difficulty=difficulty)
+                else:
+                    show_popup("Dungeon module missing!", C_RED)
+            elif selection == 6:
+                safe_game_call(play_minesweeper, "Minesweeper", difficulty=difficulty)
             elif selection == 7:
-                if play_chess: safe_game_call(play_chess, "Chess", difficulty=difficulty)
-                else: show_popup("Chess (python-chess) missing!", C_RED)
-            elif selection == 8: safe_game_call(play_sudoku, "Sudoku", difficulty=difficulty)
-            elif selection == 9: safe_game_call(play_2048, "2048", difficulty=difficulty)
-            elif selection == 10: safe_game_call(play_pong, "Pong", difficulty=difficulty)
-            elif selection == 11: safe_game_call(play_asteroids, "Asteroids", difficulty=difficulty)
-            elif selection == 12: safe_game_call(play_frogger, "Frogger", difficulty=difficulty)
-            elif selection == 13: safe_game_call(play_flappy, "Flappy Bird", difficulty=difficulty)
-            elif selection == 14: safe_game_call(play_racing, "Racing", difficulty=difficulty)
-            elif selection == 15: show_leaderboard()
-            elif selection == 16: show_settings()
-            elif selection == 17: break
-            
-            renderer.clear() # Clear after game returns
-        elif key in ['q', 'Q']:
+                if play_chess:
+                    safe_game_call(play_chess, "Chess", difficulty=difficulty)
+                else:
+                    show_popup("Chess (python-chess) missing!", C_RED)
+            elif selection == 8:
+                safe_game_call(play_sudoku, "Sudoku", difficulty=difficulty)
+            elif selection == 9:
+                safe_game_call(play_2048, "2048", difficulty=difficulty)
+            elif selection == 10:
+                safe_game_call(play_pong, "Pong", difficulty=difficulty)
+            elif selection == 11:
+                safe_game_call(play_asteroids, "Asteroids", difficulty=difficulty)
+            elif selection == 12:
+                safe_game_call(play_frogger, "Frogger", difficulty=difficulty)
+            elif selection == 13:
+                safe_game_call(play_flappy, "Flappy Bird", difficulty=difficulty)
+            elif selection == 14:
+                safe_game_call(play_racing, "Racing", difficulty=difficulty)
+            elif selection == 15:
+                show_leaderboard()
+            elif selection == 16:
+                show_settings()
+            elif selection == 17:
+                show_tutorial()
+            elif selection == 18:
+                break
+
+            renderer.clear()
+            start_background_music()
+        elif key and key.lower() == 'h':
+            stop_background_music()
+            show_tutorial()
+            renderer.clear()
+            start_background_music()
+        elif key and key.lower() == 'q':
             renderer.show_cursor()
             break
         elif key and key.lower() == 'l':
-             show_leaderboard()
-             renderer.clear()
+            show_leaderboard()
+            renderer.clear()
         elif key and key.lower() == 's':
-             show_settings()
-             renderer.clear()
+            stop_background_music()
+            show_settings()
+            renderer.clear()
+            start_background_music()
         elif key in [str(i) for i in range(1, 11)]:
-             selection = int(key) - 1
-             beep("move")
-    
+            selection = int(key) - 1
+            beep("move")
+
+    stop_background_music()
     renderer.show_cursor()
+    mgr.record_telemetry('app_exit', 'arcade')
+
 
 if __name__ == "__main__":
     main()

@@ -1,10 +1,11 @@
 import time
 import os
 import random
+from typing import List, Dict, Any
 from arcade_utils import (
-    clear_screen, get_key, draw_retro_box, beep, show_popup, 
-    update_stats, load_stats, animated_flash, print_big_title, 
-    add_xp, screen_shake, particle_effect, 
+    clear_screen, draw_retro_box, beep, show_popup,
+    animated_flash, print_big_title,
+    screen_shake, particle_effect,
     C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, u_safe
 )
 from base_game import BaseGame
@@ -16,91 +17,88 @@ PLAYER_CHAR = u_safe("▲", "^")
 ENEMY_CHAR = "W"
 BULLET_CHAR = "|"
 
+
 class SpaceShooterGame(BaseGame):
     """Space Shooter game implementation using BaseGame."""
-    
-    def __init__(self, difficulty='normal'):
+
+    def __init__(self, difficulty: str = 'normal') -> None:
         super().__init__("space_shooter", difficulty)
         self.player_x = WIDTH // 2
-        self.bullets = []
-        self.enemies = []
+        self.bullets: List[Dict[str, int]] = []
+        self.enemies: List[Dict[str, int]] = []
         self.lives = 3
         self.spawn_timer = 0
-        self.enemy_move_speed = 5 # Higher is slower
+        self.enemy_move_speed = 5
         self.frame_count = 0
         self.input_handler = get_safe_input_handler()
 
     def play(self) -> dict:
-        """Main Space Shooter game loop."""
         self.start_timer()
         clear_screen()
         print_big_title("SPACE SHOOTER", color=C_MAGENTA)
         time.sleep(1)
-        
+
         while not self.game_over:
             self.renderer.render_frame(self._render)
             self._handle_input()
             self._update_game_state()
             time.sleep(0.05)
             self.frame_count += 1
-            
+
         self.end_timer()
-        
-        # Save stats
+
         high_score = self.stats_manager.get_high_score('space_shooter')
         if self.score > high_score:
             show_popup("NEW HIGH SCORE!", C_YELLOW)
-            
+
         self.save_stats({
             'high_score': max(self.score, high_score),
             'last_score': self.score,
             'xp_earned': self.xp_earned,
             'difficulty': self.difficulty
         })
-        
+
         return self.get_final_stats()
 
-    def _render(self):
-        """Render the game board and UI."""
+    def _render(self) -> None:
         high_score = self.stats_manager.get_high_score('space_shooter')
-        
-        # Header
+
         print(f"{C_MAGENTA}╔{'═' * WIDTH}╗")
         print(f"║ SCORE: {self.score:<10} HI: {high_score:<10} LIVES: {self.lives} ║")
         print(f"╚{'═' * WIDTH}╝{C_RESET}")
-        
-        # Field
+
         print(f"{C_MAGENTA}╔{'═' * WIDTH}╗{C_RESET}")
         for r in range(HEIGHT):
             line = f"{C_MAGENTA}║{C_RESET}"
-            row = [" "] * WIDTH
-            
-            if r == HEIGHT - 1:
-                row[self.player_x] = f"{C_CYAN}{PLAYER_CHAR}{C_RESET}"
-                
-            for b in self.bullets:
-                if b['y'] == r: 
-                    row[b['x']] = f"{C_YELLOW}{BULLET_CHAR}{C_RESET}"
-                
-            for e in self.enemies:
-                if e['y'] == r: 
-                    row[e['x']] = f"{C_RED}{ENEMY_CHAR}{C_RESET}"
-                
-            line += "".join(row) + f"{C_MAGENTA}║{C_RESET}"
-            print(line)
-            
-        print(f"{C_MAGENTA}╚{'═' * WIDTH}╝{C_RESET}")
-        print(f"{C_WHITE}ARROWS/WASD: Move | SPACE: Shoot | Q: Quit{C_RESET}")
+            row_chars = [" "] * WIDTH
 
-    def _handle_input(self):
-        """Handle player input using SafeInputHandler."""
+            if r == HEIGHT - 1:
+                row_chars[self.player_x] = f"{C_CYAN}{PLAYER_CHAR}{C_RESET}"
+
+            for b in self.bullets:
+                if b['y'] == r:
+                    row_chars[b['x']] = f"{C_YELLOW}{BULLET_CHAR}{C_RESET}"
+
+            for e in self.enemies:
+                if e['y'] == r:
+                    row_chars[e['x']] = f"{C_RED}{ENEMY_CHAR}{C_RESET}"
+
+            line += "".join(row_chars) + f"{C_MAGENTA}║{C_RESET}"
+            print(line)
+
+        print(f"{C_MAGENTA}╚{'═' * WIDTH}╝{C_RESET}")
+        print(f"{C_WHITE}ARROWS/WASD: Move | SPACE: Shoot | Q: Quit | H: Help{C_RESET}")
+
+    def _handle_input(self) -> None:
         k = self.input_handler.get_safe_key()
         if not k:
             return
-            
         if k == 'q':
             self.game_over = True
-        elif k == ' ': # Shoot
+        if k == 'h':
+            show_popup("SPACE SHOOTER: Move LEFT/RIGHT, shoot SPACE. Don't let enemies past you!", C_MAGENTA, delay=1.5)
+            return
+        if k == ' ':
             self.bullets.append({'x': self.player_x, 'y': HEIGHT - 2})
             beep("correct")
         else:
@@ -110,72 +108,62 @@ class SpaceShooterGame(BaseGame):
             elif direction == 'right':
                 self.player_x = min(WIDTH - 1, self.player_x + 1)
 
-    def _update_game_state(self):
-        """Update physics and collisions."""
-        # Spawn enemies
+    def _update_game_state(self) -> None:
         self.spawn_timer += 1
-        spawn_rate = max(3, 10 - (self.score // 200)) # Get faster with score
+        spawn_rate = max(3, 10 - (self.score // 200))
         if self.spawn_timer > spawn_rate:
-            self.enemies.append({'x': random.randint(0, WIDTH-1), 'y': 0})
+            self.enemies.append({'x': random.randint(0, WIDTH - 1), 'y': 0})
             self.spawn_timer = 0
-            
-        # Move bullets
+
         for b in self.bullets:
             b['y'] -= 1
         self.bullets = [b for b in self.bullets if b['y'] >= 0]
-        
-        # Move enemies
+
         if self.frame_count % self.enemy_move_speed == 0:
             for e in self.enemies:
                 e['y'] += 1
-        
-        # Achievement check
+
         if self.score >= 1000:
             self.unlock_achievement("space_shooter_1000", "Space Ace")
 
-        # Bullet-Enemy Collision
         for b in self.bullets[:]:
             for e in self.enemies[:]:
                 if b['x'] == e['x'] and (b['y'] == e['y'] or b['y'] == e['y'] - 1):
-                    if b in self.bullets: self.bullets.remove(b)
-                    if e in self.enemies: self.enemies.remove(e)
+                    if b in self.bullets:
+                        self.bullets.remove(b)
+                    if e in self.enemies:
+                        self.enemies.remove(e)
                     self.score += 10
-                    self.award_xp_for_action(10) # Award XP based on difficulty
+                    self.award_xp_for_action(10)
                     screen_shake(0.05, 1)
                     particle_effect(char="*", color=C_RED, count=3)
                     beep("eat")
                     break
-                    
-        # Enemy-Player or Bottom Collision
+
         for e in self.enemies[:]:
             if e['y'] >= HEIGHT - 1:
                 if e['x'] == self.player_x and e['y'] == HEIGHT - 1:
                     self._handle_collision()
-                    self.enemies.remove(e)
-                else:
-                    # Enemy reached bottom but missed player
-                    self.enemies.remove(e)
-                    # Optional: lose life if enemy reaches bottom? (Original logic does)
-                    self._handle_collision()
+                self.enemies.remove(e)
             elif e['x'] == self.player_x and e['y'] == HEIGHT - 1:
-                 self._handle_collision()
-                 self.enemies.remove(e)
+                self._handle_collision()
+                self.enemies.remove(e)
 
-    def _handle_collision(self):
-        """Handle player taking damage."""
+    def _handle_collision(self) -> None:
         self.lives -= 1
         screen_shake(0.3, 2)
         animated_flash(C_RED)
         beep("lose")
-        
+
         if self.lives <= 0:
             show_popup(f"GAME OVER! Score: {self.score}", C_RED)
             self.game_over = True
 
-def play_space_shooter(difficulty='normal'):
-    """Wrapper function for arcade.py compatibility."""
+
+def play_space_shooter(difficulty: str = 'normal') -> dict:
     game = SpaceShooterGame(difficulty)
     return game.play()
+
 
 if __name__ == "__main__":
     play_space_shooter()

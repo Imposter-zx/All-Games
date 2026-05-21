@@ -1,238 +1,334 @@
 """
-Centralized player statistics manager.
-Handles loading, saving, and updating player stats with validation.
+Centralized player statistics manager using SQLite.
+Provides persistent storage, queries, time-series tracking.
 """
 
-import json
+import sqlite3
 import os
+import time
 import logging
 from pathlib import Path
+from typing import Optional, Dict, Any, List, Tuple
 
 logger = logging.getLogger(__name__)
 
 
 class StatsManager:
-    """Centralized player statistics manager."""
-    
-    STATS_FILE = str(Path.home() / ".retro_arcade" / "player_stats.json")
-    
-    DEFAULT_STATS = {
-        "player_name": "RETRO_MASTER",
-        "total_xp": 0,
-        "level": 1,
-        "games_played": 0,
-        "total_playtime": 0,
-        "achievements": [],
-        "games": {},
-        "settings": {
-            "sound_enabled": True,
-            "player_name": "RETRO_MASTER",
-            "theme": "classic"
+    """Player statistics manager backed by SQLite."""
+
+    DB_PATH = str(Path.home() / ".retro_arcade" / "player.db")
+
+    def __init__(self) -> None:
+        """Initialize and ensure schema exists."""
+        os.makedirs(os.path.dirname(self.DB_PATH), exist_ok=True)
+        self.conn = sqlite3.connect(self.DB_PATH, check_same_thread=False)
+        self.conn.row_factory = sqlite3.Row
+        self._init_schema()
+        self._ensure_defaults()
+
+    def _init_schema(self) -> None:
+        """Create all required tables if they don't exist."""
+        with self.conn:
+            self.conn.executescript("""
+                CREATE TABLE IF NOT EXISTS profile (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS games (
+                    game_name TEXT NOT NULL,
+                    stat_key TEXT NOT NULL,
+                    stat_value INTEGER DEFAULT 0,
+                    updated_at REAL NOT NULL,
+                    PRIMARY KEY (game_name, stat_key)
+                );
+                CREATE TABLE IF NOT EXISTS achievements (
+                    achievement_id TEXT PRIMARY KEY,
+                    unlocked_at REAL NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS settings (
+                    setting_key TEXT PRIMARY KEY,
+                    setting_value TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS play_sessions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    game_name TEXT NOT NULL,
+                    score INTEGER DEFAULT 0,
+                    xp_earned INTEGER DEFAULT 0,
+                    duration_seconds REAL DEFAULT 0,
+                    difficulty TEXT DEFAULT 'normal',
+                    played_at REAL NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS telemetry_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    event_type TEXT NOT NULL,
+                    payload TEXT DEFAULT '',
+                    created_at REAL NOT NULL
+                );
+            """)
+
+    def _ensure_defaults(self) -> None:
+        """Insert default profile/settings rows if missing."""
+        defaults: Dict[str, str] = {
+            'player_name': 'RETRO_MASTER',
+            'total_xp': '0',
+            'level': '1',
+            'games_played': '0',
+            'total_playtime': '0',
         }
-    }
-    
-    def __init__(self):
-        """Initialize StatsManager and load existing stats."""
-        self.stats = self._load_stats()
-        # Ensure required fields are present
-        if 'level' not in self.stats:
-            self.stats['level'] = 1
-        if 'total_xp' not in self.stats:
-            self.stats['total_xp'] = 0
-        if 'games' not in self.stats:
-            self.stats['games'] = {}
-        if 'games_played' not in self.stats:
-            self.stats['games_played'] = 0
-        if 'achievements' not in self.stats:
-            self.stats['achievements'] = []
-        if 'settings' not in self.stats:
-            self.stats['settings'] = self.DEFAULT_STATS['settings'].copy()
-        logger.info(f"StatsManager initialized. Level: {self.stats.get('level', 1)}, XP: {self.stats.get('total_xp', 0)}")
-    
-    def _load_stats(self) -> dict:
-        """
-        Load stats from JSON file.
-        
-        Returns:
-            Dictionary containing player statistics
-        """
-        if os.path.exists(self.STATS_FILE):
-            try:
-                with open(self.STATS_FILE, 'r') as f:
-                    data = json.load(f)
-                    # Validate required fields
-                    if not isinstance(data, dict):
-                        logger.warning("Stats file format invalid, using defaults")
-                        return self.DEFAULT_STATS.copy()
-                    logger.info(f"Loaded stats from {self.STATS_FILE}")
-                    return data
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse stats JSON: {e}")
-                return self.DEFAULT_STATS.copy()
-            except IOError as e:
-                logger.error(f"Failed to read stats file: {e}")
-                return self.DEFAULT_STATS.copy()
-        else:
-            logger.info("No existing stats file, creating new")
-            return self.DEFAULT_STATS.copy()
-    
-    def save(self) -> bool:
-        """
-        Save stats to JSON file.
-        
-        Returns:
-            True if successful, False otherwise
-        """
+        with self.conn:
+            for k, v in defaults.items():
+                self.conn.execute(
+                    "INSERT OR IGNORE INTO profile (key, value) VALUES (?, ?)",
+                    (k, v)
+                )
+            self.conn.execute(
+                "INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)",
+                ('sound_enabled', 'True')
+            )
+            self.conn.execute(
+                "INSERT OR IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)",
+                ('theme', 'classic')
+            )
+
+    # --- Profile helpers ---
+
+    def _get_profile_int(self, key: str, default: int = 0) -> int:
+        row = self.conn.execute(
+            "SELECT value FROM profile WHERE key = ?", (key,)
+        ).fetchone()
+        if row is None:
+            return default
         try:
-            os.makedirs(os.path.dirname(self.STATS_FILE), exist_ok=True)
-            with open(self.STATS_FILE, 'w') as f:
-                json.dump(self.stats, f, indent=2)
-            logger.debug(f"Saved stats to {self.STATS_FILE}")
-            return True
-        except IOError as e:
-            logger.error(f"Failed to save stats: {e}")
-            return False
-    
-    def update_game_stats(self, game_name: str, stats_dict: dict) -> None:
-        """
-        Update stats for a specific game.
-        
-        Args:
-            game_name: Name of the game
-            stats_dict: Dictionary of stats to update
-        """
-        try:
-            if game_name not in self.stats['games']:
-                self.stats['games'][game_name] = {}
-            
-            self.stats['games'][game_name].update(stats_dict)
-            self.stats['games_played'] += 1
-            self.save()
-            logger.info(f"Updated stats for {game_name}")
-        except Exception as e:
-            logger.error(f"Failed to update game stats: {e}")
-    
+            return int(row['value'])
+        except (ValueError, TypeError):
+            return default
+
+    def _set_profile_int(self, key: str, value: int) -> None:
+        with self.conn:
+            self.conn.execute(
+                "INSERT OR REPLACE INTO profile (key, value) VALUES (?, ?)",
+                (key, str(value))
+            )
+
+    def _get_profile_str(self, key: str, default: str = '') -> str:
+        row = self.conn.execute(
+            "SELECT value FROM profile WHERE key = ?", (key,)
+        ).fetchone()
+        return row['value'] if row is not None else default
+
+    def _set_profile_str(self, key: str, value: str) -> None:
+        with self.conn:
+            self.conn.execute(
+                "INSERT OR REPLACE INTO profile (key, value) VALUES (?, ?)",
+                (key, value)
+            )
+
+    # --- Public API ---
+
+    def update_game_stats(self, game_name: str, stats_dict: Dict[str, Any]) -> None:
+        """Upsert game-specific stats."""
+        now = time.time()
+        with self.conn:
+            for key, value in stats_dict.items():
+                if isinstance(value, (int, float)):
+                    self.conn.execute(
+                        "INSERT OR REPLACE INTO games (game_name, stat_key, stat_value, updated_at) VALUES (?, ?, ?, ?)",
+                        (game_name.lower(), key, int(value), now)
+                    )
+            self.conn.execute(
+                "UPDATE profile SET value = CAST(CAST(value AS INTEGER) + 1 AS TEXT) WHERE key = 'games_played'"
+            )
+
     def add_xp(self, amount: int) -> int:
-        """
-        Add XP to player and update level.
-        
-        Args:
-            amount: Amount of XP to add
-            
-        Returns:
-            New level after XP addition
-        """
-        try:
-            if amount < 0:
-                logger.warning(f"Negative XP amount: {amount}")
-                return self.stats['level']
-            
-            self.stats['total_xp'] += amount
-            old_level = self.stats['level']
-            self._update_level()
-            new_level = self.stats['level']
-            
-            if new_level > old_level:
-                logger.info(f"Level up! New level: {new_level}")
-            
-            self.save()
-            return new_level
-        except Exception as e:
-            logger.error(f"Failed to add XP: {e}")
-            return self.stats['level']
+        """Add XP, recalculate level, return new level."""
+        if amount < 0:
+            logger.warning(f"Negative XP amount: {amount}")
+            return self._get_profile_int('level', 1)
+
+        current = self._get_profile_int('total_xp', 0)
+        current += amount
+        self._set_profile_int('total_xp', current)
+
+        old_level = self._get_profile_int('level', 1)
+        new_level = 1 + (current // 500)
+        self._set_profile_int('level', new_level)
+
+        if new_level > old_level:
+            logger.info(f"Level up! New level: {new_level}")
+
+        return new_level
 
     def unlock_achievement(self, achievement_id: str) -> bool:
-        """
-        Unlock an achievement for the player.
-        
-        Args:
-            achievement_id: Unique ID of the achievement
-            
-        Returns:
-            True if newly unlocked, False if already unlocked or failed
-        """
+        """Unlock an achievement. Returns True if newly unlocked."""
+        now = time.time()
         try:
-            if achievement_id not in self.stats['achievements']:
-                self.stats['achievements'].append(achievement_id)
-                self.save()
-                logger.info(f"Achievement unlocked: {achievement_id}")
-                return True
+            with self.conn:
+                self.conn.execute(
+                    "INSERT OR IGNORE INTO achievements (achievement_id, unlocked_at) VALUES (?, ?)",
+                    (achievement_id, now)
+                )
+                return self.conn.total_changes > 0
+        except sqlite3.IntegrityError:
             return False
-        except Exception as e:
-            logger.error(f"Failed to unlock achievement {achievement_id}: {e}")
-            return False
-    
-    def _update_level(self) -> None:
-        """
-        Calculate current level based on XP.
-        Uses formula: level = 1 + (total_xp // 500)
-        """
-        self.stats['level'] = 1 + (self.stats['total_xp'] // 500)
-    
-    def get_stats(self, game_name: str = None) -> dict:
-        """
-        Get stats for a game or overall stats.
-        
-        Args:
-            game_name: Optional game name. If None, returns overall stats.
-            
-        Returns:
-            Dictionary of stats
-        """
-        try:
-            if game_name:
-                return self.stats['games'].get(game_name, {})
-            return self.stats
-        except Exception as e:
-            logger.error(f"Failed to get stats: {e}")
-            return {} if game_name else self.DEFAULT_STATS.copy()
-    
-    def get_level_and_xp(self) -> tuple:
-        """
-        Get current level and XP.
-        
-        Returns:
-            Tuple of (level, xp, progress_percentage)
-        """
-        level = self.stats['level']
-        current_xp = self.stats['total_xp']
+
+    def get_stats(self, game_name: Optional[str] = None) -> Dict[str, Any]:
+        """Get overall or game-specific stats."""
+        if game_name:
+            rows = self.conn.execute(
+                "SELECT stat_key, stat_value, updated_at FROM games WHERE game_name = ?",
+                (game_name.lower(),)
+            ).fetchall()
+            result: Dict[str, Any] = {}
+            for row in rows:
+                result[row['stat_key']] = row['stat_value']
+            return result
+
+        result: Dict[str, Any] = {}
+        profile_rows = self.conn.execute("SELECT key, value FROM profile").fetchall()
+        for row in profile_rows:
+            val: Any = row['value']
+            try:
+                val = int(val)
+            except (ValueError, TypeError):
+                try:
+                    val = float(val)
+                except (ValueError, TypeError):
+                    pass
+            result[row['key']] = val
+
+        result['achievements'] = self.get_unlocked_achievements()
+        result['settings'] = self.get_settings()
+        result['games'] = {}
+        game_rows = self.conn.execute(
+            "SELECT game_name, stat_key, stat_value FROM games ORDER BY game_name"
+        ).fetchall()
+        for row in game_rows:
+            gname = row['game_name']
+            if gname not in result['games']:
+                result['games'][gname] = {}
+            result['games'][gname][row['stat_key']] = row['stat_value']
+        result['games_played'] = self._get_profile_int('games_played', 0)
+        result['total_playtime'] = self._get_profile_int('total_playtime', 0)
+        return result
+
+    def get_level_and_xp(self) -> Tuple[int, int, float]:
+        """Return (level, total_xp, progress_to_next_level)."""
+        level = self._get_profile_int('level', 1)
+        total_xp = self._get_profile_int('total_xp', 0)
         xp_for_level = (level - 1) * 500
         xp_for_next = level * 500
-        progress = (current_xp - xp_for_level) / (xp_for_next - xp_for_level) if xp_for_next > xp_for_level else 0
-        progress = min(1.0, max(0.0, progress))  # Clamp to 0-1
-        
-        return level, current_xp, progress
-    
+        progress = 0.0
+        if xp_for_next > xp_for_level:
+            progress = (total_xp - xp_for_level) / (xp_for_next - xp_for_level)
+        progress = min(1.0, max(0.0, progress))
+        return level, total_xp, progress
+
     def get_high_score(self, game_name: str) -> int:
-        """
-        Get high score for a specific game.
-        
-        Args:
-            game_name: Name of the game
-            
-        Returns:
-            High score, or 0 if game not found
-        """
-        try:
-            game_stats = self.stats['games'].get(game_name, {})
-            # Try both 'high_score' and 'best_score' for compatibility
-            return game_stats.get('high_score', game_stats.get('best_score', 0))
-        except Exception as e:
-            logger.error(f"Failed to get high score for {game_name}: {e}")
-            return 0
+        """Return the highest score recorded for a game."""
+        row = self.conn.execute(
+            "SELECT stat_value FROM games WHERE game_name = ? AND stat_key = ? ORDER BY stat_value DESC LIMIT 1",
+            (game_name.lower(), 'high_score')
+        ).fetchone()
+        if row:
+            return row['stat_value']
+        # Fallback to best_score
+        row = self.conn.execute(
+            "SELECT stat_value FROM games WHERE game_name = ? AND stat_key = ? ORDER BY stat_value DESC LIMIT 1",
+            (game_name.lower(), 'best_score')
+        ).fetchone()
+        return row['stat_value'] if row else 0
+
+    def get_unlocked_achievements(self) -> List[str]:
+        """Return list of unlocked achievement IDs."""
+        rows = self.conn.execute(
+            "SELECT achievement_id FROM achievements ORDER BY unlocked_at"
+        ).fetchall()
+        return [r['achievement_id'] for r in rows]
+
+    # --- Settings ---
+
+    def get_settings(self) -> Dict[str, Any]:
+        """Return all settings as a dict."""
+        rows = self.conn.execute("SELECT setting_key, setting_value FROM settings").fetchall()
+        settings: Dict[str, Any] = {
+            'sound_enabled': True,
+            'player_name': 'RETRO_MASTER',
+            'theme': 'classic',
+        }
+        for row in rows:
+            val: Any = row['setting_value']
+            if val.lower() in ('true', 'false'):
+                val = val.lower() == 'true'
+            settings[row['setting_key']] = val
+        return settings
+
+    def set_setting(self, key: str, value: Any) -> None:
+        """Update a single setting."""
+        with self.conn:
+            self.conn.execute(
+                "INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)",
+                (key, str(value))
+            )
+
+    def save(self) -> None:
+        """Commit any pending writes (no-op with auto-commit)."""
+        self.conn.commit()
+
+    # --- Session tracking ---
+
+    def record_session(self, game_name: str, score: int, xp_earned: int,
+                       duration: float, difficulty: str = 'normal') -> None:
+        """Record a completed play session."""
+        now = time.time()
+        with self.conn:
+            self.conn.execute(
+                "INSERT INTO play_sessions (game_name, score, xp_earned, duration_seconds, difficulty, played_at) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (game_name.lower(), score, xp_earned, duration, difficulty, now)
+            )
+            total = self._get_profile_int('total_playtime', 0)
+            self._set_profile_int('total_playtime', total + int(duration))
+
+    def get_recent_sessions(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """Return recent play sessions."""
+        rows = self.conn.execute(
+            "SELECT * FROM play_sessions ORDER BY played_at DESC LIMIT ?",
+            (limit,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    def get_game_leaderboard(self, game_name: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Return top scores for a specific game."""
+        rows = self.conn.execute(
+            "SELECT score, difficulty, played_at FROM play_sessions "
+            "WHERE game_name = ? ORDER BY score DESC LIMIT ?",
+            (game_name.lower(), limit)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+    # --- Telemetry ---
+
+    def record_telemetry(self, event_type: str, payload: str = '') -> None:
+        """Record an anonymous telemetry event."""
+        with self.conn:
+            self.conn.execute(
+                "INSERT INTO telemetry_events (event_type, payload, created_at) VALUES (?, ?, ?)",
+                (event_type, payload, time.time())
+            )
+
+    def get_telemetry_summary(self) -> Dict[str, int]:
+        """Return count of each event type."""
+        rows = self.conn.execute(
+            "SELECT event_type, COUNT(*) as cnt FROM telemetry_events GROUP BY event_type"
+        ).fetchall()
+        return {r['event_type']: r['cnt'] for r in rows}
 
 
-# Global instance
-_manager = None
+# Global singleton
+_manager: Optional[StatsManager] = None
 
 
 def get_stats_manager() -> StatsManager:
-    """
-    Get global stats manager instance (singleton pattern).
-    
-    Returns:
-        The global StatsManager instance
-    """
     global _manager
     if _manager is None:
         _manager = StatsManager()

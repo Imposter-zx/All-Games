@@ -26,6 +26,7 @@ terminal_games/pacman.py
 terminal_games/pong.py
 terminal_games/racing.py
 terminal_games/snake.py
+terminal_games/sound_engine.py
 terminal_games/space_shooter.py
 terminal_games/stats_manager.py
 terminal_games/sudoku.py

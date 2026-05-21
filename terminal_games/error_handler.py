@@ -1,35 +1,34 @@
-"""
-Error handling and safe game execution wrapper.
-Provides consistent error handling across all games.
-"""
+"""Error handling and safe game execution wrapper."""
 
 import logging
-import traceback
+from typing import Callable, Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
 
-def safe_game_call(game_func, game_name: str) -> dict:
+def safe_game_call(game_func: Callable[..., Dict[str, Any]],
+                   game_name: str, **kwargs: Any) -> Dict[str, Any]:
     """
     Safely execute a game function with comprehensive error handling.
-    
+
     Args:
         game_func: The game function to execute
         game_name: Name of the game (for logging)
-        
+        **kwargs: Arguments to pass to the game function
+
     Returns:
         Dictionary with game results or empty dict on error
     """
     try:
         logger.info(f"Starting game: {game_name}")
-        result = game_func()
+        result = game_func(**kwargs)
         logger.info(f"Completed game: {game_name}")
         return result if isinstance(result, dict) else {}
-    
+
     except KeyboardInterrupt:
         logger.info(f"Player quit {game_name}")
         return {}
-    
+
     except ImportError as e:
         logger.error(f"Missing dependency for {game_name}: {e}")
         from arcade_utils import draw_retro_box, C_RED
@@ -45,11 +44,11 @@ def safe_game_call(game_func, game_name: str) -> dict:
             color=C_RED
         )
         return {}
-    
+
     except Exception as e:
         logger.error(f"Error in {game_name}: {e}", exc_info=True)
         from arcade_utils import draw_retro_box, C_RED
-        
+
         error_lines = [
             f"Game Error: {game_name}",
             "",
@@ -57,14 +56,8 @@ def safe_game_call(game_func, game_name: str) -> dict:
             "",
             "Check ~/.retro_arcade/debug.log for details"
         ]
-        
-        draw_retro_box(
-            70,
-            "GAME ERROR",
-            error_lines,
-            color=C_RED
-        )
-        
+
+        draw_retro_box(70, "GAME ERROR", error_lines, color=C_RED)
         return {}
 
 

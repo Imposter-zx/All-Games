@@ -1,1 +1,1 @@
-"""Terminal Games package."""
+"""Terminal Games package - Retro Terminal Arcade."""

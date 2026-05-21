@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: retro-terminal-arcade
-Version: 1.0.0
+Version: 2.0.0
 Summary: A collection of retro arcade games playable in the terminal.
 Home-page: https://github.com/Imposter-zx/All-Games
 Author: Imposter-zx
@@ -13,6 +13,34 @@ Description: # 🕹️ Retro Terminal Arcade V5: The RPG Update
         ![Tests](https://img.shields.io/badge/tests-32%2F32%20passing-brightgreen)
         ![Python](https://img.shields.io/badge/python-3.6%2B-blue)
         ![License](https://img.shields.io/badge/license-MIT-blueviolet)
+        
+        ## 🚀 Installation & Usage
+        
+        You can now easily install and play Retro Terminal Arcade without cloning the repository!
+        
+        ### Install via pip (Recommended)
+        You can install directly from the GitHub repository:
+        ```bash
+        pip install git+https://github.com/Imposter-zx/All-Games.git
+        ```
+        *(Use `pip3` if applicable to your environment)*
+        
+        ### Run the Arcade
+        Once installed, simply type the following command in any terminal to start playing:
+        ```bash
+        retro-arcade
+        ```
+        
+        ### Local Development / Manual Installation
+        If you prefer to clone and install locally:
+        ```bash
+        git clone https://github.com/Imposter-zx/All-Games.git
+        cd "All Games"
+        pip install -e .
+        retro-arcade
+        ```
+        *(Game data like player stats and debug logs are now safely stored in your home directory at `~/.retro_arcade/`)*
+        
         
         ## 🎮 Games Included (All Refactored ✨)
         
@@ -37,6 +65,16 @@ Description: # 🕹️ Retro Terminal Arcade V5: The RPG Update
             - Logic puzzles with a persistence bonus.
         10. **🔢 2048**
             - Merge tiles to reach 2048; XP for every merge.
+        11. **🏓 Pong**
+            - Classic table tennis battle; keep the ball in play to earn XP.
+        12. **☄️ Asteroids**
+            - Avoid and shoot space debris in this classic vector shooter.
+        13. **🐸 Frogger**
+            - Guide the frog safely across busy roads and rapid rivers.
+        14. **🐦 Flappy Bird**
+            - Navigate a flying bird through a series of narrow pipes.
+        15. **🏎️ Racing**
+            - Drive at high speeds, dodge oncoming cars, and survive as long as possible.
         
         ## ✨ V5 Features: The RPG Update + Production Infrastructure (✅ Complete)
         
@@ -49,13 +87,14 @@ Description: # 🕹️ Retro Terminal Arcade V5: The RPG Update
         - **Cross-Platform**: Optimized for Windows and Unix terminals.
         
         ### Production Infrastructure (✅ Complete)
-        - **Solid Architecture**: Abstract `BaseGame` class provides consistent interface for all 10 games.
+        - **Solid Architecture**: Abstract `BaseGame` class provides consistent interface for all 15 games.
         - **Centralized Stats Management**: Singleton `StatsManager` handles all XP, levels, and game statistics.
         - **XP Config System**: Dynamic XP calculation with difficulty-based multipliers.
         - **Comprehensive Testing**: 32 automated unit tests with 100% pass rate.
         - **Professional Error Handling**: Consistent exception handling and input validation via `safe_game_call`.
         - **Safe Input Handler**: Robust, non-blocking input handling with direction validation.
         - **Debug Logging**: Integrated logging system for troubleshooting.
+        - **Global Portability**: Packaged with a global console entrypoint (`retro-arcade`) and user home-directory persistent stats (`~/.retro_arcade/`).
         
         ## 📊 Current Status
         
@@ -63,11 +102,12 @@ Description: # 🕹️ Retro Terminal Arcade V5: The RPG Update
         |-----------|--------|---------|
         | Infrastructure | ✅ Complete | BaseGame, StatsManager, Error Handlers, Input Validation |
         | Testing | ✅ Complete | 32/32 tests passing (100% coverage of infrastructure) |
-        | Game Migration | ✅ Complete | All 10 games refactored to BaseGame architecture |
+        | Game Migration | ✅ Complete | All 15 games refactored to BaseGame architecture |
         | Difficulty System | ✅ Complete | Dynamic speed/XP scaling based on player choice |
         | XP Integration | ✅ Complete | Global progression synced across all modules |
         | Code Quality | ✅ Improved | Fixed 50+ issues; standardized naming, exceptions, patterns |
-        | Documentation | ✅ Complete | 7+ comprehensive guides created |
+        | Documentation | ✅ Complete | 10+ comprehensive guides and summaries created |
+        | Packaging & Dist | ✅ Complete | pip-installable directly from GitHub with command line execution |
         
         ## 🚀 Installation & Usage
         
@@ -141,7 +181,11 @@ Description: # 🕹️ Retro Terminal Arcade V5: The RPG Update
         │   ├── sudoku.py              # Sudoku
         │   ├── dungeon.py             # Dungeon Crawler
         │   ├── game_2048.py           # 2048
-        │   ├── player_stats.json      # Player progression (persisted)
+        │   ├── pong.py                # Pong
+        │   ├── asteroids.py           # Asteroids
+        │   ├── frogger.py             # Frogger
+        │   ├── flappy.py              # Flappy Bird
+        │   ├── racing.py              # Racing
         │   └── requirements.txt       # Dependencies
         ├── tests/
         │   ├── test_base_game.py      # BaseGame tests (14 tests)
@@ -149,13 +193,14 @@ Description: # 🕹️ Retro Terminal Arcade V5: The RPG Update
         ├── README.md                  # This file
         ├── SUMMARY.md                 # Completion summary
         ├── DEVELOPMENT_GUIDE.md       # Dev instructions
+        ├── setup.py                   # pip packaging setup
         └── .gitignore
         ```
         
         ## 📈 Architecture & Design Patterns
         
         ### BaseGame Abstract Class
-        All 10 games inherit from `BaseGame` and implement a standardized loop:
+        All 15 games inherit from `BaseGame` and implement a standardized loop:
         - `play()` - Main game entry point
         - `_render()` - Frame rendering
         - `_handle_input()` - Input processing  
@@ -189,11 +234,19 @@ Description: # 🕹️ Retro Terminal Arcade V5: The RPG Update
         - [x] Global XP scaling integration
         - [x] Enhanced Main Menu with Profile Stats
         
-        ### Phase 4: Polish & Performance ⏳ IN PROGRESS
-        - [ ] Implement FPS limiter for smoother rendering
-        - [ ] Add more sound effects (beeps) for game events
-        - [ ] Optimize terminal clearing to reduce flicker
-        - [ ] Expand Achievements system
+        ### Phase 4: Polish & Performance ✅ COMPLETE
+        - [x] Implement FPS limiter for smoother rendering (flicker-free double rendering buffer)
+        - [x] Add more sound effects (beeps) for game events
+        - [x] Optimize terminal clearing to reduce flicker
+        - [x] Expand Achievements system (game-specific badges for all games)
+        
+        ### Phase 5: Packaging & Distribution ✅ COMPLETE
+        - [x] Create `setup.py` & package configuration
+        - [x] Add `retro-arcade` console script entry point
+        - [x] Refactor stats & logging to user home directory (`~/.retro_arcade/`)
+        - [x] Standardize all terminal symbol encodings with robust fallback (`u_safe`)
+        - [x] Eliminate all bare `except:` clauses
+        - [x] Add new premium games (Pong, Asteroids, Frogger, Flappy Bird, Racing) to complete a 15-game catalog!
         
         ## 📝 License
         
@@ -215,8 +268,13 @@ Description: # 🕹️ Retro Terminal Arcade V5: The RPG Update
         
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Classifier: Environment :: Console
+Classifier: Topic :: Games/Entertainment :: Arcade
 Requires-Python: >=3.6
 Description-Content-Type: text/markdown

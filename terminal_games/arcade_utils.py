@@ -3,44 +3,48 @@ import sys
 import json
 import time
 import re
+import logging
+from typing import Callable, Any, Optional, List, Dict, Tuple
 from stats_manager import get_stats_manager
+from sound_engine import play_sound, start_background_music, stop_background_music
 
-def u_safe(text, fallback=""):
+logger = logging.getLogger(__name__)
+
+
+def u_safe(text: str, fallback: str = "") -> str:
     """Return text with only characters encodable in the current stdout."""
-    if not isinstance(text, str): return text
-    
-    # Check entire string
+    if not isinstance(text, str):
+        return text
     try:
         text.encode(sys.stdout.encoding)
         return text
     except (UnicodeEncodeError, AttributeError):
-        # Fallback character by character
-        safe_chars = []
+        safe_chars: List[str] = []
         for char in text:
             try:
                 char.encode(sys.stdout.encoding)
                 safe_chars.append(char)
             except (UnicodeEncodeError, AttributeError):
-                # If we have a single char fallback, use it only for the first failure?
-                # No, just skip or use a generic fallback
                 pass
         return "".join(safe_chars) or fallback
 
-def strip_ansi(text):
+
+def strip_ansi(text: str) -> str:
     """Removes ANSI escape codes from a string to get its visual length."""
     return re.sub(r'\x1b\[[0-9;]*[mGJKH]', '', text)
 
+
 class Color:
     """Dynamic color object that allows theme switching without re-importing."""
-    def __init__(self, value):
+    def __init__(self, value: str) -> None:
         self.value = value
-    def __str__(self): return str(self.value)
-    def __repr__(self): return str(self.value)
-    def __format__(self, spec): return str(self.value)
-    def __add__(self, other): return str(self.value) + str(other)
-    def __radd__(self, other): return str(other) + str(self.value)
+    def __str__(self) -> str: return str(self.value)
+    def __repr__(self) -> str: return str(self.value)
+    def __format__(self, spec: str) -> str: return str(self.value)
+    def __add__(self, other: object) -> str: return str(self.value) + str(other)
+    def __radd__(self, other: object) -> str: return str(other) + str(self.value)
 
-# ANSI Color Codes (initialized as Color objects)
+# ANSI Color Codes
 C_RESET = "\033[0m"
 C_BOLD = "\033[1m"
 C_RED = Color("\033[31m")
@@ -51,42 +55,44 @@ C_MAGENTA = Color("\033[35m")
 C_CYAN = Color("\033[36m")
 C_WHITE = Color("\033[37m")
 C_BLACK = Color("\033[30m")
-C_GRAY = Color("\033[90m") # Brighter black for grid dots etc.
+C_GRAY = Color("\033[90m")
 
-THEMES = {
+THEMES: Dict[str, Dict[str, str]] = {
     "classic": {
-        "red": "\033[31m", "green": "\033[32m", "yellow": "\033[33m", 
-        "blue": "\033[34m", "magenta": "\033[35m", "cyan": "\033[36m", 
+        "red": "\033[31m", "green": "\033[32m", "yellow": "\033[33m",
+        "blue": "\033[34m", "magenta": "\033[35m", "cyan": "\033[36m",
         "white": "\033[37m", "black": "\033[30m", "gray": "\033[90m"
     },
     "neon": {
-        "red": "\033[38;5;196m", "green": "\033[38;5;82m", "yellow": "\033[38;5;226m", 
-        "blue": "\033[38;5;27m", "magenta": "\033[38;5;201m", "cyan": "\033[38;5;51m", 
+        "red": "\033[38;5;196m", "green": "\033[38;5;82m", "yellow": "\033[38;5;226m",
+        "blue": "\033[38;5;27m", "magenta": "\033[38;5;201m", "cyan": "\033[38;5;51m",
         "white": "\033[38;5;231m", "black": "\033[30m", "gray": "\033[38;5;244m"
     },
     "retro": {
-        "red": "\033[38;5;124m", "green": "\033[38;5;64m", "yellow": "\033[38;5;172m", 
-        "blue": "\033[38;5;24m", "magenta": "\033[38;5;89m", "cyan": "\033[38;5;30m", 
+        "red": "\033[38;5;124m", "green": "\033[38;5;64m", "yellow": "\033[38;5;172m",
+        "blue": "\033[38;5;24m", "magenta": "\033[38;5;89m", "cyan": "\033[38;5;30m",
         "white": "\033[38;5;250m", "black": "\033[30m", "gray": "\033[38;5;240m"
     },
     "monochrome": {
-        "red": "\033[37m", "green": "\033[37m", "yellow": "\033[37m", 
-        "blue": "\033[37m", "magenta": "\033[37m", "cyan": "\033[37m", 
+        "red": "\033[37m", "green": "\033[37m", "yellow": "\033[37m",
+        "blue": "\033[37m", "magenta": "\033[37m", "cyan": "\033[37m",
         "white": "\033[37m", "black": "\033[30m", "gray": "\033[37m"
     },
     "matrix": {
-        "red": "\033[38;5;160m", "green": "\033[38;5;46m", "yellow": "\033[38;5;40m", 
-        "blue": "\033[38;5;22m", "magenta": "\033[38;5;28m", "cyan": "\033[38;5;34m", 
+        "red": "\033[38;5;160m", "green": "\033[38;5;46m", "yellow": "\033[38;5;40m",
+        "blue": "\033[38;5;22m", "magenta": "\033[38;5;28m", "cyan": "\033[38;5;34m",
         "white": "\033[38;5;46m", "black": "\033[30m", "gray": "\033[38;5;22m"
     }
 }
 
-def apply_theme():
+
+def apply_theme() -> None:
     """Update all Color objects based on current setting in StatsManager."""
     mgr = get_stats_manager()
-    theme_name = mgr.stats.get('settings', {}).get('theme', 'classic')
+    settings = mgr.get_settings()
+    theme_name = settings.get('theme', 'classic')
     theme = THEMES.get(theme_name, THEMES['classic'])
-    
+
     C_RED.value = theme['red']
     C_GREEN.value = theme['green']
     C_YELLOW.value = theme['yellow']
@@ -97,7 +103,7 @@ def apply_theme():
     C_BLACK.value = theme['black']
     C_GRAY.value = theme.get('gray', "\033[90m")
 
-# Apply theme on initial load
+
 try:
     apply_theme()
 except (AttributeError, KeyError, TypeError):
@@ -111,48 +117,16 @@ BG_SEL = "\033[48;5;34m"
 BG_RED = "\033[41m"
 BG_BLUE = "\033[44m"
 
-STATS_FILE = "player_stats.json"
 
-def beep(event="correct"):
-    """Terminal beeps for arcade feedback with varying patterns."""
-    mgr = get_stats_manager()
-    if not mgr.stats.get('settings', {}).get('sound_enabled', True):
-        return
-        
-    try:
-        # Standard beep for most things
-        if event in ["correct", "move", "eat"]:
-            print("\a", end="", flush=True)
-            if event == "eat": # Double beep for eat
-                time.sleep(0.05)
-                print("\a", end="", flush=True)
-        elif event == "invalid":
-            print("\a", end="", flush=True)
-            time.sleep(0.05)
-            print("\a", end="", flush=True)
-        elif event == "win":
-            for _ in range(3):
-                print("\a", end="", flush=True)
-                time.sleep(0.1)
-        elif event == "lose" or event == "game_over":
-            for _ in range(3):
-                print("\a", end="", flush=True)
-                time.sleep(0.3)
-        elif event == "achievement":
-            for _ in range(4):
-                print("\a", end="", flush=True)
-                time.sleep(0.05)
-        elif event == "level_up":
-            for i in range(5):
-                print("\a", end="", flush=True)
-                time.sleep(0.05)
-    except (UnicodeEncodeError, AttributeError):
-        pass
+def beep(event: str = "correct") -> None:
+    """Delegate to sound engine's play_sound."""
+    play_sound(event)
+
 
 class Renderer:
     """Handles terminal rendering with FPS control and flicker reduction."""
-    
-    def __init__(self, fps=30):
+
+    def __init__(self, fps: int = 30) -> None:
         self.fps = fps
         self.frame_time = 1.0 / fps
         self.last_frame_time = time.time()
@@ -160,20 +134,20 @@ class Renderer:
         self.terminal_height = 24
         self._update_terminal_size()
         self.hide_cursor()
-        
-    def hide_cursor(self):
-        """Hides the terminal cursor."""
+
+    def hide_cursor(self) -> None:
         try:
             print("\033[?25l", end="", flush=True)
-        except (OSError, ValueError): pass
+        except (OSError, ValueError):
+            pass
 
-    def show_cursor(self):
-        """Shows the terminal cursor."""
+    def show_cursor(self) -> None:
         try:
             print("\033[?25h", end="", flush=True)
-        except (OSError, ValueError): pass
+        except (OSError, ValueError):
+            pass
 
-    def _update_terminal_size(self):
+    def _update_terminal_size(self) -> None:
         try:
             size = os.get_terminal_size()
             self.terminal_width = size.columns
@@ -181,56 +155,46 @@ class Renderer:
         except (OSError, ValueError):
             pass
 
-    def clear(self):
-        """Clears the screen. Use only at start of game or major transition."""
+    def clear(self) -> None:
         os.system('cls' if os.name == 'nt' else 'clear')
 
-    def move_to_top(self):
-        """Moves cursor to top-left without clearing, reducing flicker."""
+    def move_to_top(self) -> None:
         print("\033[H", end="", flush=True)
 
-    def render_frame(self, content_callback):
-        """
-        Executes rendering logic and enforces FPS limit.
-        
-        Args:
-            content_callback: Function that prints the game state
-        """
+    def render_frame(self, content_callback: Callable[[], None]) -> None:
         now = time.time()
         elapsed = now - self.last_frame_time
-        
-        # Enforce FPS
         if elapsed < self.frame_time:
             time.sleep(self.frame_time - elapsed)
             now = time.time()
-        
-        # move_to_top() is better than clear_screen() for flicker
         self.move_to_top()
         content_callback()
-        
         self.last_frame_time = now
 
-    def draw_bar(self, current, maximum, width=20, label="", color=C_GREEN):
-        """Draws a progress bar."""
+    def draw_bar(self, current: float, maximum: float, width: int = 20,
+                 label: str = "", color: Color = C_GREEN) -> None:
         percent = min(1.0, max(0.0, current / maximum)) if maximum > 0 else 0
         filled = int(width * percent)
         bar = "█" * filled + "░" * (width - filled)
         print(f"{label} [{color}{bar}{C_RESET}] {int(percent*100)}%")
 
-def get_input_util():
+
+def get_input_util() -> Callable[[], Optional[str]]:
     if os.name == 'nt':
         import msvcrt
-        def getch():
-            ch = msvcrt.getch()
-            if ch in [b'\x00', b'\xe0']:
-                ch2 = msvcrt.getch()
-                return {b'H': 'up', b'P': 'down', b'K': 'left', b'M': 'right'}.get(ch2, None)
-            try: return ch.decode('utf-8')
-            except (UnicodeDecodeError, AttributeError): return None
+        def getch() -> Optional[str]:
+            try:
+                ch = msvcrt.getch()
+                if ch in (b'\x00', b'\xe0'):
+                    ch2 = msvcrt.getch()
+                    return {b'H': 'up', b'P': 'down', b'K': 'left', b'M': 'right'}.get(ch2, None)
+                return ch.decode('utf-8')
+            except (UnicodeDecodeError, AttributeError, TypeError):
+                return None
         return getch
     else:
         import tty, termios
-        def getch():
+        def getch() -> Optional[str]:
             fd = sys.stdin.fileno()
             old = termios.tcgetattr(fd)
             try:
@@ -246,121 +210,115 @@ def get_input_util():
                 termios.tcsetattr(fd, termios.TCSADRAIN, old)
         return getch
 
-get_key = get_input_util()
 
-def clear_screen():
+get_key: Callable[[], Optional[str]] = get_input_util()
+
+
+def clear_screen() -> None:
     os.system('cls' if os.name == 'nt' else 'clear')
 
-def load_stats():
-    """Load stats using StatsManager."""
+
+def load_stats() -> Dict[str, Any]:
     return get_stats_manager().get_stats()
 
-def save_stats(stats):
-    """Save stats using StatsManager."""
+
+def save_stats(stats: Dict[str, Any]) -> None:
     mgr = get_stats_manager()
-    mgr.stats = stats
     mgr.save()
 
-def update_stats(game, key, value, subkey=None):
-    """Update stats using StatsManager."""
+
+def update_stats(game: str, key: str, value: Any, subkey: Optional[str] = None) -> None:
     mgr = get_stats_manager()
     if subkey:
         stats = mgr.get_stats(game)
         if key not in stats or not isinstance(stats[key], dict):
-            stats[key] = {}
-        stats[key][subkey] = value
+            if isinstance(stats.get(key), dict):
+                pass
+            else:
+                stats[key] = {}
+        if isinstance(stats.get(key), dict):
+            stats[key][subkey] = value  # type: ignore
         mgr.update_game_stats(game, stats)
     else:
         mgr.update_game_stats(game, {key: value})
 
-def add_xp(amount):
-    """Adds XP to the player profile via StatsManager."""
+
+def add_xp(amount: int) -> Dict[str, Any]:
     mgr = get_stats_manager()
-    new_level = mgr.add_xp(amount)
-    level, xp, progress = mgr.get_level_and_xp()
-    
-    # Check if level increased (StatsManager already handled the logic, we just show popup)
-    # Note: StatsManager.add_xp handles the level calculation
+    mgr.add_xp(amount)
     return mgr.get_stats()
 
-def get_level_info():
-    """Get level, XP and progress from StatsManager."""
+
+def get_level_info() -> Tuple[int, int, float]:
     mgr = get_stats_manager()
     return mgr.get_level_and_xp()
 
-def screen_shake(duration=0.3, intensity=1):
-    """Simulates a screen shake by clearing and re-printing with offsets."""
-    # Terminal screen shake is tricky; we simulate it with rapid clearing/flashing
-    # and slight ANSI cursor offsets if the terminal supports it.
+
+def screen_shake(duration: float = 0.3, intensity: int = 1) -> None:
     for _ in range(3):
-        print("\033[1;1H", end="") # Move to top
+        print("\033[1;1H", end="")
         if intensity > 0:
-            print(" " * intensity) # Slight offset simulation
+            print(" " * intensity)
         time.sleep(duration / 6)
         clear_screen()
         time.sleep(duration / 6)
 
-def particle_effect(char="*", color=C_WHITE, count=10):
-    """Prints a burst of particles at the current cursor position (simplified)."""
-    # In terminal, we just print a localized burst of characters
+
+def particle_effect(char: str = "*", color: Color = C_WHITE, count: int = 10) -> None:
     print(color, end="")
     for _ in range(count):
         print(char, end=" ", flush=True)
         time.sleep(0.01)
     print(C_RESET)
 
-def animated_flash(color=C_RED, duration=0.1, count=1):
-    """Flashes the screen background color."""
+
+def animated_flash(color: Color = C_RED, duration: float = 0.1, count: int = 1) -> None:
+    bg = "\033[41m" if color == C_RED else "\033[47m"
     for _ in range(count):
-        print(f"\033[41m" if color == C_RED else f"\033[47m", end="", flush=True) # Simple red or white flash
+        print(bg, end="", flush=True)
         clear_screen()
         time.sleep(duration)
         print(C_RESET, end="", flush=True)
         clear_screen()
         time.sleep(duration)
 
-def print_big_title(text, color=C_CYAN):
-    """Prints a large ASCII title (simplified for now)."""
-    # In a full implementation, this would use a large font dict.
-    # For now, we will just use bold large text with borders.
+
+def print_big_title(text: str, color: Color = C_CYAN) -> None:
     border = "═" * (len(text) + 4)
     print(f"{color}╔{border}╗")
     print(f"║  {C_BOLD}{text}{C_RESET}{color}  ║")
     print(f"╚{border}╝{C_RESET}")
 
-def draw_retro_box(width, title, content_lines, color=C_CYAN, title_color=C_YELLOW):
-    """Draws a centered retro box with a title and multi-line content."""
-    terminal_width = 80 # Default
+
+def draw_retro_box(width: int, title: str, content_lines: List[str],
+                   color: Color = C_CYAN, title_color: Color = C_YELLOW) -> None:
+    terminal_width = 80
     try:
         terminal_width = os.get_terminal_size().columns
-    except (OSError, ValueError): 
+    except (OSError, ValueError):
         pass
-    
+
     padding = max(0, (terminal_width - width) // 2)
     indent = " " * padding
-    
-    # Unicode safe box characters
+
     try:
-        # Test if we can print unicode
         "╔═╗".encode(sys.stdout.encoding)
         b_tl, b_tr, b_bl, b_br, b_h, b_v, b_ml, b_mr = "╔", "╗", "╚", "╝", "═", "║", "╠", "╣"
     except (UnicodeEncodeError, TypeError):
         b_tl, b_tr, b_bl, b_br, b_h, b_v, b_ml, b_mr = "+", "+", "+", "+", "-", "|", "|", "|"
 
     print(indent + f"{color}{b_tl}" + b_h * (width - 2) + f"{b_tr}")
-    
-    # Title line
+
     safe_title = u_safe(title)
     stripped_title = strip_ansi(safe_title)
     title_padding = (width - 2 - len(stripped_title)) // 2
     title_line = " " * title_padding + f"{title_color}{C_BOLD}{safe_title}{C_RESET}{color}"
     title_line += " " * (width - 2 - len(stripped_title) - title_padding)
     print(indent + f"{b_v}{title_line}{b_v}")
-    
+
     print(indent + f"{b_ml}" + b_h * (width - 2) + f"{b_mr}")
-    
+
     for line in content_lines:
-        # Strip characters that can't be encoded
         safe_line = u_safe(line)
         stripped_line = strip_ansi(safe_line)
         content_len = len(stripped_line)
@@ -368,10 +326,11 @@ def draw_retro_box(width, title, content_lines, color=C_CYAN, title_color=C_YELL
         l_text = " " * content_padding + f"{C_WHITE}{safe_line}{C_RESET}{color}"
         l_text += " " * (width - 2 - content_len - content_padding)
         print(indent + f"{b_v}{l_text}{b_v}")
-        
+
     print(indent + f"{b_bl}" + b_h * (width - 2) + f"{b_br}{C_RESET}")
 
-def show_popup(msg, color=C_CYAN, delay=2):
+
+def show_popup(msg: str, color: Color = C_CYAN, delay: float = 2) -> None:
     clear_screen()
     print("\n" * 5)
     draw_retro_box(40 + len(msg)//2, "POPUP", [msg], color=color)
