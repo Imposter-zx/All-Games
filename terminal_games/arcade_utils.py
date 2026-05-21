@@ -1,10 +1,11 @@
-import os
-import sys
 import json
-import time
-import re
 import logging
+import os
+import re
+import sys
+import time
 from typing import Callable, Any, Optional, List, Dict, Tuple
+
 from stats_manager import get_stats_manager
 from sound_engine import play_sound, start_background_music, stop_background_music
 

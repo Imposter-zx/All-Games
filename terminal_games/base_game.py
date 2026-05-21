@@ -1,12 +1,13 @@
 """Abstract base class for all terminal games."""
 
 from abc import ABC, abstractmethod
-import time
 import logging
+import time
 from typing import Any, Dict, Optional
+
+from arcade_utils import Renderer, show_popup, beep
 from stats_manager import get_stats_manager
 from xp_config import get_xp_system
-from arcade_utils import Renderer, show_popup, beep
 
 logger = logging.getLogger(__name__)
 

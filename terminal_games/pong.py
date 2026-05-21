@@ -3,16 +3,17 @@ Pong Game implementation for the Retro Arcade.
 Classic table tennis — play against an AI opponent.
 """
 
+import logging
 import random
 import time
-import logging
 from typing import Optional
-from base_game import BaseGame
-from input_handler import get_safe_input_handler
+
 from arcade_utils import (
     C_WHITE, C_YELLOW, C_CYAN, C_GREEN, C_MAGENTA, C_RED, C_BLUE,
     C_BOLD, C_RESET, draw_retro_box, beep
 )
+from base_game import BaseGame
+from input_handler import get_safe_input_handler
 
 logger = logging.getLogger(__name__)
 

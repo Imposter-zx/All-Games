@@ -4,15 +4,16 @@ Replaces simple \a beeps with synthesized waveform audio.
 Supports sound effects and background music.
 """
 
-import os
-import time
-import struct
-import math
 import logging
-import threading
-import subprocess
-from typing import Optional, Dict, List
+import math
+import os
 from pathlib import Path
+import struct
+import subprocess
+import threading
+import time
+from typing import Optional, Dict, List
+
 from stats_manager import get_stats_manager
 
 logger = logging.getLogger(__name__)

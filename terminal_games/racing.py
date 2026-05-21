@@ -1,14 +1,15 @@
-import time
-import random
 import logging
+import random
+import time
 from typing import List
-from base_game import BaseGame
-from input_handler import get_safe_input_handler
+
 from arcade_utils import (
     clear_screen, print_big_title, beep, show_popup,
     screen_shake, particle_effect, animated_flash,
     C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_MAGENTA, C_WHITE, C_BLACK, u_safe
 )
+from base_game import BaseGame
+from input_handler import get_safe_input_handler
 
 logger = logging.getLogger(__name__)
 

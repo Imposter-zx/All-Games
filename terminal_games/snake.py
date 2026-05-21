@@ -1,7 +1,8 @@
+import os
 import random
 import time
-import os
 from typing import List, Tuple, Optional
+
 from arcade_utils import (
     clear_screen, draw_retro_box, beep, show_popup,
     animated_flash, print_big_title,

@@ -1,9 +1,10 @@
-import os
-import time
 import logging
+import os
 import random
 import subprocess
+import time
 from typing import Optional
+
 from arcade_utils import (
     clear_screen, draw_retro_box, beep, show_popup,
     animated_flash, print_big_title,

@@ -1,9 +1,9 @@
 """Input handling and validation utilities."""
 
-import time
+import logging
 import os
 import sys
-import logging
+import time
 from typing import Optional, Set, Union
 
 logger = logging.getLogger(__name__)

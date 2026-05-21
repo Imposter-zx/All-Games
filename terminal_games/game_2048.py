@@ -3,16 +3,17 @@
 Merge tiles with the same numbers to reach 2048.
 """
 
+import logging
 import random
 import time
-import logging
 from typing import List, Dict, Any
-from base_game import BaseGame
-from input_handler import get_safe_input_handler
+
 from arcade_utils import (
     C_WHITE, C_YELLOW, C_CYAN, C_GREEN, C_MAGENTA, C_RED, C_BLUE,
     C_BOLD, C_RESET, draw_retro_box, beep, u_safe
 )
+from base_game import BaseGame
+from input_handler import get_safe_input_handler
 
 logger = logging.getLogger(__name__)
 

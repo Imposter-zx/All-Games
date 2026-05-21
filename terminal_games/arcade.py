@@ -2,43 +2,44 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import time
 import logging
+import time
 from typing import Optional
+
 from arcade_utils import (
     Renderer, clear_screen, load_stats, draw_retro_box, beep, C_RESET, C_BOLD,
     C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK,
     get_level_info, add_xp, show_popup, u_safe, apply_theme, THEMES,
     start_background_music, stop_background_music
 )
-from stats_manager import get_stats_manager
-from input_handler import get_safe_input_handler
 from error_handler import safe_game_call
+from input_handler import get_safe_input_handler
 from logger_setup import setup_logger
+from stats_manager import get_stats_manager
 
 logger = setup_logger()
 
-from sudoku import play_sudoku
-from minesweeper import play_minesweeper
+from asteroids import play_asteroids
+from breakout import play_breakout
 try:
     from chess_game import play_chess
 except ImportError:
     play_chess = None
-from snake import play_snake
-from breakout import play_breakout
-from space_shooter import play_space_shooter
-from tetris import play_tetris
-from pacman import play_pacman
-from game_2048 import play_2048
-from pong import play_pong
-from asteroids import play_asteroids
 try:
     from dungeon import play_dungeon
 except ImportError:
     play_dungeon = None
-from frogger import play_frogger
 from flappy import play_flappy
+from frogger import play_frogger
+from game_2048 import play_2048
+from minesweeper import play_minesweeper
+from pacman import play_pacman
+from pong import play_pong
 from racing import play_racing
+from snake import play_snake
+from space_shooter import play_space_shooter
+from sudoku import play_sudoku
+from tetris import play_tetris
 
 BANNER_TEXT: list[str] = [
     "  ____  _  _  ____  _   _  _____  _   _  ",
