@@ -22,6 +22,7 @@ logger = setup_logger()
 from asteroids import play_asteroids
 from blackjack import play_blackjack
 from breakout import play_breakout
+import online_leaderboard as olb
 try:
     from chess_game import play_chess
 except ImportError:
@@ -206,21 +207,63 @@ def select_game_difficulty() -> Optional[str]:
         time.sleep(0.05)
 
 
-def show_leaderboard() -> None:
-    """Display high scores for all games."""
+def show_online_leaderboard() -> None:
+    """Display online (global) leaderboard."""
     from arcade_utils import get_key
-    mgr = get_stats_manager()
-
-    lines: list[str] = []
-    for game in GAMES:
-        score = mgr.get_high_score(game)
-        lines.append(f"{game.replace('_', ' ').title():<15} : {C_YELLOW}{score:>6}{C_RESET}")
 
     clear_screen()
     print("\n" * 2)
-    draw_retro_box(40, "🏆 ARCADE HALL OF FAME", lines, color=C_YELLOW)
+
+    if not olb.health_check():
+        lines = [f"{C_RED}Online leaderboard unavailable.{C_RESET}",
+                 f"{C_WHITE}The server may be offline or your{C_RESET}",
+                 f"{C_WHITE}internet connection is down.{C_RESET}"]
+        draw_retro_box(40, "🌐 ONLINE LEADERBOARD", lines, color=C_RED)
+        print("\n" + " " * 28 + f"{C_WHITE}[Any Key] Back{C_RESET}")
+        get_key()
+        return
+
+    entries = olb.fetch_leaderboard(limit=20)
+    if not entries:
+        lines = [f"{C_YELLOW}No scores submitted yet!{C_RESET}",
+                 f"{C_WHITE}Play a game and your score will{C_RESET}",
+                 f"{C_WHITE}automatically upload.{C_RESET}"]
+        draw_retro_box(40, "🌐 ONLINE LEADERBOARD", lines, color=C_YELLOW)
+    else:
+        lines: list[str] = []
+        for e in entries:
+            rank = e['rank']
+            medal = {1: '🥇', 2: '🥈', 3: '🥉'}.get(rank, f"{rank:>2}.")
+            name = e['player_name'][:12]
+            score = e['score']
+            game = e.get('game_name', '')
+            lines.append(f"{medal} {C_GREEN}{name:<12}{C_RESET} : {C_YELLOW}{score:>6}{C_RESET}  {C_CYAN}{game:<12}{C_RESET}")
+        draw_retro_box(40, "🌐 GLOBAL HALL OF FAME", lines, color=C_YELLOW)
     print("\n" + " " * 28 + f"{C_WHITE}[Any Key] Back{C_RESET}")
     get_key()
+
+
+def show_leaderboard() -> None:
+    """Display high scores (local or online)."""
+    from arcade_utils import get_key
+    mgr = get_stats_manager()
+
+    while True:
+        lines: list[str] = []
+        for game in GAMES:
+            score = mgr.get_high_score(game)
+            lines.append(f"{game.replace('_', ' ').title():<15} : {C_YELLOW}{score:>6}{C_RESET}")
+
+        clear_screen()
+        print("\n" * 2)
+        draw_retro_box(40, "🏆 ARCADE HALL OF FAME", lines, color=C_YELLOW)
+        print("\n" + " " * 24 + f"{C_WHITE}[O] Online  [Any Key] Back{C_RESET}")
+
+        key = get_key()
+        if key and key.lower() == 'o':
+            show_online_leaderboard()
+        else:
+            break
 
 
 def show_settings() -> None:
@@ -321,6 +364,15 @@ def show_tutorial() -> None:
     get_key()
 
 
+def _play_and_submit(game_func, game_name: str, difficulty: Optional[str]) -> None:
+    """Play a game and submit score to online leaderboard."""
+    mgr = get_stats_manager()
+    result = safe_game_call(game_func, game_name, difficulty=difficulty)
+    if result and result.get('high_score', 0) > 0:
+        name = mgr.get_settings().get('player_name', 'RETRO_MASTER')
+        olb.submit_score(name, game_name, result['high_score'], difficulty or 'normal')
+
+
 def main() -> None:
     """Application entry point."""
     if os.name == 'nt':
@@ -360,43 +412,43 @@ def main() -> None:
                     continue
 
             if selection == 0:
-                safe_game_call(play_snake, "Snake", difficulty=difficulty)
+                _play_and_submit(play_snake, "Snake", difficulty)
             elif selection == 1:
-                safe_game_call(play_breakout, "Breakout", difficulty=difficulty)
+                _play_and_submit(play_breakout, "Breakout", difficulty)
             elif selection == 2:
-                safe_game_call(play_space_shooter, "Space Shooter", difficulty=difficulty)
+                _play_and_submit(play_space_shooter, "Space Shooter", difficulty)
             elif selection == 3:
-                safe_game_call(play_tetris, "Tetris", difficulty=difficulty)
+                _play_and_submit(play_tetris, "Tetris", difficulty)
             elif selection == 4:
-                safe_game_call(play_pacman, "Pac-Man", difficulty=difficulty)
+                _play_and_submit(play_pacman, "Pac-Man", difficulty)
             elif selection == 5:
                 if play_dungeon:
-                    safe_game_call(play_dungeon, "Dungeon Crawler", difficulty=difficulty)
+                    _play_and_submit(play_dungeon, "Dungeon Crawler", difficulty)
                 else:
                     show_popup("Dungeon module missing!", C_RED)
             elif selection == 6:
-                safe_game_call(play_minesweeper, "Minesweeper", difficulty=difficulty)
+                _play_and_submit(play_minesweeper, "Minesweeper", difficulty)
             elif selection == 7:
                 if play_chess:
-                    safe_game_call(play_chess, "Chess", difficulty=difficulty)
+                    _play_and_submit(play_chess, "Chess", difficulty)
                 else:
                     show_popup("Chess (python-chess) missing!", C_RED)
             elif selection == 8:
-                safe_game_call(play_sudoku, "Sudoku", difficulty=difficulty)
+                _play_and_submit(play_sudoku, "Sudoku", difficulty)
             elif selection == 9:
-                safe_game_call(play_2048, "2048", difficulty=difficulty)
+                _play_and_submit(play_2048, "2048", difficulty)
             elif selection == 10:
-                safe_game_call(play_pong, "Pong", difficulty=difficulty)
+                _play_and_submit(play_pong, "Pong", difficulty)
             elif selection == 11:
-                safe_game_call(play_asteroids, "Asteroids", difficulty=difficulty)
+                _play_and_submit(play_asteroids, "Asteroids", difficulty)
             elif selection == 12:
-                safe_game_call(play_frogger, "Frogger", difficulty=difficulty)
+                _play_and_submit(play_frogger, "Frogger", difficulty)
             elif selection == 13:
-                safe_game_call(play_flappy, "Flappy Bird", difficulty=difficulty)
+                _play_and_submit(play_flappy, "Flappy Bird", difficulty)
             elif selection == 14:
-                safe_game_call(play_racing, "Racing", difficulty=difficulty)
+                _play_and_submit(play_racing, "Racing", difficulty)
             elif selection == 15:
-                safe_game_call(play_blackjack, "Blackjack", difficulty=difficulty)
+                _play_and_submit(play_blackjack, "Blackjack", difficulty)
             elif selection == 16:
                 show_leaderboard()
             elif selection == 17:
