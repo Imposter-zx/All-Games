@@ -61,6 +61,10 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
     # Racing
     "racing_100": {"name": "Speedster", "description": "Score 100 in Racing", "xp": 200},
     "racing_500": {"name": "Pro Racer", "description": "Score 500 in Racing", "xp": 500},
+
+    # Blackjack
+    "blackjack_natural": {"name": "Natural Blackjack", "description": "Get 21 in your first two cards", "xp": 200},
+    "blackjack_500": {"name": "Blackjack Pro", "description": "Score 500 total in Blackjack", "xp": 500},
 }
 
 

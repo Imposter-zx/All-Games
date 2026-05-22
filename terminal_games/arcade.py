@@ -20,6 +20,7 @@ from stats_manager import get_stats_manager
 logger = setup_logger()
 
 from asteroids import play_asteroids
+from blackjack import play_blackjack
 from breakout import play_breakout
 try:
     from chess_game import play_chess
@@ -57,7 +58,8 @@ BANNER_TEXT: list[str] = [
 GAMES: list[str] = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
-    "pong", "asteroids", "frogger", "flappy", "racing"
+    "pong", "asteroids", "frogger", "flappy", "racing",
+    "blackjack"
 ]
 
 
@@ -105,7 +107,8 @@ def draw_profile() -> None:
         f"{u_safe('☄️', 'A')} Asteroids High    : {C_MAGENTA}{mgr.get_high_score('asteroids')}{C_WHITE}",
         f"{u_safe('🐸', 'F')} Frogger High      : {C_GREEN}{mgr.get_high_score('frogger')}{C_WHITE}",
         f"{u_safe('🐦', 'V')} Flappy High       : {C_YELLOW}{mgr.get_high_score('flappy')}{C_WHITE}",
-        f"{u_safe('🏎️', 'R')} Racing High       : {C_RED}{mgr.get_high_score('racing')}{C_WHITE}"
+        f"{u_safe('🏎️', 'R')} Racing High       : {C_RED}{mgr.get_high_score('racing')}{C_WHITE}",
+        f"{u_safe('🃏', 'B')} Blackjack High    : {C_YELLOW}{mgr.get_high_score('blackjack')}{C_WHITE}"
     ]
 
     if achievements:
@@ -150,6 +153,7 @@ def print_menu(selection: int, renderer: Renderer) -> None:
         f"13. {u_safe('🐸', 'F')} Frogger",
         f"14. {u_safe('🐦', 'V')} Flappy Bird",
         f"15. {u_safe('🏎️', 'R')} Racing",
+        f"16. {u_safe('🃏', 'B')} Blackjack",
         f"L. {u_safe('🏆', 'L')} Leaderboard",
         f"S. {u_safe('⚙️', 'S')} Settings",
         f"H. Tutorial",
@@ -308,7 +312,7 @@ def show_tutorial() -> None:
         f"{C_CYAN}GAMES ({len(GAMES)} total):{C_RESET}",
         "  Snake, Breakout, Space Shooter, Tetris, Pac-Man,",
         "  Dungeon Crawler, Minesweeper, Chess, Sudoku, 2048,",
-        "  Pong, Asteroids, Frogger, Flappy Bird, Racing",
+        "  Pong, Asteroids, Frogger, Flappy Bird, Racing, Blackjack",
         "",
         f"{C_WHITE}Press any key to return to menu...{C_RESET}"
     ]
@@ -322,7 +326,7 @@ def main() -> None:
     if os.name == 'nt':
         os.system('')
     selection = 0
-    num_options = 19
+    num_options = 20
 
     renderer = Renderer(fps=60)
     input_handler = get_safe_input_handler()
@@ -349,7 +353,7 @@ def main() -> None:
             stop_background_music()
 
             difficulty: Optional[str] = None
-            if selection < 15:
+            if selection < 16:
                 difficulty = select_game_difficulty()
                 if not difficulty:
                     start_background_music()
@@ -392,12 +396,14 @@ def main() -> None:
             elif selection == 14:
                 safe_game_call(play_racing, "Racing", difficulty=difficulty)
             elif selection == 15:
-                show_leaderboard()
+                safe_game_call(play_blackjack, "Blackjack", difficulty=difficulty)
             elif selection == 16:
-                show_settings()
+                show_leaderboard()
             elif selection == 17:
-                show_tutorial()
+                show_settings()
             elif selection == 18:
+                show_tutorial()
+            elif selection == 19:
                 break
 
             renderer.clear()

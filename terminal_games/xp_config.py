@@ -33,6 +33,7 @@ XP_CONFIGS: Dict[str, GameXPConfig] = {
     'pong': GameXPConfig(name='Pong', base_multiplier=10.0),
     'flappy': GameXPConfig(name='Flappy Bird', base_multiplier=50.0),
     'racing': GameXPConfig(name='Racing', base_multiplier=1.0),
+    'blackjack': GameXPConfig(name='Blackjack', base_multiplier=2.0),
 }
 
 
