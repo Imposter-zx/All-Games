@@ -1,9 +1,9 @@
 # 🕹️ Retro Terminal Arcade V2: The Production Release
 
-A premium collection of 15 classic terminal games with a polished TUI, XP/Leveling system, procedural dungeons, and immersive visual effects. **Now with SQLite persistence, sound engine, AI opponents, full type safety, and CI/CD pipeline.**
+A premium collection of **18 classic terminal games** with a polished TUI, XP/Leveling system, procedural dungeons, and immersive visual effects. **SQLite persistence, sound engine, AI opponents, full type safety, CI/CD pipeline, and online leaderboard.**
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Tests](https://img.shields.io/badge/tests-41%2F41%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-109%2F109%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.6%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-blueviolet)
 ![Version](https://img.shields.io/badge/version-2.0.0-blue)
@@ -23,54 +23,59 @@ pip install -e .
 retro-arcade
 ```
 
-## 🎮 Games Included
+## 🎮 Games Included (18)
 
-1.  **⚔️ Dungeon Crawler** — Roguelike exploration with procedural rooms, turn-based combat, loot.
-2.  **🟡 Pac-Man** — Classic grid movement with ghost AI and powerups.
-3.  **🐍 Snake** — High-speed survival with XP rewards.
-4.  **🧱 Breakout** — Physics-based brick destruction with screen shake.
-5.  **🧩 Tetris** — Modern implementation with line clear XP.
-6.  **🚀 Space Shooter** — Fast-paced combat with particle effects.
-7.  **💣 Minesweeper** — Classic logic-based mine detection.
-8.  **♟️ Chess vs AI** — Stockfish engine or heuristic AI; configurable skill level.
-9.  **🔢 Sudoku** — Logic puzzles with persistence bonuses.
-10. **🔢 2048** — Merge tiles to reach 2048.
-11. **🏓 Pong** — CPU opponent with ball trajectory prediction.
-12. **☄️ Asteroids** — Vector shooter with space debris.
-13. **🐸 Frogger** — Guide the frog across roads and rivers.
-14. **🐦 Flappy Bird** — Navigate through pipes.
-15. **🏎️ Racing** — Dodge oncoming cars at high speed.
+| # | Game | Description | AI |
+|---|------|-------------|----|
+| 1 | **🐍 Snake** | High-speed survival with XP rewards | — |
+| 2 | **🧱 Breakout** | Physics-based brick destruction | — |
+| 3 | **🚀 Space Shooter** | Fast-paced combat with particles | Enemies |
+| 4 | **🧩 Tetris** | Line-clear puzzle action | — |
+| 5 | **🟡 Pac-Man** | Grid movement with ghost AI | 4 ghost personalities |
+| 6 | **⚔️ Dungeon Crawler** | Roguelike procedural dungeon | Monsters |
+| 7 | **💣 Minesweeper** | Logic-based mine detection | — |
+| 8 | **♟️ Chess vs AI** | Full chess with Stockfish/heuristic | Skill levels 1–20 |
+| 9 | **🔢 Sudoku** | Logic puzzles, persistence bonuses | — |
+| 10 | **🔢 2048** | Merge tiles to 2048 | — |
+| 11 | **🏓 Pong** | Table tennis vs CPU | Trajectory prediction |
+| 12 | **☄️ Asteroids** | Vector shooter | — |
+| 13 | **🐸 Frogger** | Cross roads and rivers | Cars/logs |
+| 14 | **🐦 Flappy Bird** | Navigate through pipes | — |
+| 15 | **🏎️ Racing** | Dodge oncoming cars | Traffic |
+| 16 | **🃏 Blackjack** | Card game vs dealer | Dealer AI (hits ≤16) |
+| 17 | **🔴 Connect Four** | Drop 4 in a row | Minimax AI (depth 3–7) |
+| 18 | **📝 Hangman** | Guess the word | Word bank |
 
 ## ✨ V2.0.0 Features
 
 ### Core Gaming
 - **Global RPG Progression**: Gain XP across ALL games, level up, track achievements.
 - **Difficulty Selection**: Easy (0.5x), Normal (1.0x), Hard (2.0x) — affects speed & XP.
-- **Visual Juice**: Screen shakes, particles, ANSI-safe rendering.
-- **AI Opponents**: Chess (Stockfish + heuristic), Pac-Man (4 ghost personalities), Pong (trajectory prediction).
-- **Tutorial System**: Press `H` in any game for contextual help; option 17 in main menu for full tutorial.
+- **Visual Juice**: Screen shakes, particles, ANSI-safe rendering, 5 visual themes.
+- **AI Opponents**: Chess (Stockfish + heuristic, 20 skill levels), Pac-Man (4 ghost personalities), Pong (trajectory prediction), Connect Four (minimax α-β pruning).
+- **Tutorial System**: Press `H` in any game for contextual help; tutorial screen in main menu.
 
 ### Infrastructure
 - **SQLite Persistence**: Player stats, sessions, achievements, telemetry stored in `~/.retro_arcade/player.db`.
 - **Sound Engine**: Synthesized WAV audio (sine/square/noise), background music, cross-platform playback.
+- **Online Leaderboard**: REST API to submit/fetch global scores. Player name from settings. Auto-submits after every game. Falls back gracefully when offline.
 - **Full Type Annotations**: mypy-compatible on all 20+ modules.
 - **CI/CD Pipeline**: GitHub Actions — matrix test (3.8–3.11 × Linux/Windows), ruff lint, mypy, pytest with coverage, PyPI publish on release.
-- **Telemetry & Analytics**: Session tracking, app start/stop events, game completions.
 
 ## 📊 Current Status
 
 | Component | Status | Details |
 |-----------|--------|---------|
 | Infrastructure | ✅ Complete | BaseGame, StatsManager (SQLite), Error Handlers, Input Validation |
-| Testing | ✅ Complete | 41/41 tests passing |
-| Game Migration | ✅ Complete | All 15 games refactored to BaseGame architecture |
-| Difficulty System | ✅ Complete | Dynamic speed/XP scaling |
+| Testing | ✅ Complete | 109/109 tests passing |
+| Game Migration | ✅ Complete | All 18 games on BaseGame architecture |
+| Difficulty System | ✅ Complete | Dynamic speed/XP scaling per game |
 | XP Integration | ✅ Complete | Global progression synced across all modules |
-| AI Opponents | ✅ Complete | Chess (Stockfish), Pac-Man (ghost personalities), Pong (prediction) |
+| AI Opponents | ✅ Complete | Chess, Pac-Man, Pong, Connect Four |
 | Sound Engine | ✅ Complete | Waveform synthesis, background music, cross-platform |
 | Type Annotations | ✅ Complete | mypy-compatible across all modules |
 | CI/CD Pipeline | ✅ Complete | GitHub Actions — lint, test, type-check, publish |
-| Telemetry | ✅ Complete | Sessions, events, analytics |
+| Online Leaderboard | ✅ Complete | FastAPI server + auto-score submission |
 | Tutorial System | ✅ Complete | In-game H key help, dedicated tutorial screen |
 | Packaging & Dist | ✅ Complete | pip-installable via GitHub, `retro-arcade` CLI entry point |
 
@@ -96,14 +101,27 @@ All Games/
 │   ├── logger_setup.py        # Logging configuration
 │   ├── arcade_utils.py        # ANSI-safe UI utilities
 │   ├── achievements_config.py # Achievement definitions
+│   ├── online_leaderboard.py  # REST API client
 │   ├── snake.py, pacman.py, breakout.py, tetris.py
 │   ├── space_shooter.py, minesweeper.py, chess_game.py
 │   ├── sudoku.py, dungeon.py, game_2048.py, pong.py
 │   ├── asteroids.py, frogger.py, flappy.py, racing.py
+│   ├── blackjack.py, connect_four.py, hangman.py
 │   └── requirements.txt
+├── server/
+│   ├── main.py                # FastAPI leaderboard server
+│   ├── Dockerfile             # Container deployment
+│   ├── requirements.txt       # Server dependencies
+│   └── README.md              # Server deployment guide
 ├── tests/
-│   ├── test_base_game.py      # BaseGame tests
-│   └── test_stats_manager.py  # StatsManager (SQLite) tests
+│   ├── test_base_game.py      # BaseGame tests (14)
+│   ├── test_stats_manager.py  # StatsManager SQLite tests (19)
+│   ├── test_games.py          # Game instantiation tests (11)
+│   ├── test_blackjack.py      # Blackjack logic tests (22)
+│   ├── test_connect_four.py   # Connect Four logic tests (13)
+│   ├── test_hangman.py        # Hangman logic tests (11)
+│   ├── test_online_leaderboard.py # HTTP client tests (10)
+│   └── test_configs.py        # XP + achievement validation (5)
 ├── .github/workflows/
 │   ├── ci.yml                 # Matrix test + lint + typecheck + publish
 │   └── lint.yml               # Black + ruff check
@@ -117,7 +135,21 @@ All Games/
 - **BaseGame**: Abstract class — `play()`, `_render()`, `_handle_input()`, `_update_game_state()` — auto-records sessions & telemetry.
 - **StatsManager**: Singleton backed by SQLite — `add_xp()`, `record_session()`, `get_leaderboard()`, `record_telemetry()`.
 - **SoundEngine**: Synthesizes WAV at runtime, falls back to terminal beep gracefully.
-- **AI** — Chess: Stockfish auto-detection + skill levels. Pac-Man: Blinky/Pinky/Inky/Sue personalities. Pong: reaction delay + trajectory prediction.
+- **OnlineLeaderboard**: REST client — submits scores after each game, fetches global rankings. Graceful offline fallback.
+- **AI Systems**: Chess (Stockfish/heuristic), Pac-Man (4 ghost personalities), Pong (trajectory prediction), Connect Four (minimax with alpha-beta pruning).
+
+## 🌐 Online Leaderboard
+
+Deploy the server yourself:
+```bash
+cd server
+docker build -t retro-leaderboard .
+docker run -p 8000:8000 retro-leaderboard
+```
+
+Or deploy to **Render** (free tier): root dir `server`, start command `uvicorn main:app --host 0.0.0.0 --port $PORT`.
+
+Update `DEFAULT_SERVER` in `terminal_games/online_leaderboard.py` to your server URL.
 
 ## 📝 License
 
