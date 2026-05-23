@@ -1,4 +1,4 @@
-"""Validate XP configs and achievements cover all 16 games."""
+"""Validate XP configs and achievements cover all 18 games."""
 
 import sys
 import os
@@ -13,6 +13,7 @@ ALL_GAMES = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing", "blackjack",
+    "connect_four", "hangman",
 ]
 
 
@@ -39,6 +40,9 @@ class TestAchievements:
         for aid, ach in ACHIEVEMENTS.items():
             assert ach.get('xp', 0) > 0, f"Achievement '{aid}' has non-positive XP"
 
-    def test_blackjack_achievements_exist(self):
+    def test_new_game_achievements_exist(self):
         assert "blackjack_natural" in ACHIEVEMENTS
         assert "blackjack_500" in ACHIEVEMENTS
+        assert "connect_four_win" in ACHIEVEMENTS
+        assert "hangman_first_win" in ACHIEVEMENTS
+        assert "hangman_streak" in ACHIEVEMENTS

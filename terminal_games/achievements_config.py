@@ -65,6 +65,13 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
     # Blackjack
     "blackjack_natural": {"name": "Natural Blackjack", "description": "Get 21 in your first two cards", "xp": 200},
     "blackjack_500": {"name": "Blackjack Pro", "description": "Score 500 total in Blackjack", "xp": 500},
+
+    # Connect Four
+    "connect_four_win": {"name": "Connect Four Champion", "description": "Win a game of Connect Four", "xp": 300},
+
+    # Hangman
+    "hangman_first_win": {"name": "Word Detective", "description": "Win a game of Hangman", "xp": 150},
+    "hangman_streak": {"name": "Hangman Streak", "description": "Win 3 Hangman games in a row", "xp": 300},
 }
 
 

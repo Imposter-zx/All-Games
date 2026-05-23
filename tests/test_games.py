@@ -15,6 +15,8 @@ from minesweeper import MinesweeperGame
 from sudoku import SudokuGame
 from dungeon import DungeonGame
 from chess_game import ChessGame, CHESS_AVAILABLE
+from connect_four import ConnectFourGame
+from hangman import HangmanGame
 
 class TestGamesIntegration(unittest.TestCase):
     """Integration tests to ensure all games follow the BaseGame interface."""
@@ -85,6 +87,16 @@ class TestGamesIntegration(unittest.TestCase):
             self.assertTrue(callable(getattr(game, "play")))
         else:
             self.skipTest("python-chess not installed")
+
+    def test_connect_four_instantiation(self):
+        game = ConnectFourGame()
+        self.assertEqual(game.game_name, "connect_four")
+        self.assertTrue(callable(getattr(game, "play")))
+
+    def test_hangman_instantiation(self):
+        game = HangmanGame()
+        self.assertEqual(game.game_name, "hangman")
+        self.assertTrue(callable(getattr(game, "play")))
 
 if __name__ == '__main__':
     unittest.main()

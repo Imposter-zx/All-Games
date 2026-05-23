@@ -5,12 +5,19 @@ A lightweight FastAPI server for global high scores.
 ## Deploy
 
 ### Render (free tier)
-1. Push this `server/` directory to a GitHub repo
+1. Fork/push this repo to GitHub
 2. On Render: New Web Service → connect repo
 3. Set:
-   - Build Command: `pip install -r server/requirements.txt`
-   - Start Command: `uvicorn server.main:app --host 0.0.0.0 --port $PORT`
+   - Root Directory: `server`
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 4. Deploy — copy the URL to `DEFAULT_SERVER` in `terminal_games/online_leaderboard.py`
+
+### Docker
+```bash
+docker build -t retro-leaderboard server/
+docker run -p 8000:8000 retro-leaderboard
+```
 
 ### Local
 ```bash

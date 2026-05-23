@@ -25,6 +25,7 @@ from breakout import play_breakout
 import online_leaderboard as olb
 try:
     from chess_game import play_chess
+from connect_four import play_connect_four
 except ImportError:
     play_chess = None
 try:
@@ -33,6 +34,7 @@ except ImportError:
     play_dungeon = None
 from flappy import play_flappy
 from frogger import play_frogger
+from hangman import play_hangman
 from game_2048 import play_2048
 from minesweeper import play_minesweeper
 from pacman import play_pacman
@@ -60,7 +62,7 @@ GAMES: list[str] = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing",
-    "blackjack"
+    "blackjack", "connect_four", "hangman"
 ]
 
 
@@ -109,7 +111,9 @@ def draw_profile() -> None:
         f"{u_safe('🐸', 'F')} Frogger High      : {C_GREEN}{mgr.get_high_score('frogger')}{C_WHITE}",
         f"{u_safe('🐦', 'V')} Flappy High       : {C_YELLOW}{mgr.get_high_score('flappy')}{C_WHITE}",
         f"{u_safe('🏎️', 'R')} Racing High       : {C_RED}{mgr.get_high_score('racing')}{C_WHITE}",
-        f"{u_safe('🃏', 'B')} Blackjack High    : {C_YELLOW}{mgr.get_high_score('blackjack')}{C_WHITE}"
+        f"{u_safe('🃏', 'B')} Blackjack High    : {C_YELLOW}{mgr.get_high_score('blackjack')}{C_WHITE}",
+        f"{u_safe('🔴', 'C')} Connect Four Wins : {C_BLUE}{mgr.get_stats('connect_four').get('high_score', 0)}{C_WHITE}",
+        f"{u_safe('📝', 'H')} Hangman Score     : {C_GREEN}{mgr.get_high_score('hangman')}{C_WHITE}",
     ]
 
     if achievements:
@@ -155,6 +159,8 @@ def print_menu(selection: int, renderer: Renderer) -> None:
         f"14. {u_safe('🐦', 'V')} Flappy Bird",
         f"15. {u_safe('🏎️', 'R')} Racing",
         f"16. {u_safe('🃏', 'B')} Blackjack",
+        f"17. {u_safe('🔴', 'C')} Connect Four",
+        f"18. {u_safe('📝', 'H')} Hangman",
         f"L. {u_safe('🏆', 'L')} Leaderboard",
         f"S. {u_safe('⚙️', 'S')} Settings",
         f"H. Tutorial",
@@ -355,7 +361,8 @@ def show_tutorial() -> None:
         f"{C_CYAN}GAMES ({len(GAMES)} total):{C_RESET}",
         "  Snake, Breakout, Space Shooter, Tetris, Pac-Man,",
         "  Dungeon Crawler, Minesweeper, Chess, Sudoku, 2048,",
-        "  Pong, Asteroids, Frogger, Flappy Bird, Racing, Blackjack",
+        "  Pong, Asteroids, Frogger, Flappy Bird, Racing,",
+        "  Blackjack, Connect Four, Hangman",
         "",
         f"{C_WHITE}Press any key to return to menu...{C_RESET}"
     ]
@@ -378,7 +385,7 @@ def main() -> None:
     if os.name == 'nt':
         os.system('')
     selection = 0
-    num_options = 20
+    num_options = 22
 
     renderer = Renderer(fps=60)
     input_handler = get_safe_input_handler()
@@ -405,7 +412,7 @@ def main() -> None:
             stop_background_music()
 
             difficulty: Optional[str] = None
-            if selection < 16:
+            if selection < 18:
                 difficulty = select_game_difficulty()
                 if not difficulty:
                     start_background_music()
@@ -450,12 +457,16 @@ def main() -> None:
             elif selection == 15:
                 _play_and_submit(play_blackjack, "Blackjack", difficulty)
             elif selection == 16:
-                show_leaderboard()
+                _play_and_submit(play_connect_four, "Connect Four", difficulty)
             elif selection == 17:
-                show_settings()
+                _play_and_submit(play_hangman, "Hangman", difficulty)
             elif selection == 18:
-                show_tutorial()
+                show_leaderboard()
             elif selection == 19:
+                show_settings()
+            elif selection == 20:
+                show_tutorial()
+            elif selection == 21:
                 break
 
             renderer.clear()
