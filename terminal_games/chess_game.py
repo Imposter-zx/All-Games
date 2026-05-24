@@ -1,16 +1,30 @@
 import logging
-import os
 import random
 import subprocess
 import time
 from typing import Optional
 
 from arcade_utils import (
-    clear_screen, draw_retro_box, beep, show_popup,
-    animated_flash, print_big_title,
-    add_xp, screen_shake, particle_effect,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, C_GRAY,
-    BG_DARK, BG_LIGHT, BG_CUR, BG_SEL, BG_RED, u_safe
+    BG_CUR,
+    BG_DARK,
+    BG_LIGHT,
+    BG_RED,
+    BG_SEL,
+    C_BLACK,
+    C_CYAN,
+    C_GREEN,
+    C_MAGENTA,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    beep,
+    clear_screen,
+    draw_retro_box,
+    particle_effect,
+    print_big_title,
+    screen_shake,
+    show_popup,
+    u_safe,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -72,6 +86,26 @@ class ChessGame(BaseGame):
                 logger.warning(f"Could not load Stockfish: {e}")
                 self.engine = None
 
+    def save_state_json(self) -> dict:
+        if not self.board:
+            return {}
+        return {
+            'fen': self.board.fen(),
+            'selected_square': self.selected_square,
+            'u_white': self.u_white,
+            'score': self.score,
+            'moves': [m.uci() for m in self.board.move_stack],
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        if not CHESS_AVAILABLE:
+            return
+        fen = state.get('fen', 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+        self.board = chess.Board(fen)
+        self.selected_square = state.get('selected_square')
+        self.u_white = state.get('u_white', True)
+        self.score = state.get('score', 0)
+
     def __del__(self) -> None:
         if self.engine:
             try:
@@ -89,6 +123,10 @@ class ChessGame(BaseGame):
             return self.get_final_stats()
 
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         clear_screen()
         print_big_title("CHESS", color=C_WHITE)
         time.sleep(1)
@@ -113,10 +151,12 @@ class ChessGame(BaseGame):
         res = self.board.result()
         won = (res == "1-0" and self.u_white) or (res == "0-1" and not self.u_white)
 
+        is_stalemate = self.board.is_stalemate()
+        is_draw = is_stalemate or self.board.is_insufficient_material()
         self.save_stats({
             'wins': stats.get('wins', 0) + (1 if won else 0),
-            'draws': stats.get('draws', 0) + (1 if self.board.is_stalemate() or self.board.is_insufficient_material() else 0),
-            'losses': stats.get('losses', 0) + (1 if not won and not self.board.is_stalemate() else 0),
+            'draws': stats.get('draws', 0) + (1 if is_draw else 0),
+            'losses': stats.get('losses', 0) + (1 if not won and not is_stalemate else 0),
             'xp_earned': self.xp_earned,
             'difficulty': self.difficulty
         })
@@ -155,7 +195,8 @@ class ChessGame(BaseGame):
                     bg = BG_CUR
                 if square == self.selected_square:
                     bg = BG_SEL
-                if piece and piece.piece_type == chess.KING and self.board.is_check() and piece.color == self.board.turn:
+                is_check = self.board.is_check() and piece.color == self.board.turn
+                if piece and piece.piece_type == chess.KING and is_check:
                     bg = BG_RED
                 symbol = " "
                 if piece:
@@ -172,8 +213,8 @@ class ChessGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if k == 'q':
-            self.game_over = True
+        if self._save_and_quit(k):
+            return
         elif k == 'h':
             show_popup("CHESS: Select piece, then target square. Promotions auto-queen.", C_CYAN, delay=1.5)
         elif k in [' ', '\r', '\n', 'enter']:
@@ -202,7 +243,9 @@ class ChessGame(BaseGame):
             move = chess.Move(self.selected_square, square)
             piece = self.board.piece_at(self.selected_square)
             if piece and piece.piece_type == chess.PAWN:
-                if (self.u_white and chess.square_rank(square) == 7) or (not self.u_white and chess.square_rank(square) == 0):
+                rank = chess.square_rank(square)
+                is_promotion = (self.u_white and rank == 7) or (not self.u_white and rank == 0)
+                if is_promotion:
                     move.promotion = chess.QUEEN
 
             if move in self.board.legal_moves:

@@ -1,13 +1,21 @@
-import os
 import random
 import time
 from typing import List
 
 from arcade_utils import (
-    clear_screen, draw_retro_box, beep, show_popup,
-    animated_flash, print_big_title,
-    screen_shake, particle_effect,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
+    C_CYAN,
+    C_GREEN,
+    C_MAGENTA,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    beep,
+    clear_screen,
+    particle_effect,
+    print_big_title,
+    screen_shake,
+    show_popup,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -40,8 +48,32 @@ class DungeonGame(BaseGame):
         m[1][1] = 0
         return m
 
+    def save_state_json(self) -> dict:
+        return {
+            'dungeon_map': self.dungeon_map,
+            'player_pos': self.player_pos,
+            'hp': self.hp,
+            'max_hp': self.max_hp,
+            'level': self.level,
+            'enemies_defeated': self.enemies_defeated,
+            'score': self.score,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.dungeon_map = state['dungeon_map']
+        self.player_pos = state['player_pos']
+        self.hp = state['hp']
+        self.max_hp = state['max_hp']
+        self.level = state['level']
+        self.enemies_defeated = state['enemies_defeated']
+        self.score = state['score']
+
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         clear_screen()
         print_big_title("DUNGEON", color=C_RED)
         time.sleep(1)
@@ -69,7 +101,9 @@ class DungeonGame(BaseGame):
         return self.get_final_stats()
 
     def _render(self) -> None:
-        print(f" LEVEL: {C_YELLOW}{self.level}{C_RESET} | HP: {C_RED}{self.hp}/{self.max_hp}{C_RESET} | KILLS: {C_MAGENTA}{self.enemies_defeated}{C_RESET}")
+        print(f" LV.{C_YELLOW}{self.level}{C_RESET} "
+              f"HP:{C_RED}{self.hp}/{self.max_hp}{C_RESET} "
+              f"KILLS:{C_MAGENTA}{self.enemies_defeated}{C_RESET}")
 
         for r, row in enumerate(self.dungeon_map):
             line = ""
@@ -93,11 +127,10 @@ class DungeonGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if k == 'q':
-            self.game_over = True
+        if self._save_and_quit(k):
             return
         if k == 'h':
-            show_popup("DUNGEON: Explore, fight enemies (E), collect health (H), reach exit (X). Descend 5 levels!", C_RED, delay=1.5)
+            show_popup("DUNGEON: E=fight, H=heal, X=exit. Descend 5 levels!", C_RED, delay=1.5)
             return
 
         direction = self.input_handler.validator.validate_direction(k)
@@ -138,7 +171,6 @@ class DungeonGame(BaseGame):
             self.player_pos = [nr, nc]
 
     def _combat(self, r: int, c: int) -> None:
-        dmg_to_enemy = random.randint(15, 40)
         dmg_to_player = random.randint(5, 20)
 
         self.hp -= dmg_to_player

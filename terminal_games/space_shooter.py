@@ -1,13 +1,22 @@
-import os
 import random
 import time
-from typing import List, Dict, Any
+from typing import Dict, List
 
 from arcade_utils import (
-    clear_screen, draw_retro_box, beep, show_popup,
-    animated_flash, print_big_title,
-    screen_shake, particle_effect,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, u_safe
+    C_CYAN,
+    C_MAGENTA,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    animated_flash,
+    beep,
+    clear_screen,
+    particle_effect,
+    print_big_title,
+    screen_shake,
+    show_popup,
+    u_safe,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -33,8 +42,30 @@ class SpaceShooterGame(BaseGame):
         self.frame_count = 0
         self.input_handler = get_safe_input_handler()
 
+    def save_state_json(self) -> dict:
+        return {
+            'player_x': self.player_x,
+            'enemies': self.enemies,
+            'bullets': self.bullets,
+            'score': self.score,
+            'lives': self.lives,
+            'spawn_timer': self.spawn_timer,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.player_x = state['player_x']
+        self.enemies = state['enemies']
+        self.bullets = state['bullets']
+        self.score = state['score']
+        self.lives = state['lives']
+        self.spawn_timer = state['spawn_timer']
+
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         clear_screen()
         print_big_title("SPACE SHOOTER", color=C_MAGENTA)
         time.sleep(1)
@@ -94,8 +125,8 @@ class SpaceShooterGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if k == 'q':
-            self.game_over = True
+        if self._save_and_quit(k):
+            return
         if k == 'h':
             show_popup("SPACE SHOOTER: Move LEFT/RIGHT, shoot SPACE. Don't let enemies past you!", C_MAGENTA, delay=1.5)
             return

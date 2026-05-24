@@ -1,13 +1,20 @@
-import os
 import random
 import time
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 from arcade_utils import (
-    clear_screen, draw_retro_box, beep, show_popup,
-    animated_flash, print_big_title,
-    screen_shake, particle_effect,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
+    C_GREEN,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    animated_flash,
+    beep,
+    clear_screen,
+    particle_effect,
+    print_big_title,
+    screen_shake,
+    show_popup,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -38,8 +45,28 @@ class SnakeGame(BaseGame):
             'left': (0, -1), 'right': (0, 1)
         }
 
+    def save_state_json(self) -> dict:
+        return {
+            'snake': self.snake,
+            'food': self.food,
+            'direction': self.direction,
+            'speed': self.speed,
+            'score': self.score,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.snake = state['snake']
+        self.food = tuple(state['food']) if state['food'] else None
+        self.direction = tuple(state['direction'])
+        self.speed = state['speed']
+        self.score = state['score']
+
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         clear_screen()
         print_big_title("SNAKE", color=C_GREEN)
         time.sleep(1)
@@ -99,8 +126,8 @@ class SnakeGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if k == 'q':
-            self.game_over = True
+        if self._save_and_quit(k):
+            return
         if k == 'h':
             show_popup("SNAKE: Eat food to grow and score. Don't hit walls or yourself!", C_GREEN, delay=1.5)
             return

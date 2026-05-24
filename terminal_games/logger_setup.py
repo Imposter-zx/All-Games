@@ -1,9 +1,7 @@
 """Logger setup for the terminal games arcade."""
 
 import logging
-import os
 from pathlib import Path
-from typing import Optional
 
 
 def setup_logger(name: str = 'arcade', level: int = logging.INFO) -> logging.Logger:

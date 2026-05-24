@@ -3,15 +3,18 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.black]
-line-length = 100
+line-length = 120
 target-version = ['py37', 'py38', 'py39', 'py310', 'py311']
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py37"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"terminal_games/arcade.py" = ["E402"]
 
 [tool.mypy]
 python_version = "3.8"

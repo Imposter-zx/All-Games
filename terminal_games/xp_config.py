@@ -1,7 +1,7 @@
 """XP earning configuration and system for all games."""
 
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)

@@ -5,10 +5,10 @@ Provides persistent storage, queries, time-series tracking.
 
 import logging
 import os
-from pathlib import Path
 import sqlite3
 import time
-from typing import Optional, Dict, Any, List, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +63,11 @@ class StatsManager:
                     event_type TEXT NOT NULL,
                     payload TEXT DEFAULT '',
                     created_at REAL NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS game_states (
+                    game_name TEXT PRIMARY KEY,
+                    state_json TEXT NOT NULL,
+                    saved_at REAL NOT NULL
                 );
             """)
 
@@ -132,7 +137,8 @@ class StatsManager:
             for key, value in stats_dict.items():
                 if isinstance(value, (int, float)):
                     self.conn.execute(
-                        "INSERT OR REPLACE INTO games (game_name, stat_key, stat_value, updated_at) VALUES (?, ?, ?, ?)",
+                        "INSERT OR REPLACE INTO games "
+                        "(game_name, stat_key, stat_value, updated_at) VALUES (?, ?, ?, ?)",
                         (game_name.lower(), key, int(value), now)
                     )
             self.conn.execute(
@@ -322,6 +328,45 @@ class StatsManager:
             "SELECT event_type, COUNT(*) as cnt FROM telemetry_events GROUP BY event_type"
         ).fetchall()
         return {r['event_type']: r['cnt'] for r in rows}
+
+    def save_game_state(self, game_name: str, state: Dict[str, Any]) -> None:
+        """Save a game's progress state as JSON."""
+        import json
+        with self.conn:
+            self.conn.execute(
+                "INSERT OR REPLACE INTO game_states (game_name, state_json, saved_at) VALUES (?, ?, ?)",
+                (game_name.lower(), json.dumps(state), time.time())
+            )
+
+    def load_game_state(self, game_name: str) -> Optional[Dict[str, Any]]:
+        """Load a saved game state, or None."""
+        import json
+        row = self.conn.execute(
+            "SELECT state_json FROM game_states WHERE game_name = ?",
+            (game_name.lower(),)
+        ).fetchone()
+        if row is None:
+            return None
+        try:
+            return json.loads(row['state_json'])
+        except (json.JSONDecodeError, TypeError, ValueError):
+            return None
+
+    def delete_game_state(self, game_name: str) -> None:
+        """Remove a saved game state (after resume or completion)."""
+        with self.conn:
+            self.conn.execute(
+                "DELETE FROM game_states WHERE game_name = ?",
+                (game_name.lower(),)
+            )
+
+    def has_game_state(self, game_name: str) -> bool:
+        """Check if a saved game state exists."""
+        row = self.conn.execute(
+            "SELECT 1 FROM game_states WHERE game_name = ?",
+            (game_name.lower(),)
+        ).fetchone()
+        return row is not None
 
 
 # Global singleton

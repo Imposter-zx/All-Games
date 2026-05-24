@@ -6,11 +6,22 @@ Merge tiles with the same numbers to reach 2048.
 import logging
 import random
 import time
-from typing import List, Dict, Any
+from typing import Dict, List
 
 from arcade_utils import (
-    C_WHITE, C_YELLOW, C_CYAN, C_GREEN, C_MAGENTA, C_RED, C_BLUE,
-    C_BOLD, C_RESET, draw_retro_box, beep, u_safe
+    C_BLUE,
+    C_BOLD,
+    C_CYAN,
+    C_GREEN,
+    C_MAGENTA,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    beep,
+    draw_retro_box,
+    show_popup,
+    u_safe,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -43,6 +54,20 @@ class Game2048(BaseGame):
         self.spawn_tile()
         self.high_tile = 2
         self.moves = 0
+
+    def save_state_json(self) -> dict:
+        return {
+            'grid': self.grid,
+            'score': self.score,
+            'high_tile': self.high_tile,
+            'moves': self.moves,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.grid = state.get('grid', [[0]*4 for _ in range(4)])
+        self.score = state.get('score', 0)
+        self.high_tile = state.get('high_tile', 2)
+        self.moves = state.get('moves', 0)
 
     def spawn_tile(self) -> bool:
         empty_cells = [(r, c) for r in range(self.grid_size) for c in range(self.grid_size) if self.grid[r][c] == 0]
@@ -149,6 +174,10 @@ class Game2048(BaseGame):
 
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         input_handler = get_safe_input_handler()
 
         try:
@@ -164,7 +193,7 @@ class Game2048(BaseGame):
                         time.sleep(1)
 
                 key = input_handler.get_safe_key()
-                if key and key.lower() == 'q':
+                if key and self._save_and_quit(key):
                     break
                 if key and key.lower() == 'h':
                     self._show_help()

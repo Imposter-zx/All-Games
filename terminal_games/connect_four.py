@@ -1,11 +1,20 @@
 import logging
 import random
 import time
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 from arcade_utils import (
-    C_WHITE, C_YELLOW, C_CYAN, C_GREEN, C_MAGENTA, C_RED, C_BOLD,
-    C_RESET, draw_retro_box, beep, show_popup, clear_screen
+    C_BLUE,
+    C_CYAN,
+    C_GREEN,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    beep,
+    clear_screen,
+    draw_retro_box,
+    show_popup,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -71,7 +80,6 @@ class ConnectFourGame(BaseGame):
                 for dr, dc in [(0, 1), (1, 0), (1, 1), (-1, 1)]:
                     if 0 <= r + 3 * dr < ROWS and 0 <= c + 3 * dc < COLS:
                         player_count = 0
-                        empty_count = 0
                         for i in range(4):
                             val = self.board[r + i * dr][c + i * dc]
                             if val == player:
@@ -156,6 +164,20 @@ class ConnectFourGame(BaseGame):
         draw_retro_box(COLS * 4 + 4, "\u25CF CONNECT FOUR \u25CB", lines, color=C_BLUE)
         print(f"\n{C_WHITE}[1-7] Drop  [Q] Quit  [?] Help{C_RESET}")
 
+    def save_state_json(self) -> dict:
+        return {
+            'board': [row[:] for row in self.board],
+            'current_player': self.current_player,
+            'move_count': self.move_count,
+            'score': self.score,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.board = [list(row) for row in state.get('board', [[EMPTY] * COLS for _ in range(ROWS)])]
+        self.current_player = state.get('current_player', PLAYER)
+        self.move_count = state.get('move_count', 0)
+        self.score = state.get('score', 0)
+
     def _show_help(self) -> None:
         show_popup(
             "CONNECT FOUR: Drop pieces into columns (1-7). "
@@ -166,16 +188,22 @@ class ConnectFourGame(BaseGame):
 
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         try:
             while not self.game_over:
                 clear_screen()
                 print("\n" * 1)
                 self.render_board()
-                print(f"\n{C_WHITE}Turn: {C_YELLOW if self.current_player == PLAYER else C_RED}{'YOUR TURN' if self.current_player == PLAYER else 'AI THINKING...'}{C_RESET}")
+                turn_text = 'YOUR TURN' if self.current_player == PLAYER else 'AI THINKING...'
+                turn_color = C_YELLOW if self.current_player == PLAYER else C_RED
+                print(f"\n{C_WHITE}Turn: {turn_color}{turn_text}{C_RESET}")
 
                 if self.current_player == PLAYER:
                     key = self.input_handler.get_safe_key()
-                    if key and key.lower() == 'q':
+                    if key and self._save_and_quit(key.lower()):
                         break
                     if key == '?':
                         self._show_help()

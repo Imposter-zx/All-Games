@@ -1,7 +1,7 @@
 """Error handling and safe game execution wrapper."""
 
 import logging
-from typing import Callable, Any, Dict, Optional
+from typing import Any, Callable, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ def safe_game_call(game_func: Callable[..., Dict[str, Any]],
 
     except ImportError as e:
         logger.error(f"Missing dependency for {game_name}: {e}")
-        from arcade_utils import draw_retro_box, C_RED
+        from arcade_utils import C_RED, draw_retro_box
         draw_retro_box(
             60,
             "MISSING DEPENDENCY",
@@ -47,7 +47,7 @@ def safe_game_call(game_func: Callable[..., Dict[str, Any]],
 
     except Exception as e:
         logger.error(f"Error in {game_name}: {e}", exc_info=True)
-        from arcade_utils import draw_retro_box, C_RED
+        from arcade_utils import C_RED, draw_retro_box
 
         error_lines = [
             f"Game Error: {game_name}",

@@ -1,12 +1,27 @@
 import logging
 import random
 import time
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from arcade_utils import (
-    clear_screen, print_big_title, beep, show_popup,
-    screen_shake, particle_effect, animated_flash,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_MAGENTA, C_WHITE, C_BLACK, u_safe
+    C_BLACK,
+    C_BLUE,
+    C_BOLD,
+    C_CYAN,
+    C_GREEN,
+    C_MAGENTA,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    animated_flash,
+    beep,
+    clear_screen,
+    particle_effect,
+    print_big_title,
+    screen_shake,
+    show_popup,
+    u_safe,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -59,8 +74,28 @@ class FroggerGame(BaseGame):
                     'speed': speed, 'char': char
                 })
 
+    def save_state_json(self) -> dict:
+        return {
+            'player_pos': list(self.player_pos),
+            'obstacles': list(self.obstacles),
+            'lives': self.lives,
+            'score': self.score,
+            'goal_reached': self.goal_reached,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.player_pos = list(state.get('player_pos', [BOARD_HEIGHT - 1, BOARD_WIDTH // 2]))
+        self.obstacles = list(state.get('obstacles', []))
+        self.lives = state.get('lives', 3)
+        self.score = state.get('score', 0)
+        self.goal_reached = state.get('goal_reached', 0)
+
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         clear_screen()
         print_big_title("FROGGER", color=C_GREEN)
         time.sleep(1)
@@ -90,7 +125,7 @@ class FroggerGame(BaseGame):
     def _render(self) -> None:
         heart = u_safe("♥", "v")
         lives_display = f"{C_RED}{heart}{C_GREEN}" * self.lives
-        print(f"{C_BOLD}{C_GREEN}FROGGER - LIVES: {lives_display} | SCORE: {self.score} | GOALS: {self.goal_reached}{C_RESET}")
+        print(f"{C_BOLD}{C_GREEN}FROGGER: {lives_display} | SCORE: {self.score} | GOALS: {self.goal_reached}{C_RESET}")
         print(u_safe("≈", "~") * BOARD_WIDTH + f"{C_RESET}")
 
         grid = [[' ' for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
@@ -139,11 +174,10 @@ class FroggerGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if k == 'q':
-            self.game_over = True
+        if self._save_and_quit(k):
             return
         if k == 'h':
-            show_popup("FROGGER: Cross the river on logs, dodge cars on the road. Reach the goal at the top!", C_GREEN, delay=1.5)
+            show_popup("FROGGER: Cross river on logs, dodge cars. Reach the goal!", C_GREEN, delay=1.5)
             return
         direction = self.input_handler.validator.validate_direction(k)
         if direction == 'up' and self.player_pos[0] > 0:

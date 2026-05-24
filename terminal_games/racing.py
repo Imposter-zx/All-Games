@@ -4,9 +4,19 @@ import time
 from typing import List
 
 from arcade_utils import (
-    clear_screen, print_big_title, beep, show_popup,
-    screen_shake, particle_effect, animated_flash,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_MAGENTA, C_WHITE, C_BLACK, u_safe
+    C_BOLD,
+    C_CYAN,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    animated_flash,
+    beep,
+    clear_screen,
+    print_big_title,
+    screen_shake,
+    show_popup,
+    u_safe,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -34,8 +44,28 @@ class RacingGame(BaseGame):
         elif difficulty == 'hard':
             self.speed = 0.07
 
+    def save_state_json(self) -> dict:
+        return {
+            'player_x': self.player_x,
+            'enemies': list(self.enemies),
+            'score': self.score,
+            'speed': self.speed,
+            'frame_count': self.frame_count,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.player_x = state.get('player_x', BOARD_WIDTH // 2)
+        self.enemies = [list(e) for e in state.get('enemies', [])]
+        self.score = state.get('score', 0)
+        self.speed = state.get('speed', 0.1)
+        self.frame_count = state.get('frame_count', 0)
+
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         clear_screen()
         print_big_title("RACING", color=C_RED)
         time.sleep(1)
@@ -98,10 +128,10 @@ class RacingGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if k == 'q':
-            self.game_over = True
+        if self._save_and_quit(k):
+            return
         if k == 'h':
-            show_popup("RACING: Dodge oncoming cars! LEFT/RIGHT to steer. Score increases as cars pass.", C_RED, delay=1.5)
+            show_popup("RACING: LEFT/RIGHT to steer. Dodge oncoming cars!", C_RED, delay=1.5)
             return
         direction = self.input_handler.validator.validate_direction(k)
         if direction == 'left' and self.player_x > 1:

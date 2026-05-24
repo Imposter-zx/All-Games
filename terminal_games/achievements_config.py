@@ -1,6 +1,6 @@
 """Definitions for all arcade achievements."""
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
     # General

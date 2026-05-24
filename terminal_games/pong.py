@@ -6,11 +6,19 @@ Classic table tennis — play against an AI opponent.
 import logging
 import random
 import time
-from typing import Optional
 
 from arcade_utils import (
-    C_WHITE, C_YELLOW, C_CYAN, C_GREEN, C_MAGENTA, C_RED, C_BLUE,
-    C_BOLD, C_RESET, draw_retro_box, beep
+    C_BLUE,
+    C_CYAN,
+    C_GRAY,
+    C_GREEN,
+    C_MAGENTA,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    beep,
+    draw_retro_box,
+    show_popup,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -53,6 +61,32 @@ class PongGame(BaseGame):
         self.hits = 0
         self.ai_miss_timer = 0.0
         self.game_over = False
+
+    def save_state_json(self) -> dict:
+        return {
+            'ball_x': self.ball_x,
+            'ball_y': self.ball_y,
+            'ball_dx': self.ball_dx,
+            'ball_dy': self.ball_dy,
+            'ball_speed': self.ball_speed,
+            'paddle_pos': self.paddle_pos,
+            'ai_paddle_pos': self.ai_paddle_pos,
+            'player_score': self.player_score,
+            'ai_score': self.ai_score,
+            'hits': self.hits,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.ball_x = state.get('ball_x', float(self.width // 2))
+        self.ball_y = state.get('ball_y', float(self.height // 2))
+        self.ball_dx = state.get('ball_dx', 1.0)
+        self.ball_dy = state.get('ball_dy', 0.5)
+        self.ball_speed = state.get('ball_speed', 1.0)
+        self.paddle_pos = state.get('paddle_pos', self.height // 2 - self.paddle_size // 2)
+        self.ai_paddle_pos = state.get('ai_paddle_pos', self.height // 2 - self.ai_paddle_size // 2)
+        self.player_score = state.get('player_score', 0)
+        self.ai_score = state.get('ai_score', 0)
+        self.hits = state.get('hits', 0)
 
     def move_paddle(self, direction: str) -> None:
         if direction == 'up' and self.paddle_pos > 0:
@@ -181,6 +215,10 @@ class PongGame(BaseGame):
 
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         input_handler = get_safe_input_handler()
 
         try:
@@ -195,7 +233,7 @@ class PongGame(BaseGame):
                 self.update_ball()
 
                 key = input_handler.get_safe_key()
-                if key and key.lower() == 'q':
+                if key and self._save_and_quit(key):
                     break
                 if key and key.lower() == 'h':
                     self._show_help()

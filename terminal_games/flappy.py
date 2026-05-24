@@ -1,12 +1,23 @@
 import logging
 import random
 import time
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from arcade_utils import (
-    clear_screen, print_big_title, beep, show_popup,
-    screen_shake, particle_effect, animated_flash,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_MAGENTA, C_WHITE, u_safe
+    C_BOLD,
+    C_CYAN,
+    C_GREEN,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    animated_flash,
+    beep,
+    clear_screen,
+    print_big_title,
+    screen_shake,
+    show_popup,
+    u_safe,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -43,8 +54,26 @@ class FlappyGame(BaseGame):
         gap_y = random.randint(3, BOARD_HEIGHT - self.pipe_gap - 3)
         self.pipes.append({'x': BOARD_WIDTH, 'gap_y': gap_y})
 
+    def save_state_json(self) -> dict:
+        return {
+            'bird_pos': list(self.bird_pos),
+            'velocity': self.velocity,
+            'pipes': list(self.pipes),
+            'score': self.score,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.bird_pos = list(state.get('bird_pos', [float(BOARD_HEIGHT // 2), 10.0]))
+        self.velocity = state.get('velocity', 0.0)
+        self.pipes = list(state.get('pipes', []))
+        self.score = state.get('score', 0)
+
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         clear_screen()
         print_big_title("FLAPPY", color=C_YELLOW)
         time.sleep(1)
@@ -108,8 +137,8 @@ class FlappyGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if k == 'q':
-            self.game_over = True
+        if self._save_and_quit(k):
+            return
         if k == 'h':
             show_popup("FLAPPY BIRD: Press UP/SPACE to flap. Navigate through the pipe gaps!", C_YELLOW, delay=1.5)
             return

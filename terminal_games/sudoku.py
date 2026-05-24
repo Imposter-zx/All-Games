@@ -1,14 +1,18 @@
-import os
 import random
 import time
 from typing import List
 
 from arcade_utils import (
-    clear_screen, draw_retro_box, beep, show_popup,
-    animated_flash, print_big_title,
-    screen_shake, particle_effect,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK,
-    BG_DARK, BG_LIGHT, BG_CUR, BG_SEL
+    C_BLACK,
+    C_CYAN,
+    C_GREEN,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    beep,
+    clear_screen,
+    print_big_title,
+    show_popup,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -25,6 +29,22 @@ class SudokuGame(BaseGame):
         self.cursor_x = 0
         self.cursor_y = 0
         self.input_handler = get_safe_input_handler()
+
+    def save_state_json(self) -> dict:
+        return {
+            'grid': self.board,
+            'original': self.original,
+            'cursor_x': self.cursor_x,
+            'cursor_y': self.cursor_y,
+            'score': self.score,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.board = state.get('grid', [[0]*9 for _ in range(9)])
+        self.original = state.get('original', [[0]*9 for _ in range(9)])
+        self.cursor_x = state.get('cursor_x', 0)
+        self.cursor_y = state.get('cursor_y', 0)
+        self.score = state.get('score', 0)
 
     def _generate_board(self) -> None:
         base_board = [
@@ -58,6 +78,10 @@ class SudokuGame(BaseGame):
 
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         clear_screen()
         print_big_title("SUDOKU", color=C_GREEN)
         time.sleep(1)
@@ -89,7 +113,7 @@ class SudokuGame(BaseGame):
         print(f"{C_WHITE}╔═══════╦═══════╦═══════╗")
         for r in range(9):
             if r > 0 and r % 3 == 0:
-                print(f"╠═══════╬═══════╬═══════╣")
+                print("╠═══════╬═══════╬═══════╣")
 
             line = "║ "
             for c in range(9):
@@ -119,10 +143,10 @@ class SudokuGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if k == 'q':
-            self.game_over = True
+        if self._save_and_quit(k):
+            return
         if k == 'h':
-            show_popup("SUDOKU: Fill the grid so every row, column, and 3x3 box contains 1-9 without repeats.", C_GREEN, delay=1.5)
+            show_popup("SUDOKU: Fill grid so each row, col, and 3x3 box has 1-9 without repeats.", C_GREEN, delay=1.5)
             return
         if k in '123456789':
             if self.original[self.cursor_y][self.cursor_x] == 0:

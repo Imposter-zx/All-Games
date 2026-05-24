@@ -1,11 +1,11 @@
 """Abstract base class for all terminal games."""
 
-from abc import ABC, abstractmethod
 import logging
 import time
+from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 
-from arcade_utils import Renderer, show_popup, beep
+from arcade_utils import Renderer, beep, show_popup
 from stats_manager import get_stats_manager
 from xp_config import get_xp_system
 
@@ -52,7 +52,7 @@ class BaseGame(ABC):
         return xp
 
     def save_stats(self, stats_dict: Dict[str, Any]) -> None:
-        """Save game stats and record session."""
+        """Save game stats and record session. Clears saved state on completion."""
         try:
             self.stats_manager.update_game_stats(self.game_name, stats_dict)
             self.stats_manager.record_session(
@@ -63,6 +63,7 @@ class BaseGame(ABC):
                 difficulty=self.difficulty
             )
             self.stats_manager.record_telemetry('game_completed', self.game_name)
+            self.stats_manager.delete_game_state(self.game_name)
             logger.debug(f"Saved stats for {self.game_name}: {stats_dict}")
         except Exception as e:
             logger.error(f"Failed to save stats for {self.game_name}: {e}")
@@ -90,3 +91,28 @@ class BaseGame(ABC):
             logger.warning(f"Invalid score: {score}")
             return False
         return True
+
+    def save_state_json(self) -> Dict[str, Any]:
+        return {}
+
+    def load_state_json(self, state: Dict[str, Any]) -> None:
+        pass
+
+    def has_saved_state(self) -> bool:
+        return self.stats_manager.has_game_state(self.game_name)
+
+    def _save_and_quit(self, key: str) -> bool:
+        if key == 'q':
+            state = self.save_state_json()
+            if state:
+                self.stats_manager.save_game_state(self.game_name, state)
+            self.game_over = True
+            return True
+        return False
+
+    def _prompt_resume(self) -> bool:
+        if self.has_saved_state():
+            show_popup(f"{self.game_name.upper()}: Saved game found. Press ENTER to resume or Q for new game.",
+                       delay=1.5)
+            return True
+        return False

@@ -7,12 +7,11 @@ Supports sound effects and background music.
 import logging
 import math
 import os
-from pathlib import Path
 import struct
 import subprocess
 import threading
-import time
-from typing import Optional, Dict, List
+from pathlib import Path
+from typing import Dict, List, Optional
 
 from stats_manager import get_stats_manager
 
@@ -79,7 +78,6 @@ def _generate_noise(duration: float, volume: float = 0.15) -> bytes:
 
 def _build_wav(data: bytes) -> bytes:
     """Wrap raw PCM data in a WAV container."""
-    num_samples = len(data) // 2
     data_size = len(data)
     file_size = 36 + data_size
     buf = bytearray()

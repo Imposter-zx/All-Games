@@ -4,8 +4,17 @@ import time
 from typing import List
 
 from arcade_utils import (
-    C_WHITE, C_YELLOW, C_CYAN, C_GREEN, C_MAGENTA, C_RED, C_BOLD,
-    C_RESET, draw_retro_box, beep, show_popup, clear_screen
+    C_CYAN,
+    C_GREEN,
+    C_MAGENTA,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    beep,
+    clear_screen,
+    draw_retro_box,
+    show_popup,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -73,6 +82,24 @@ class HangmanGame(BaseGame):
         draw_retro_box(36, "GUESS THE WORD", lines, color=C_GREEN)
         print(f"\n{C_WHITE}Enter a letter (A-Z)  [Q] Quit  [?] Help{C_RESET}")
 
+    def save_state_json(self) -> dict:
+        return {
+            'word': self.word,
+            'guessed': list(self.guessed),
+            'wrong_guesses': list(self.wrong_guesses),
+            'score': self.score,
+            'round': self.round,
+            'streak': self.streak,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.word = state.get('word', random.choice(WORDS).upper())
+        self.guessed = list(state.get('guessed', []))
+        self.wrong_guesses = list(state.get('wrong_guesses', []))
+        self.score = state.get('score', 0)
+        self.round = state.get('round', 1)
+        self.streak = state.get('streak', 0)
+
     def _show_help(self) -> None:
         show_popup(
             "HANGMAN: Guess the hidden word one letter at a time. "
@@ -83,6 +110,10 @@ class HangmanGame(BaseGame):
 
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         input_handler = get_safe_input_handler()
 
         try:
@@ -118,7 +149,7 @@ class HangmanGame(BaseGame):
                     continue
 
                 key = input_handler.get_safe_key()
-                if key and key.lower() == 'q':
+                if key and self._save_and_quit(key.lower()):
                     break
                 if key == '?':
                     self._show_help()

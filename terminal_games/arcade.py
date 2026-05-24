@@ -2,15 +2,30 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import logging
 import time
 from typing import Optional
 
 from arcade_utils import (
-    Renderer, clear_screen, load_stats, draw_retro_box, beep, C_RESET, C_BOLD,
-    C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK,
-    get_level_info, add_xp, show_popup, u_safe, apply_theme, THEMES,
-    start_background_music, stop_background_music
+    C_BLACK,
+    C_BLUE,
+    C_BOLD,
+    C_CYAN,
+    C_GREEN,
+    C_MAGENTA,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    THEMES,
+    Renderer,
+    apply_theme,
+    beep,
+    clear_screen,
+    draw_retro_box,
+    show_popup,
+    start_background_music,
+    stop_background_music,
+    u_safe,
 )
 from error_handler import safe_game_call
 from input_handler import get_safe_input_handler
@@ -19,23 +34,25 @@ from stats_manager import get_stats_manager
 
 logger = setup_logger()
 
+import online_leaderboard as olb
 from asteroids import play_asteroids
 from blackjack import play_blackjack
 from breakout import play_breakout
-import online_leaderboard as olb
+
 try:
     from chess_game import play_chess
-from connect_four import play_connect_four
 except ImportError:
     play_chess = None
+from connect_four import play_connect_four
+
 try:
     from dungeon import play_dungeon
 except ImportError:
     play_dungeon = None
 from flappy import play_flappy
 from frogger import play_frogger
-from hangman import play_hangman
 from game_2048 import play_2048
+from hangman import play_hangman
 from minesweeper import play_minesweeper
 from pacman import play_pacman
 from pong import play_pong
@@ -69,7 +86,6 @@ GAMES: list[str] = [
 def draw_profile() -> None:
     """Render the high-score and XP profile."""
     mgr = get_stats_manager()
-    stats = mgr.get_stats()
     settings = mgr.get_settings()
     player_name = settings.get('player_name', 'RETRO_MASTER')
 
@@ -112,7 +128,7 @@ def draw_profile() -> None:
         f"{u_safe('🐦', 'V')} Flappy High       : {C_YELLOW}{mgr.get_high_score('flappy')}{C_WHITE}",
         f"{u_safe('🏎️', 'R')} Racing High       : {C_RED}{mgr.get_high_score('racing')}{C_WHITE}",
         f"{u_safe('🃏', 'B')} Blackjack High    : {C_YELLOW}{mgr.get_high_score('blackjack')}{C_WHITE}",
-        f"{u_safe('🔴', 'C')} Connect Four Wins : {C_BLUE}{mgr.get_stats('connect_four').get('high_score', 0)}{C_WHITE}",
+        f"{u_safe('🔴', 'C')} Connect4 High     : {C_BLUE}{mgr.get_high_score('connect_four')}{C_WHITE}",
         f"{u_safe('📝', 'H')} Hangman Score     : {C_GREEN}{mgr.get_high_score('hangman')}{C_WHITE}",
     ]
 
@@ -163,7 +179,7 @@ def print_menu(selection: int, renderer: Renderer) -> None:
         f"18. {u_safe('📝', 'H')} Hangman",
         f"L. {u_safe('🏆', 'L')} Leaderboard",
         f"S. {u_safe('⚙️', 'S')} Settings",
-        f"H. Tutorial",
+        "H. Tutorial",
         f"Q. {u_safe('🚪', 'Q')} Quit"
     ]
 
@@ -171,7 +187,7 @@ def print_menu(selection: int, renderer: Renderer) -> None:
     for i, opt in enumerate(options):
         is_sel = (i == selection)
         prefix = f"{C_YELLOW}► {C_RESET}" if is_sel else "  "
-        style = f"\033[47;30m" if is_sel else f"{C_WHITE}"
+        style = "\033[47;30m" if is_sel else f"{C_WHITE}"
         menu_content.append(f"{prefix}{style} {opt:<20} {C_RESET}")
 
     draw_retro_box(30, "🕹️ GAME MENU", menu_content, color=C_CYAN)
@@ -180,7 +196,7 @@ def print_menu(selection: int, renderer: Renderer) -> None:
 
 def select_game_difficulty() -> Optional[str]:
     """Let player choose difficulty before game starts."""
-    from arcade_utils import draw_retro_box, C_YELLOW, C_RESET, get_key, clear_screen
+    from arcade_utils import C_RESET, C_YELLOW, clear_screen, draw_retro_box, get_key
 
     difficulties = ['EASY', 'NORMAL', 'HARD']
     selection = 1
@@ -243,7 +259,8 @@ def show_online_leaderboard() -> None:
             name = e['player_name'][:12]
             score = e['score']
             game = e.get('game_name', '')
-            lines.append(f"{medal} {C_GREEN}{name:<12}{C_RESET} : {C_YELLOW}{score:>6}{C_RESET}  {C_CYAN}{game:<12}{C_RESET}")
+            entry = f"{medal} {C_GREEN}{name:<10}{C_RESET}:{C_YELLOW}{score:>6}{C_RESET} {C_CYAN}{game:<10}{C_RESET}"
+            lines.append(entry)
         draw_retro_box(40, "🌐 GLOBAL HALL OF FAME", lines, color=C_YELLOW)
     print("\n" + " " * 28 + f"{C_WHITE}[Any Key] Back{C_RESET}")
     get_key()
@@ -288,7 +305,7 @@ def show_settings() -> None:
             f"2. Player Name   : {C_CYAN}{name}{C_RESET}",
             f"3. Visual Theme  : {C_GREEN}{theme}{C_RESET}",
             " ",
-            f"Q. Back to Menu"
+            "Q. Back to Menu"
         ]
 
         clear_screen()
@@ -371,9 +388,32 @@ def show_tutorial() -> None:
     get_key()
 
 
+def _check_saved_state(game_name: str) -> None:
+    """Prompt to resume if a saved state exists, otherwise start fresh."""
+    mgr = get_stats_manager()
+    if mgr.has_game_state(game_name):
+        from arcade_utils import clear_screen, draw_retro_box, get_key
+        clear_screen()
+        print("\n" * 5)
+        draw_retro_box(40, "SAVED GAME FOUND", [
+            f"Resume your saved {game_name} game?",
+            "",
+            f"{C_GREEN}[ENTER] Resume{C_RESET}",
+            f"{C_RED}[Q] Start Fresh{C_RESET}",
+        ], color=C_YELLOW)
+        while True:
+            key = get_key()
+            if key in ['\r', '\n', ' ']:
+                return
+            if key and key.lower() == 'q':
+                mgr.delete_game_state(game_name)
+                return
+
+
 def _play_and_submit(game_func, game_name: str, difficulty: Optional[str]) -> None:
     """Play a game and submit score to online leaderboard."""
     mgr = get_stats_manager()
+    _check_saved_state(game_name)
     result = safe_game_call(game_func, game_name, difficulty=difficulty)
     if result and result.get('high_score', 0) > 0:
         name = mgr.get_settings().get('player_name', 'RETRO_MASTER')

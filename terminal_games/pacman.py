@@ -1,14 +1,24 @@
 import math
-import os
 import random
 import time
 from typing import List, Tuple
 
 from arcade_utils import (
-    clear_screen, draw_retro_box, beep, show_popup,
-    animated_flash, print_big_title,
-    add_xp, screen_shake, particle_effect,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
+    C_BLUE,
+    C_CYAN,
+    C_GREEN,
+    C_MAGENTA,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    animated_flash,
+    beep,
+    clear_screen,
+    particle_effect,
+    print_big_title,
+    screen_shake,
+    show_popup,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -56,6 +66,9 @@ class Ghost:
         self.name = cfg['name']
         self.aggro = cfg['aggro']
         self.scatter_target = (1, 1) if index < 2 else (13, 12)
+        self.direction = (0, 0)
+        self.mode = 'chase'
+        self.frightened_timer = 0
 
     def get_target(self, pac_x: int, pac_y: int, power_timer: int) -> Tuple[int, int]:
         """Return the target tile based on ghost personality."""
@@ -86,10 +99,46 @@ class PacmanGame(BaseGame):
         self.total_pellets = sum(row.count(0) + row.count(2) for row in self.game_map)
         self.pellets_eaten = 0
         self.last_move_time = time.time()
+        self.lives = 3
         self.input_handler = get_safe_input_handler()
+
+    def save_state_json(self) -> dict:
+        return {
+            'player_pos': (self.pac_x, self.pac_y),
+            'ghosts': [
+                {
+                    'pos': (g.x, g.y),
+                    'direction': g.direction,
+                    'mode': g.mode,
+                    'frightened_timer': g.frightened_timer,
+                }
+                for g in self.ghosts
+            ],
+            'dots': self.game_map,
+            'power_timer': self.power_timer,
+            'score': self.score,
+            'lives': self.lives,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.pac_x, self.pac_y = state['player_pos']
+        for i, g in enumerate(self.ghosts):
+            gd = state['ghosts'][i]
+            g.x, g.y = gd['pos']
+            g.direction = gd['direction']
+            g.mode = gd['mode']
+            g.frightened_timer = gd['frightened_timer']
+        self.game_map = state['dots']
+        self.power_timer = state['power_timer']
+        self.score = state['score']
+        self.lives = state['lives']
 
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         clear_screen()
         print_big_title("PAC-MAN", color=C_YELLOW)
         time.sleep(1)
@@ -158,8 +207,7 @@ class PacmanGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if k == 'q':
-            self.game_over = True
+        if self._save_and_quit(k):
             return
         if k == 'h':
             show_popup("Eat pellets. Power pellets let you eat ghosts! Avoid ghosts without power.", C_CYAN, delay=1.5)

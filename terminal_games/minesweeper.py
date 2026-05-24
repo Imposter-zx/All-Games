@@ -1,14 +1,28 @@
-import os
 import random
 import time
 from typing import List
 
 from arcade_utils import (
-    clear_screen, draw_retro_box, beep, show_popup,
-    animated_flash, print_big_title,
-    screen_shake, particle_effect,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK, C_GRAY,
-    BG_DARK, BG_LIGHT, BG_RED, u_safe
+    BG_DARK,
+    BG_LIGHT,
+    BG_RED,
+    C_BLACK,
+    C_BLUE,
+    C_CYAN,
+    C_GRAY,
+    C_GREEN,
+    C_MAGENTA,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    animated_flash,
+    beep,
+    clear_screen,
+    print_big_title,
+    screen_shake,
+    show_popup,
+    u_safe,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -25,6 +39,7 @@ class MinesweeperGame(BaseGame):
         self._init_board()
         self.cursor_x = 0
         self.cursor_y = 0
+        self.first_move = True
         self.input_handler = get_safe_input_handler()
 
     def _init_board(self) -> None:
@@ -52,8 +67,32 @@ class MinesweeperGame(BaseGame):
                                 count += 1
                 self.board[r][c] = count
 
+    def save_state_json(self) -> dict:
+        return {
+            'board': self.board,
+            'revealed': self.revealed,
+            'flags': self.flags,
+            'cursor_x': self.cursor_x,
+            'cursor_y': self.cursor_y,
+            'score': self.score,
+            'first_move': self.first_move,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.board = state['board']
+        self.revealed = state['revealed']
+        self.flags = state['flags']
+        self.cursor_x = state['cursor_x']
+        self.cursor_y = state['cursor_y']
+        self.score = state['score']
+        self.first_move = state['first_move']
+
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         clear_screen()
         print_big_title("MINESWEEPER", color=C_RED)
         time.sleep(1)
@@ -125,10 +164,10 @@ class MinesweeperGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if k == 'q':
-            self.game_over = True
+        if self._save_and_quit(k):
+            return
         elif k == 'h':
-            show_popup("MINESWEEPER: Reveal all safe cells. Flag mines with F. Numbers show adjacent mine count.", C_RED, delay=1.5)
+            show_popup("MINESWEEPER: Reveal safe cells. F=flag mine. Numbers = adjacent count.", C_RED, delay=1.5)
         elif k in [' ', '\r', '\n', 'enter']:
             self._reveal(self.cursor_x, self.cursor_y)
         elif k in ['f', 'F']:

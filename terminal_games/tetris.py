@@ -1,13 +1,24 @@
-import os
 import random
 import time
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from arcade_utils import (
-    clear_screen, draw_retro_box, beep, show_popup,
-    animated_flash, print_big_title,
-    screen_shake, particle_effect,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_BLUE, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
+    C_BLACK,
+    C_BLUE,
+    C_CYAN,
+    C_GREEN,
+    C_MAGENTA,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    animated_flash,
+    beep,
+    clear_screen,
+    particle_effect,
+    print_big_title,
+    screen_shake,
+    show_popup,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -45,6 +56,24 @@ class TetrisGame(BaseGame):
         self.last_fall_time = time.time()
         self.input_handler = get_safe_input_handler()
 
+    def save_state_json(self) -> dict:
+        return {
+            'board': self.board,
+            'piece': self.piece,
+            'next_piece': self.next_piece,
+            'score': self.score,
+            'fall_speed': self.fall_speed,
+            'last_fall_time': self.last_fall_time,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.board = state['board']
+        self.piece = state['piece']
+        self.next_piece = state['next_piece']
+        self.score = state['score']
+        self.fall_speed = state['fall_speed']
+        self.last_fall_time = time.time()
+
     def _new_piece(self) -> Dict[str, Any]:
         shape_idx = random.randint(0, len(SHAPES) - 1)
         shape = SHAPES[shape_idx]
@@ -58,6 +87,10 @@ class TetrisGame(BaseGame):
 
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         clear_screen()
         print_big_title("TETRIS", color=C_BLUE)
         time.sleep(1)
@@ -124,10 +157,10 @@ class TetrisGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if k == 'q':
-            self.game_over = True
+        if self._save_and_quit(k):
+            return
         if k == 'h':
-            show_popup("TETRIS: Clear lines by filling rows. UP=Rotate, DOWN=Soft drop, LEFT/RIGHT=Move", C_BLUE, delay=1.5)
+            show_popup("TETRIS: UP=Rotate, DOWN=Drop, LEFT/RIGHT=Move. Clear full rows!", C_BLUE, delay=1.5)
             return
         direction = self.input_handler.validator.validate_direction(k)
         if direction == 'up':

@@ -1,11 +1,20 @@
 import logging
 import random
 import time
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 from arcade_utils import (
-    C_WHITE, C_YELLOW, C_CYAN, C_GREEN, C_MAGENTA, C_RED, C_BOLD,
-    C_RESET, draw_retro_box, beep, show_popup, clear_screen
+    C_CYAN,
+    C_GREEN,
+    C_MAGENTA,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    beep,
+    clear_screen,
+    draw_retro_box,
+    show_popup,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -133,6 +142,26 @@ class BlackjackGame(BaseGame):
         if self.score >= 500:
             self.unlock_achievement("blackjack_500", "Blackjack Pro")
 
+    def save_state_json(self) -> dict:
+        return {
+            'deck': list(self.deck),
+            'player_hand': list(self.player_hand),
+            'dealer_hand': list(self.dealer_hand),
+            'player_turn': self.player_turn,
+            'score': self.score,
+            'round': self.round,
+            'game_result': self.game_result,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.deck = list(state.get('deck', []))
+        self.player_hand = [(r, s) for r, s in state.get('player_hand', [])]
+        self.dealer_hand = [(r, s) for r, s in state.get('dealer_hand', [])]
+        self.player_turn = state.get('player_turn', True)
+        self.score = state.get('score', 0)
+        self.round = state.get('round', 1)
+        self.game_result = state.get('game_result', None)
+
     def _show_help(self) -> None:
         show_popup(
             "BLACKJACK: Beat the dealer by getting closer to 21 without going over. "
@@ -144,9 +173,14 @@ class BlackjackGame(BaseGame):
 
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
+        else:
+            self.build_deck()
+            self.deal_initial()
         input_handler = get_safe_input_handler()
-        self.build_deck()
-        self.deal_initial()
 
         try:
             while not self.game_over:
@@ -163,7 +197,7 @@ class BlackjackGame(BaseGame):
 
                     self.start_timer()
                     key = input_handler.get_safe_key()
-                    if key and key.lower() == 'q':
+                    if key and self._save_and_quit(key.lower()):
                         break
                     self.game_result = None
                     self.player_turn = True
@@ -191,13 +225,13 @@ class BlackjackGame(BaseGame):
                         beep("correct")
                         self.player_turn = False
                         self.resolve_round()
-                    elif key and key.lower() == 'q':
+                    elif key and self._save_and_quit(key.lower()):
                         break
                     elif key == '?':
                         self._show_help()
                 else:
                     key = input_handler.get_safe_key()
-                    if key and (key.lower() == 'q' or key == 'q'):
+                    if key and self._save_and_quit(key.lower()):
                         break
                     if key:
                         self.player_turn = True

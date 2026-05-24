@@ -6,11 +6,19 @@ Navigate your ship through a field of floating asteroids.
 import logging
 import random
 import time
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from arcade_utils import (
-    C_WHITE, C_YELLOW, C_CYAN, C_GREEN, C_MAGENTA, C_RED, C_BLUE,
-    C_BOLD, C_RESET, draw_retro_box, beep, show_popup
+    C_BOLD,
+    C_CYAN,
+    C_MAGENTA,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    beep,
+    draw_retro_box,
+    show_popup,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -139,10 +147,35 @@ class AsteroidsGame(BaseGame):
         print(f"\n{C_WHITE}   [ARROWS] Thrust  [SPACE] Shoot  [Q] Quit  [H] Help{C_RESET}")
 
     def _show_help(self) -> None:
-        show_popup("ASTEROIDS: Use ARROWS to thrust. Momentum carries you. SPACE to shoot. Avoid asteroids!", C_MAGENTA, delay=1.5)
+        show_popup("ASTEROIDS: ARROWS=thrust, SPACE=shoot. Avoid asteroids!", C_MAGENTA, delay=1.5)
+
+    def save_state_json(self) -> dict:
+        return {
+            'px': self.px, 'py': self.py, 'vx': self.vx, 'vy': self.vy,
+            'direction': self.direction,
+            'asteroids': list(self.asteroids),
+            'bullets': list(self.bullets),
+            'score': self.score,
+            'spawn_timer': self.spawn_timer,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.px = state.get('px', float(self.width // 2))
+        self.py = state.get('py', float(self.height // 2))
+        self.vx = state.get('vx', 0.0)
+        self.vy = state.get('vy', 0.0)
+        self.direction = state.get('direction', 'up')
+        self.asteroids = list(state.get('asteroids', []))
+        self.bullets = list(state.get('bullets', []))
+        self.score = state.get('score', 0)
+        self.spawn_timer = state.get('spawn_timer', 0)
 
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         input_handler = get_safe_input_handler()
 
         try:
@@ -150,7 +183,7 @@ class AsteroidsGame(BaseGame):
                 self.renderer.render_frame(self.render)
 
                 key = input_handler.get_safe_key()
-                if key == 'q':
+                if self._save_and_quit(key):
                     break
                 if key == 'h':
                     self._show_help()

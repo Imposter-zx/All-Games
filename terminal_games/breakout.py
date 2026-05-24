@@ -1,13 +1,21 @@
-import os
-import random
 import time
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 from arcade_utils import (
-    clear_screen, draw_retro_box, beep, show_popup,
-    animated_flash, print_big_title,
-    screen_shake, particle_effect,
-    C_RESET, C_BOLD, C_RED, C_GREEN, C_YELLOW, C_CYAN, C_WHITE, C_MAGENTA, C_BLACK
+    C_CYAN,
+    C_GREEN,
+    C_MAGENTA,
+    C_RED,
+    C_RESET,
+    C_WHITE,
+    C_YELLOW,
+    animated_flash,
+    beep,
+    clear_screen,
+    particle_effect,
+    print_big_title,
+    screen_shake,
+    show_popup,
 )
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
@@ -31,6 +39,28 @@ class BreakoutGame(BaseGame):
         self.bricks: List[Dict[str, Any]] = self._init_bricks()
         self.input_handler = get_safe_input_handler()
 
+    def save_state_json(self) -> dict:
+        return {
+            'paddle_x': self.paddle_x,
+            'ball_x': self.ball_x,
+            'ball_y': self.ball_y,
+            'ball_dx': self.ball_dx,
+            'ball_dy': self.ball_dy,
+            'bricks': self.bricks,
+            'score': self.score,
+            'lives': self.lives,
+        }
+
+    def load_state_json(self, state: dict) -> None:
+        self.paddle_x = state['paddle_x']
+        self.ball_x = state['ball_x']
+        self.ball_y = state['ball_y']
+        self.ball_dx = state['ball_dx']
+        self.ball_dy = state['ball_dy']
+        self.bricks = state['bricks']
+        self.score = state['score']
+        self.lives = state['lives']
+
     def _init_bricks(self) -> List[Dict[str, Any]]:
         bricks: List[Dict[str, Any]] = []
         colors = [C_RED, C_YELLOW, C_GREEN]
@@ -41,6 +71,10 @@ class BreakoutGame(BaseGame):
 
     def play(self) -> dict:
         self.start_timer()
+        if self.has_saved_state():
+            saved = self.stats_manager.load_game_state(self.game_name)
+            if saved:
+                self.load_state_json(saved)
         clear_screen()
         print_big_title("BREAKOUT", color=C_CYAN)
         time.sleep(1)
@@ -107,8 +141,8 @@ class BreakoutGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if k == 'q':
-            self.game_over = True
+        if self._save_and_quit(k):
+            return
         if k == 'h':
             show_popup("BREAKOUT: Destroy all bricks with the ball. Move paddle with LEFT/RIGHT.", C_CYAN, delay=1.5)
             return

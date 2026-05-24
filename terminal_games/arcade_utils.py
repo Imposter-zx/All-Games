@@ -1,13 +1,12 @@
-import json
 import logging
 import os
 import re
 import sys
 import time
-from typing import Callable, Any, Optional, List, Dict, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
+from sound_engine import play_sound
 from stats_manager import get_stats_manager
-from sound_engine import play_sound, start_background_music, stop_background_music
 
 logger = logging.getLogger(__name__)
 
@@ -194,7 +193,8 @@ def get_input_util() -> Callable[[], Optional[str]]:
                 return None
         return getch
     else:
-        import tty, termios
+        import termios
+        import tty
         def getch() -> Optional[str]:
             fd = sys.stdin.fileno()
             old = termios.tcgetattr(fd)
