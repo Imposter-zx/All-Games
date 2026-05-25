@@ -25,10 +25,9 @@ from arcade_utils import (
     draw_retro_box,
     get_terminal_size,
     show_popup,
-    start_background_music,
-    stop_background_music,
     u_safe,
 )
+from sound_engine import start_background_music, stop_background_music
 from error_handler import safe_game_call
 from input_handler import get_safe_input_handler
 from logger_setup import setup_logger
