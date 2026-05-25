@@ -1,8 +1,10 @@
-"""Retro Arcade Online Leaderboard + Chess Multiplayer API — FastAPI server."""
+"""Retro Arcade Online Leaderboard + Chess + Pong Multiplayer API."""
 
 import json
+import random
 import secrets
 import sqlite3
+import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -254,3 +256,230 @@ def my_best(player_name: str = Query(...), game_name: Optional[str] = Query(None
         ).fetchone()
     conn.close()
     return {"best": row["best"] if row and row["best"] else 0}
+
+
+# ── Pong Multiplayer ───────────────────────────────────────────────────
+
+PONG_WIDTH = 80
+PONG_HEIGHT = 30
+PONG_TICK = 0.033  # ~30 fps
+WIN_SCORE = 10
+
+
+@dataclass
+class PongRoom:
+    room_id: str
+    player_left: str = ""
+    player_right: str = ""
+    ball_x: float = PONG_WIDTH / 2
+    ball_y: float = PONG_HEIGHT / 2
+    ball_dx: float = 2.0
+    ball_dy: float = 1.0
+    paddle_left: float = PONG_HEIGHT / 2 - 2
+    paddle_right: float = PONG_HEIGHT / 2 - 2
+    paddle_dir_left: str = "stop"     # up / down / stop
+    paddle_dir_right: str = "stop"
+    paddle_size: int = 4
+    score_left: int = 0
+    score_right: int = 0
+    status: str = "waiting"
+    winner: str = ""
+    last_tick: float = 0.0
+    seed: int = 0
+
+
+PONG_ROOMS: Dict[str, PongRoom] = {}
+_PONG_LOCK = threading.Lock()
+
+
+def _init_pong_room(room: PongRoom) -> None:
+    room.seed = random.randint(0, 2 ** 31)
+    rng = random.Random(room.seed)
+    room.ball_x = PONG_WIDTH / 2
+    room.ball_y = PONG_HEIGHT / 2
+    angle = rng.uniform(-0.6, 0.6)
+    room.ball_dx = 2.0 * (1 if rng.choice([True, False]) else -1)
+    room.ball_dy = angle * 2.0
+    room.score_left = 0
+    room.score_right = 0
+    room.paddle_left = PONG_HEIGHT / 2 - 2
+    room.paddle_right = PONG_HEIGHT / 2 - 2
+    room.paddle_dir_left = "stop"
+    room.paddle_dir_right = "stop"
+    room.status = "playing"
+    room.winner = ""
+    room.last_tick = time.time()
+
+
+def _tick_pong(room: PongRoom, dt: float) -> None:
+    dt = min(dt, 0.1)
+    # Paddle movement
+    speed = 12.0
+    for side, pos, direction in [
+        ("left", "paddle_left", "paddle_dir_left"),
+        ("right", "paddle_right", "paddle_dir_right"),
+    ]:
+        d = getattr(room, direction)
+        if d == "up":
+            setattr(room, pos, max(0, getattr(room, pos) - speed * dt))
+        elif d == "down":
+            setattr(room, pos, min(PONG_HEIGHT - room.paddle_size, getattr(room, pos) + speed * dt))
+
+    # Ball movement
+    room.ball_x += room.ball_dx * dt * 30
+    room.ball_y += room.ball_dy * dt * 30
+
+    # Wall bounce
+    if room.ball_y <= 0 or room.ball_y >= PONG_HEIGHT - 1:
+        room.ball_dy *= -0.95
+        room.ball_y = max(0.1, min(PONG_HEIGHT - 1.1, room.ball_y))
+
+    # Left paddle collision
+    if room.ball_x <= 2.0:
+        top = room.paddle_left
+        bot = top + room.paddle_size
+        if top <= room.ball_y < bot:
+            room.ball_dx = abs(room.ball_dx) * 1.01
+            hit = (room.ball_y - top) / room.paddle_size - 0.5
+            room.ball_dy = hit * 3.0
+            room.ball_x = 2.0
+        else:
+            room.score_right += 1
+            room.ball_x = PONG_WIDTH / 2
+            room.ball_y = PONG_HEIGHT / 2
+            room.ball_dx = 2.0
+            room.ball_dy = random.uniform(-1, 1)
+
+    # Right paddle collision
+    if room.ball_x >= PONG_WIDTH - 3.0:
+        top = room.paddle_right
+        bot = top + room.paddle_size
+        if top <= room.ball_y < bot:
+            room.ball_dx = -abs(room.ball_dx) * 1.01
+            hit = (room.ball_y - top) / room.paddle_size - 0.5
+            room.ball_dy = hit * 3.0
+            room.ball_x = PONG_WIDTH - 3.0
+        else:
+            room.score_left += 1
+            room.ball_x = PONG_WIDTH / 2
+            room.ball_y = PONG_HEIGHT / 2
+            room.ball_dx = -2.0
+            room.ball_dy = random.uniform(-1, 1)
+
+    # Win check
+    if room.score_left >= WIN_SCORE:
+        room.status = "finished"
+        room.winner = room.player_left
+    elif room.score_right >= WIN_SCORE:
+        room.status = "finished"
+        room.winner = room.player_right
+
+
+def _pong_background_loop() -> None:
+    while True:
+        now = time.time()
+        with _PONG_LOCK:
+            for room in PONG_ROOMS.values():
+                if room.status == "playing":
+                    dt = now - room.last_tick
+                    _tick_pong(room, dt)
+                    room.last_tick = now
+        time.sleep(PONG_TICK)
+
+
+_pong_thread = threading.Thread(target=_pong_background_loop, daemon=True)
+_pong_thread.start()
+
+
+@app.post("/api/pong/create_room")
+def pong_create_room(player_name: str = Query(...)) -> dict:
+    room_id = secrets.token_hex(4)
+    room = PongRoom(room_id=room_id, player_left=player_name.strip())
+    with _PONG_LOCK:
+        PONG_ROOMS[room_id] = room
+    return {"room_id": room_id, "side": "left", "status": "waiting"}
+
+
+@app.post("/api/pong/join_room")
+def pong_join_room(room_id: str = Query(...), player_name: str = Query(...)):
+    room = PONG_ROOMS.get(room_id)
+    if not room:
+        raise HTTPException(404, "Room not found")
+    if room.status != "waiting":
+        raise HTTPException(400, "Game already started")
+    if room.player_left == player_name.strip():
+        raise HTTPException(400, "Cannot join your own room")
+    room.player_right = player_name.strip()
+    _init_pong_room(room)
+    return {"room_id": room_id, "side": "right", "status": "playing"}
+
+
+@app.post("/api/pong/paddle")
+def pong_paddle(room_id: str = Query(...), player_name: str = Query(...), direction: str = Query("stop")):
+    room = PONG_ROOMS.get(room_id)
+    if not room:
+        raise HTTPException(404, "Room not found")
+    if direction not in ("up", "down", "stop"):
+        raise HTTPException(400, "Invalid direction")
+
+    with _PONG_LOCK:
+        if room.player_left == player_name.strip():
+            room.paddle_dir_left = direction
+        elif room.player_right == player_name.strip():
+            room.paddle_dir_right = direction
+        else:
+            raise HTTPException(403, "Not a player in this game")
+    return {"ack": True}
+
+
+@app.get("/api/pong/state")
+def pong_state(room_id: str = Query(...), player_name: str = Query(...)):
+    room = PONG_ROOMS.get(room_id)
+    if not room:
+        raise HTTPException(404, "Room not found")
+
+    if player_name.strip() == room.player_left:
+        side = "left"
+        opponent_paddle = room.paddle_right
+        my_paddle = room.paddle_left
+    elif room.player_right and player_name.strip() == room.player_right:
+        side = "right"
+        opponent_paddle = room.paddle_left
+        my_paddle = room.paddle_right
+    else:
+        raise HTTPException(403, "Not a player")
+
+    return {
+        "side": side,
+        "ball_x": room.ball_x,
+        "ball_y": room.ball_y,
+        "my_paddle_y": my_paddle,
+        "opponent_paddle_y": opponent_paddle,
+        "my_score": room.score_left if side == "left" else room.score_right,
+        "opponent_score": room.score_right if side == "left" else room.score_left,
+        "status": room.status,
+        "winner": room.winner,
+        "paddle_size": room.paddle_size,
+        "width": PONG_WIDTH,
+        "height": PONG_HEIGHT,
+    }
+
+
+@app.post("/api/pong/forfeit")
+def pong_forfeit(room_id: str = Query(...), player_name: str = Query(...)):
+    room = PONG_ROOMS.get(room_id)
+    if not room:
+        raise HTTPException(404, "Room not found")
+    if room.status != "playing":
+        raise HTTPException(400, "Game not in progress")
+
+    with _PONG_LOCK:
+        if room.player_left == player_name.strip():
+            room.status = "finished"
+            room.winner = room.player_right
+        elif room.player_right == player_name.strip():
+            room.status = "finished"
+            room.winner = room.player_left
+        else:
+            raise HTTPException(403, "Not a player")
+    return {"status": "finished", "winner": room.winner}

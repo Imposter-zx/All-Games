@@ -103,3 +103,69 @@ def resign_chess(
         "",
         server,
     )
+
+
+# ── Pong Multiplayer ───────────────────────────────────────────────────
+
+def create_pong_room(
+    player_name: str,
+    server: str = DEFAULT_SERVER,
+) -> Optional[Dict[str, Any]]:
+    """Create a new Pong room. Returns room info or None."""
+    return _post(
+        f"{server}/api/pong/create_room?player_name={urllib.request.quote(player_name)}",
+        "",
+        server,
+    )
+
+
+def join_pong_room(
+    room_id: str,
+    player_name: str,
+    server: str = DEFAULT_SERVER,
+) -> Optional[Dict[str, Any]]:
+    """Join an existing Pong room. Returns room info or None."""
+    return _post(
+        f"{server}/api/pong/join_room?room_id={room_id}&player_name={urllib.request.quote(player_name)}",
+        "",
+        server,
+    )
+
+
+def send_pong_paddle(
+    room_id: str,
+    player_name: str,
+    direction: str,   # up | down | stop
+    server: str = DEFAULT_SERVER,
+) -> Optional[Dict[str, Any]]:
+    """Send paddle direction to the server."""
+    return _post(
+        f"{server}/api/pong/paddle?room_id={room_id}&player_name={urllib.request.quote(player_name)}&direction={direction}",
+        "",
+        server,
+    )
+
+
+def get_pong_state(
+    room_id: str,
+    player_name: str,
+    server: str = DEFAULT_SERVER,
+) -> Optional[Dict[str, Any]]:
+    """Get the current Pong game state from the server."""
+    return _get(
+        f"{server}/api/pong/state?room_id={room_id}&player_name={urllib.request.quote(player_name)}",
+        server,
+    )
+
+
+def forfeit_pong(
+    room_id: str,
+    player_name: str,
+    server: str = DEFAULT_SERVER,
+) -> Optional[Dict[str, Any]]:
+    """Forfeit from a Pong game."""
+    return _post(
+        f"{server}/api/pong/forfeit?room_id={room_id}&player_name={urllib.request.quote(player_name)}",
+        "",
+        server,
+    )

@@ -1,22 +1,25 @@
 """
 Pong Game implementation for the Retro Arcade.
-Classic table tennis — play against an AI opponent.
+Classic table tennis — play against AI or online opponent.
 """
 
 import logging
 import random
 import time
 
+import network_game
 from arcade_utils import (
     C_BLUE,
     C_CYAN,
     C_GRAY,
     C_GREEN,
     C_MAGENTA,
+    C_RED,
     C_RESET,
     C_WHITE,
     C_YELLOW,
     beep,
+    clear_screen,
     draw_retro_box,
     get_terminal_size,
     show_popup,
@@ -28,9 +31,10 @@ logger = logging.getLogger(__name__)
 
 
 class PongGame(BaseGame):
-    """Pong Game logic and rendering with AI opponent."""
+    """Pong Game logic and rendering with AI or online opponent."""
 
-    def __init__(self, difficulty: str = 'normal') -> None:
+    def __init__(self, difficulty: str = 'normal', online_mode: bool = False,
+                 room_id: str = '', player_name: str = '', my_side: str = 'left') -> None:
         super().__init__('pong', difficulty)
         term_w, term_h = get_terminal_size()
         self.width = min(80, max(30, term_w - 10))
@@ -63,6 +67,16 @@ class PongGame(BaseGame):
         self.hits = 0
         self.ai_miss_timer = 0.0
         self.game_over = False
+        self.online_mode = online_mode
+        self.room_id = room_id
+        self.player_name = player_name
+        self.my_side = my_side
+        self._server_ball_x = float(self.width // 2)
+        self._server_ball_y = float(self.height // 2)
+        self._server_opponent_paddle = float(self.height // 2)
+        self._server_my_score = 0
+        self._server_opponent_score = 0
+        self._forfeit_flag = False
 
     def save_state_json(self) -> dict:
         return {
@@ -215,32 +229,193 @@ class PongGame(BaseGame):
         show_popup("PONG: Beat the AI to 100 points. First to 100 wins! Use UP/DOWN to move your paddle (left).",
                    C_CYAN, delay=1.5)
 
+    def _setup_online(self) -> bool:
+        """Set up online Pong match via lobby."""
+        clear_screen()
+        choose = ""
+        while choose not in ['c', 'C', 'j', 'J', 'q', 'Q']:
+            clear_screen()
+            draw_retro_box(40, "ONLINE PONG", ["(C) CREATE ROOM", "(J) JOIN ROOM", "(Q) BACK"], color=C_CYAN)
+            choose = get_safe_input_handler().get_safe_key()
+
+        if choose in ['q', 'Q']:
+            return False
+
+        self.player_name = ""
+        clear_screen()
+        draw_retro_box(40, "ONLINE PONG", ["ENTER YOUR NAME:", "(max 16 chars)"], color=C_CYAN)
+        self.player_name = input(f" {C_GREEN}> {C_RESET}").strip()[:16] or "Player"
+
+        if choose in ['c', 'C']:
+            result = network_game.create_pong_room(self.player_name)
+            if not result:
+                show_popup("Server unreachable!", C_RED)
+                return False
+            self.room_id = result["room_id"]
+            self.my_side = "left"
+            clear_screen()
+            code_msg = f"ROOM CODE: {C_GREEN}{self.room_id}{C_RESET}"
+            room_lines = [code_msg, "", "Share this code!", "Waiting for opponent..."]
+            draw_retro_box(40, "ROOM CREATED", room_lines, color=C_GREEN)
+            for _ in range(300):
+                state = network_game.get_pong_state(self.room_id, self.player_name)
+                if state and state.get("status") == "playing":
+                    show_popup("Opponent joined!", C_GREEN)
+                    self.online_mode = True
+                    return True
+                if get_safe_input_handler().get_safe_key() in ['q', 'Q']:
+                    return False
+                time.sleep(0.1)
+            show_popup("Timed out waiting for opponent", C_RED)
+            return False
+        else:
+            self.room_id = ""
+            clear_screen()
+            draw_retro_box(40, "JOIN ROOM", ["ENTER ROOM CODE:"], color=C_CYAN)
+            self.room_id = input(f" {C_GREEN}> {C_RESET}").strip()[:8]
+            if not self.room_id:
+                return False
+            result = network_game.join_pong_room(self.room_id, self.player_name)
+            if not result:
+                show_popup("Room not found or already started!", C_RED)
+                return False
+            self.my_side = "right"
+            self.online_mode = True
+            clear_screen()
+            join_lines = [f"Playing as {C_MAGENTA}RIGHT{C_RESET}", f"vs {C_CYAN}LEFT{C_RESET}"]
+            draw_retro_box(40, "JOINED!", join_lines, color=C_CYAN)
+            time.sleep(1)
+            return True
+
+    def _play_online(self, input_handler) -> None:
+        """Online game loop — pulls state from server."""
+        last_send = 0.0
+        while not self.game_over:
+            now = time.time()
+
+            # Send paddle direction every 50ms
+            if now - last_send > 0.05:
+                direction = input_handler.get_direction() or "stop"
+                network_game.send_pong_paddle(self.room_id, self.player_name, direction)
+                last_send = now
+
+            # Poll server state at ~15fps
+            state = network_game.get_pong_state(self.room_id, self.player_name)
+            if state:
+                self._server_ball_x = state.get("ball_x", self._server_ball_x)
+                self._server_ball_y = state.get("ball_y", self._server_ball_y)
+                self._server_opponent_paddle = state.get("opponent_paddle_y", self._server_opponent_paddle)
+                self._server_my_score = state.get("my_score", 0)
+                self._server_opponent_score = state.get("opponent_score", 0)
+                if state.get("status") == "finished":
+                    self.game_over = True
+                    if state.get("winner") == self.player_name:
+                        self.unlock_achievement("pong_pro", "Pong Pro")
+                        show_popup("YOU WIN!", C_GREEN)
+                    else:
+                        show_popup("YOU LOSE!", C_RED)
+                    break
+                self.score = self._server_my_score * 10
+
+            # Render using server state
+            self.renderer.render_frame(self._render_online)
+
+            # Check for forfeit
+            key = input_handler.get_safe_key()
+            if key and key.lower() == 'f':
+                network_game.forfeit_pong(self.room_id, self.player_name)
+                self.game_over = True
+                show_popup("You forfeited!", C_RED)
+                break
+            if key == '?':
+                show_popup("PONG ONLINE: [UP/DOWN] Move  [F] Forfeit  [?] Help", C_CYAN, delay=1.5)
+
+            time.sleep(0.05)
+
+    def _render_online(self) -> None:
+        """Render the Pong board using server state."""
+        lines: list[str] = []
+        lines.append(
+            f" YOU: {C_YELLOW}{self._server_my_score}{C_RESET}  "
+            f"OPP: {C_MAGENTA}{self._server_opponent_score}{C_RESET}  "
+            f"SIDE: {self.my_side.upper()}  "
+            f"{C_CYAN}[ONLINE]{C_RESET}"
+        )
+        lines.append("─" * self.width)
+        ball_x = self._server_ball_x
+        ball_y = self._server_ball_y
+        for y in range(self.height):
+            row = ""
+            for x in range(self.width):
+                if x == 0 and self.paddle_pos <= y < self.paddle_pos + self.paddle_size:
+                    row += f"{C_CYAN}█{C_RESET}"
+                elif x == self.width - 1 and self._server_opponent_paddle <= y < (
+                    self._server_opponent_paddle + self.paddle_size
+                ):
+                    row += f"{C_MAGENTA}█{C_RESET}"
+                elif abs(x - ball_x) < 0.6 and abs(y - ball_y) < 0.6:
+                    row += f"{C_YELLOW}●{C_RESET}"
+                elif x == self.width // 2:
+                    row += f"{C_GRAY}│{C_RESET}" if y % 2 == 0 else " "
+                else:
+                    row += " "
+            lines.append(row)
+        lines.append("─" * self.width)
+        draw_retro_box(self.width + 4, "🏓 PONG ONLINE", lines, color=C_BLUE)
+        print(f"\n{C_WHITE}   [UP/DOWN] Move  [F] Forfeit  [?] Help{C_RESET}")
+
+    def _select_mode(self) -> bool:
+        """Choose AI or Online mode. Returns True to proceed, False to quit."""
+        clear_screen()
+        opts = ["(P) PLAY VS AI", "(O) PLAY ONLINE", "(Q) BACK"]
+        draw_retro_box(40, "PONG ARCADE", opts, color=C_CYAN)
+        while True:
+            k = get_safe_input_handler().get_safe_key()
+            if not k:
+                continue
+            if k in ['p', 'P', '\r', '\n', 'enter']:
+                return True
+            if k in ['o', 'O']:
+                self.online_mode = self._setup_online()
+                return True
+            if k in ['q', 'Q']:
+                return False
+
     def play(self) -> dict:
         self.start_timer()
-        if self.has_saved_state():
-            saved = self.stats_manager.load_game_state(self.game_name)
-            if saved:
-                self.load_state_json(saved)
+
+        if not self.online_mode:
+            if not self._select_mode():
+                self.end_timer()
+                return self.get_final_stats()
+            if not self.online_mode and self.has_saved_state():
+                saved = self.stats_manager.load_game_state(self.game_name)
+                if saved:
+                    self.load_state_json(saved)
+
         input_handler = get_safe_input_handler()
 
         try:
-            while not self.game_over:
-                self.renderer.render_frame(self.render)
+            if self.online_mode:
+                self._play_online(input_handler)
+            else:
+                while not self.game_over:
+                    self.renderer.render_frame(self.render)
 
-                direction = input_handler.get_direction()
-                if direction:
-                    self.move_paddle(direction)
+                    direction = input_handler.get_direction()
+                    if direction:
+                        self.move_paddle(direction)
 
-                self._update_ai()
-                self.update_ball()
+                    self._update_ai()
+                    self.update_ball()
 
-                key = input_handler.get_safe_key()
-                if key and self._save_and_quit(key):
-                    break
-                if key and key.lower() == 'h':
-                    self._show_help()
+                    key = input_handler.get_safe_key()
+                    if key and self._save_and_quit(key):
+                        break
+                    if key and key.lower() == 'h':
+                        self._show_help()
 
-                time.sleep(0.03)
+                    time.sleep(0.03)
 
         except KeyboardInterrupt:
             pass
@@ -254,6 +429,16 @@ class PongGame(BaseGame):
 
 def play_pong(difficulty: str = 'normal') -> dict:
     game = PongGame(difficulty)
+    return game.play()
+
+
+def play_pong_online(
+    player_name: str = '', room_id: str = '', my_side: str = 'left',
+    difficulty: str = 'normal',
+) -> dict:
+    """Wrapper for online Pong play."""
+    game = PongGame(difficulty, online_mode=True, room_id=room_id,
+                    player_name=player_name, my_side=my_side)
     return game.play()
 
 
