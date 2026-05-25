@@ -72,6 +72,11 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
     # Hangman
     "hangman_first_win": {"name": "Word Detective", "description": "Win a game of Hangman", "xp": 150},
     "hangman_streak": {"name": "Hangman Streak", "description": "Win 3 Hangman games in a row", "xp": 300},
+
+    # Wordle
+    "wordle_win": {"name": "Wordle Wizard", "description": "Guess the Wordle word correctly", "xp": 300},
+    "wordle_first_try": {"name": "Lucky Guess", "description": "Get Wordle on the first try", "xp": 1000},
+    "wordle_streak": {"name": "Wordle Streak", "description": "Win 3 Wordle rounds in a row", "xp": 500},
 }
 
 

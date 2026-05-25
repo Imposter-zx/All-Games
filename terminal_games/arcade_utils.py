@@ -132,6 +132,8 @@ BG_LIGHT = "\033[48;5;250m"
 BG_CUR = "\033[48;5;220m"
 BG_SEL = "\033[48;5;34m"
 BG_RED = "\033[41m"
+BG_GREEN = "\033[42m"
+BG_YELLOW = "\033[43m"
 BG_BLUE = "\033[44m"
 
 

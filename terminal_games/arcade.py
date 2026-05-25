@@ -55,6 +55,7 @@ from flappy import play_flappy
 from frogger import play_frogger
 from game_2048 import play_2048
 from hangman import play_hangman
+from wordle import play_wordle
 from minesweeper import play_minesweeper
 from pacman import play_pacman
 from pong import play_pong
@@ -81,7 +82,7 @@ GAMES: list[str] = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing",
-    "blackjack", "connect_four", "hangman"
+    "blackjack", "connect_four", "hangman", "wordle"
 ]
 
 
@@ -165,7 +166,7 @@ def print_menu(selection: int, renderer: Renderer) -> None:
             "5.Pac-Man 6.Dungeon  7.Mineswp  8.Chess",
             "9.Sudoku  10.2048   11.Pong   12.Asteroid",
             "13.Frogger 14.Flappy 15.Racing 16.Blackjack",
-            "17.Connect4 18.Hangman",
+            "17.Connect4 18.Hangman 19.Wordle",
             "L.Leaderboard  S.Settings  H.Help  Q.Quit",
         ]
         menu_cols = 30
@@ -189,6 +190,7 @@ def print_menu(selection: int, renderer: Renderer) -> None:
             f"16. {u_safe('🃏', 'B')} Blackjack",
             f"17. {u_safe('🔴', 'C')} Connect Four",
             f"18. {u_safe('📝', 'H')} Hangman",
+            f"19. {u_safe('🔤', 'W')} Wordle",
             f"L. {u_safe('🏆', 'L')} Leaderboard",
             f"S. {u_safe('⚙️', 'S')} Settings",
             "H. Tutorial",
@@ -479,7 +481,7 @@ def main() -> None:
         print(f"{C_YELLOW}Resize your terminal and restart.{C_RESET}")
         input(f"\n{C_WHITE}Press ENTER to continue anyway...{C_RESET}")
     selection = 0
-    num_options = 22
+    num_options = 23
 
     renderer = Renderer(fps=60)
     input_handler = get_safe_input_handler()
@@ -506,7 +508,7 @@ def main() -> None:
             stop_background_music()
 
             difficulty: Optional[str] = None
-            if selection < 18:
+            if selection < 19:
                 difficulty = select_game_difficulty()
                 if not difficulty:
                     start_background_music()
@@ -555,12 +557,14 @@ def main() -> None:
             elif selection == 17:
                 _play_and_submit(play_hangman, "Hangman", difficulty)
             elif selection == 18:
-                show_leaderboard()
+                _play_and_submit(play_wordle, "Wordle", difficulty)
             elif selection == 19:
-                show_settings()
+                show_leaderboard()
             elif selection == 20:
-                show_tutorial()
+                show_settings()
             elif selection == 21:
+                show_tutorial()
+            elif selection == 22:
                 break
 
             renderer.clear()
