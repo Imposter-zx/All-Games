@@ -11,6 +11,7 @@ from arcade_utils import (
     animated_flash,
     beep,
     clear_screen,
+    get_terminal_size,
     particle_effect,
     print_big_title,
     screen_shake,
@@ -19,8 +20,9 @@ from arcade_utils import (
 from base_game import BaseGame
 from input_handler import get_safe_input_handler
 
-BOARD_WIDTH = 30
-BOARD_HEIGHT = 15
+_ts = get_terminal_size()
+BOARD_WIDTH = min(80, max(20, (_ts[0] - 10) // 2))
+BOARD_HEIGHT = min(40, max(10, _ts[1] - 10))
 
 
 def create_food(snake: List[Tuple[int, int]]) -> Tuple[int, int]:

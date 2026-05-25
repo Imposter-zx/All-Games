@@ -20,8 +20,10 @@ from arcade_utils import (
     Renderer,
     apply_theme,
     beep,
+    check_terminal_size,
     clear_screen,
     draw_retro_box,
+    get_terminal_size,
     show_popup,
     start_background_music,
     stop_background_music,
@@ -88,6 +90,8 @@ def draw_profile() -> None:
     mgr = get_stats_manager()
     settings = mgr.get_settings()
     player_name = settings.get('player_name', 'RETRO_MASTER')
+    term_width, _ = get_terminal_size()
+    box_width = min(50, term_width - 4)
 
     total_score = 0
     for game in GAMES:
@@ -140,16 +144,13 @@ def draw_profile() -> None:
             profile_lines.append("══════════════════════════════")
             profile_lines.append(f"RECENT: {', '.join(ach_names)}")
 
-    draw_retro_box(40, f"{u_safe('👤', '')} {player_name}", profile_lines, color=C_WHITE, title_color=C_CYAN)
+    draw_retro_box(box_width, f"{u_safe('👤', '')} {player_name}", profile_lines, color=C_WHITE, title_color=C_CYAN)
 
 
 def print_menu(selection: int, renderer: Renderer) -> None:
-    """Render the main arcade menu."""
-    term_width = 80
-    try:
-        term_width = os.get_terminal_size().columns
-    except (OSError, ValueError):
-        pass
+    """Render the main arcade menu, adapting to terminal size."""
+    term_width, _ = get_terminal_size()
+    use_compact = term_width < 70
 
     for line in BANNER_TEXT:
         print(" " * max(0, (term_width - 45) // 2) + f"{C_CYAN}{line}{C_RESET}")
@@ -158,30 +159,42 @@ def print_menu(selection: int, renderer: Renderer) -> None:
     draw_profile()
     print("\n")
 
-    options: list[str] = [
-        f"1. {u_safe('🐍', 'S')} Snake",
-        f"2. {u_safe('🧱', 'B')} Breakout",
-        f"3. {u_safe('🚀', 'X')} Space Shooter",
-        f"4. {u_safe('🧩', 'T')} Tetris",
-        f"5. {u_safe('🟡', 'P')} Pacman",
-        f"6. {u_safe('⚔️', 'D')} Dungeon Crawler",
-        f"7. {u_safe('💣', 'M')} Minesweeper",
-        f"8. {u_safe('♟️', 'C')} Chess vs AI",
-        f"9. {u_safe('🔢', '#')} Sudoku",
-        f"10. {u_safe('🔢', '2')} 2048",
-        f"11. {u_safe('🏓', 'O')} Pong",
-        f"12. {u_safe('☄️', 'A')} Asteroids",
-        f"13. {u_safe('🐸', 'F')} Frogger",
-        f"14. {u_safe('🐦', 'V')} Flappy Bird",
-        f"15. {u_safe('🏎️', 'R')} Racing",
-        f"16. {u_safe('🃏', 'B')} Blackjack",
-        f"17. {u_safe('🔴', 'C')} Connect Four",
-        f"18. {u_safe('📝', 'H')} Hangman",
-        f"L. {u_safe('🏆', 'L')} Leaderboard",
-        f"S. {u_safe('⚙️', 'S')} Settings",
-        "H. Tutorial",
-        f"Q. {u_safe('🚪', 'Q')} Quit"
-    ]
+    if use_compact:
+        options: list[str] = [
+            "1.Snake  2.Breakout  3.Shooter  4.Tetris",
+            "5.Pac-Man 6.Dungeon  7.Mineswp  8.Chess",
+            "9.Sudoku  10.2048   11.Pong   12.Asteroid",
+            "13.Frogger 14.Flappy 15.Racing 16.Blackjack",
+            "17.Connect4 18.Hangman",
+            "L.Leaderboard  S.Settings  H.Help  Q.Quit",
+        ]
+        menu_cols = 30
+    else:
+        options: list[str] = [
+            f"1. {u_safe('🐍', 'S')} Snake",
+            f"2. {u_safe('🧱', 'B')} Breakout",
+            f"3. {u_safe('🚀', 'X')} Space Shooter",
+            f"4. {u_safe('🧩', 'T')} Tetris",
+            f"5. {u_safe('🟡', 'P')} Pacman",
+            f"6. {u_safe('⚔️', 'D')} Dungeon Crawler",
+            f"7. {u_safe('💣', 'M')} Minesweeper",
+            f"8. {u_safe('♟️', 'C')} Chess vs AI",
+            f"9. {u_safe('🔢', '#')} Sudoku",
+            f"10. {u_safe('🔢', '2')} 2048",
+            f"11. {u_safe('🏓', 'O')} Pong",
+            f"12. {u_safe('☄️', 'A')} Asteroids",
+            f"13. {u_safe('🐸', 'F')} Frogger",
+            f"14. {u_safe('🐦', 'V')} Flappy Bird",
+            f"15. {u_safe('🏎️', 'R')} Racing",
+            f"16. {u_safe('🃏', 'B')} Blackjack",
+            f"17. {u_safe('🔴', 'C')} Connect Four",
+            f"18. {u_safe('📝', 'H')} Hangman",
+            f"L. {u_safe('🏆', 'L')} Leaderboard",
+            f"S. {u_safe('⚙️', 'S')} Settings",
+            "H. Tutorial",
+            f"Q. {u_safe('🚪', 'Q')} Quit"
+        ]
+        menu_cols = 30
 
     menu_content: list[str] = []
     for i, opt in enumerate(options):
@@ -190,7 +203,7 @@ def print_menu(selection: int, renderer: Renderer) -> None:
         style = "\033[47;30m" if is_sel else f"{C_WHITE}"
         menu_content.append(f"{prefix}{style} {opt:<20} {C_RESET}")
 
-    draw_retro_box(30, "🕹️ GAME MENU", menu_content, color=C_CYAN)
+    draw_retro_box(menu_cols, "🕹️ GAME MENU", menu_content, color=C_CYAN)
     print("\n" + " " * max(0, (term_width - 36) // 2) + f"{C_WHITE}Use Arrows to navigate, Enter to play{C_RESET}")
 
 
@@ -388,6 +401,42 @@ def show_tutorial() -> None:
     get_key()
 
 
+def show_shortcuts() -> None:
+    """Display keyboard shortcuts reference."""
+    from arcade_utils import get_key
+    clear_screen()
+    print("\n" * 1)
+    lines: list[str] = [
+        f"{C_BOLD}{C_YELLOW}ARCADE KEYBOARD SHORTCUTS{C_RESET}",
+        "",
+        f"{C_CYAN}ARCADE MENU{C_RESET}",
+        f"  {C_GREEN}1-18{C_RESET}          Quick-select game by number",
+        f"  {C_GREEN}UP/DOWN{C_RESET}       Navigate menu",
+        f"  {C_GREEN}ENTER{C_RESET}          Launch selected game",
+        f"  {C_GREEN}L{C_RESET}              Open leaderboard (local + online)",
+        f"  {C_GREEN}S{C_RESET}              Open settings",
+        f"  {C_GREEN}H / ?{C_RESET}          Show this help",
+        f"  {C_GREEN}Q{C_RESET}              Quit arcade",
+        "",
+        f"{C_CYAN}IN-GAME (universal){C_RESET}",
+        f"  {C_GREEN}Q{C_RESET}              Quit (saves progress, resume later)",
+        f"  {C_GREEN}H / ?{C_RESET}          Show game-specific help",
+        f"  {C_GREEN}ARROWS / WASD{C_RESET}  Move / Navigate",
+        f"  {C_GREEN}ENTER / SPACE{C_RESET}  Confirm / Select",
+        "",
+        f"{C_CYAN}GAMES ({len(GAMES)} total){C_RESET}",
+        "  1-Snake  2-Breakout  3-Shooter  4-Tetris  5-Pac-Man",
+        "  6-Dungeon  7-Minesweeper  8-Chess  9-Sudoku  10-2048",
+        "  11-Pong  12-Asteroids  13-Frogger  14-Flappy  15-Racing",
+        "  16-Blackjack  17-Connect Four  18-Hangman",
+        "",
+        f"{C_WHITE}Press any key to return...{C_RESET}",
+    ]
+    for line in lines:
+        print(line)
+    get_key()
+
+
 def _check_saved_state(game_name: str) -> None:
     """Prompt to resume if a saved state exists, otherwise start fresh."""
     mgr = get_stats_manager()
@@ -424,6 +473,11 @@ def main() -> None:
     """Application entry point."""
     if os.name == 'nt':
         os.system('')
+    if not check_terminal_size(60, 15):
+        clear_screen()
+        print(f"{C_RED}Terminal too small! Minimum 60x15 required.{C_RESET}")
+        print(f"{C_YELLOW}Resize your terminal and restart.{C_RESET}")
+        input(f"\n{C_WHITE}Press ENTER to continue anyway...{C_RESET}")
     selection = 0
     num_options = 22
 
@@ -514,6 +568,11 @@ def main() -> None:
         elif key and key.lower() == 'h':
             stop_background_music()
             show_tutorial()
+            renderer.clear()
+            start_background_music()
+        elif key == '?':
+            stop_background_music()
+            show_shortcuts()
             renderer.clear()
             start_background_music()
         elif key and key.lower() == 'q':

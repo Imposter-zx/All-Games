@@ -18,6 +18,7 @@ from arcade_utils import (
     C_YELLOW,
     beep,
     draw_retro_box,
+    get_terminal_size,
     show_popup,
 )
 from base_game import BaseGame
@@ -31,8 +32,9 @@ class PongGame(BaseGame):
 
     def __init__(self, difficulty: str = 'normal') -> None:
         super().__init__('pong', difficulty)
-        self.width = 40
-        self.height = 15
+        term_w, term_h = get_terminal_size()
+        self.width = min(80, max(30, term_w - 10))
+        self.height = min(30, max(10, term_h - 8))
         self.paddle_size = 2
         self.ai_paddle_size = 2
         self.paddle_pos = self.height // 2 - self.paddle_size // 2

@@ -34,6 +34,23 @@ def strip_ansi(text: str) -> str:
     return re.sub(r'\x1b\[[0-9;]*[mGJKH]', '', text)
 
 
+def get_terminal_size() -> Tuple[int, int]:
+    """Return (width, height) of terminal, with safe fallback."""
+    try:
+        size = os.get_terminal_size()
+        return size.columns, size.lines
+    except (OSError, ValueError):
+        return 80, 24
+
+
+def check_terminal_size(min_width: int = 60, min_height: int = 15) -> bool:
+    """Check if terminal meets minimum size. Returns True if OK."""
+    w, h = get_terminal_size()
+    if w < min_width or h < min_height:
+        return False
+    return True
+
+
 class Color:
     """Dynamic color object that allows theme switching without re-importing."""
     def __init__(self, value: str) -> None:
