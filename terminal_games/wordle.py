@@ -132,6 +132,7 @@ WORD_POOL = [
 ]
 
 WORD_LENGTH = 5
+WORD_POOL = [w for w in WORD_POOL if len(w) == WORD_LENGTH]
 
 
 class WordleGame(BaseGame):
