@@ -44,12 +44,6 @@ jobs:
         run: |
           pytest tests/ -v --cov=terminal_games --cov-report=xml --cov-report=term
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
-
   build:
     needs: test
     runs-on: ubuntu-latest

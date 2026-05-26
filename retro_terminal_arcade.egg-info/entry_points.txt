@@ -1,3 +1,2 @@
 [console_scripts]
 retro-arcade = terminal_games.arcade:main
-
