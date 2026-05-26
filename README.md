@@ -4,24 +4,55 @@ A premium collection of **18 classic terminal games** with a polished TUI, XP/Le
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Tests](https://img.shields.io/badge/tests-109%2F109%20passing-brightgreen)
-![Python](https://img.shields.io/badge/python-3.6%2B-blue)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-blueviolet)
 ![Version](https://img.shields.io/badge/version-2.0.0-blue)
 
 ## 🚀 Installation & Usage
 
+### Prerequisites
+* **Python 3.9+** (Required for standard generic type hint compatibility, e.g. `list[str]`)
+
+### Quick Install
 ```bash
 pip install git+https://github.com/Imposter-zx/All-Games.git
 retro-arcade
 ```
 
-For local development:
-```bash
-git clone https://github.com/Imposter-zx/All-Games.git
-cd "All Games"
-pip install -e .
-retro-arcade
-```
+### Local Development Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Imposter-zx/All-Games.git
+   cd "All Games"
+   ```
+
+2. **Create and activate a virtual environment (Python 3.9+ recommended):**
+   * **Windows:**
+     ```powershell
+     py -3.11 -m venv .venv
+     .venv\Scripts\Activate.ps1
+     ```
+   * **macOS/Linux:**
+     ```bash
+     python3 -m venv .venv
+     source .venv/bin/activate
+     ```
+
+3. **Install the package in editable mode with dependencies:**
+   ```bash
+   pip install -e .
+   ```
+
+4. **Run the game launcher:**
+   * **Using the installed entry point:**
+     ```bash
+     retro-arcade
+     ```
+   * **Or running the module directly:**
+     ```bash
+     python -m terminal_games.arcade
+     ```
 
 ## 🎮 Games Included (18)
 
