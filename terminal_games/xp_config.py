@@ -37,6 +37,7 @@ XP_CONFIGS: Dict[str, GameXPConfig] = {
     'connect_four': GameXPConfig(name='Connect Four', base_multiplier=3.0),
     'hangman': GameXPConfig(name='Hangman', base_multiplier=1.0),
     'wordle': GameXPConfig(name='Wordle', base_multiplier=2.0),
+    'tictactoe': GameXPConfig(name='Tic-Tac-Toe', base_multiplier=1.5),
 }
 
 

@@ -1,4 +1,4 @@
-"""Validate XP configs and achievements cover all 19 games."""
+"""Validate XP configs and achievements cover all 20 games."""
 
 import sys
 import os
@@ -13,7 +13,7 @@ ALL_GAMES = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing", "blackjack",
-    "connect_four", "hangman", "wordle",
+    "connect_four", "hangman", "wordle", "tictactoe",
 ]
 
 
@@ -47,3 +47,6 @@ class TestAchievements:
         assert "hangman_first_win" in ACHIEVEMENTS
         assert "hangman_streak" in ACHIEVEMENTS
         assert "wordle_win" in ACHIEVEMENTS
+        assert "tictactoe_win" in ACHIEVEMENTS
+        assert "tictactoe_perfect" in ACHIEVEMENTS
+        assert "tictactoe_streak" in ACHIEVEMENTS

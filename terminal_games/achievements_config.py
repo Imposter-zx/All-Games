@@ -77,6 +77,13 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
     "wordle_win": {"name": "Wordle Wizard", "description": "Guess the Wordle word correctly", "xp": 300},
     "wordle_first_try": {"name": "Lucky Guess", "description": "Get Wordle on the first try", "xp": 1000},
     "wordle_streak": {"name": "Wordle Streak", "description": "Win 3 Wordle rounds in a row", "xp": 500},
+
+    # Tic-Tac-Toe
+    "tictactoe_win": {"name": "Tic-Tac-Toe Champion", "description": "Win a game of Tic-Tac-Toe", "xp": 200},
+    "tictactoe_perfect": {"name": "Perfect Game",
+                          "description": "Win without the opponent making a single move", "xp": 500},
+    "tictactoe_streak": {"name": "Tic-Tac-Toe Streak", "description": "Win 3 Tic-Tac-Toe games in a row", "xp": 300},
+    "tictactoe_streak_5": {"name": "Unstoppable", "description": "Win 5 Tic-Tac-Toe games in a row", "xp": 1000},
 }
 
 

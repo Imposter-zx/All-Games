@@ -55,6 +55,7 @@ from frogger import play_frogger
 from game_2048 import play_2048
 from hangman import play_hangman
 from wordle import play_wordle
+from tictactoe import play_tictactoe
 from minesweeper import play_minesweeper
 from pacman import play_pacman
 from pong import play_pong
@@ -81,7 +82,7 @@ GAMES: list[str] = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing",
-    "blackjack", "connect_four", "hangman", "wordle"
+    "blackjack", "connect_four", "hangman", "wordle", "tictactoe"
 ]
 
 
@@ -134,6 +135,7 @@ def draw_profile() -> None:
         f"{u_safe('🃏', 'B')} Blackjack High    : {C_YELLOW}{mgr.get_high_score('blackjack')}{C_WHITE}",
         f"{u_safe('🔴', 'C')} Connect4 High     : {C_BLUE}{mgr.get_high_score('connect_four')}{C_WHITE}",
         f"{u_safe('📝', 'H')} Hangman Score     : {C_GREEN}{mgr.get_high_score('hangman')}{C_WHITE}",
+        f"{u_safe('❌', 'T')} Tic-Tac-Toe Score  : {C_MAGENTA}{mgr.get_high_score('tictactoe')}{C_WHITE}",
     ]
 
     if achievements:
@@ -165,7 +167,7 @@ def print_menu(selection: int, renderer: Renderer) -> None:
             "5.Pac-Man 6.Dungeon  7.Mineswp  8.Chess",
             "9.Sudoku  10.2048   11.Pong   12.Asteroid",
             "13.Frogger 14.Flappy 15.Racing 16.Blackjack",
-            "17.Connect4 18.Hangman 19.Wordle",
+            "17.Connect4 18.Hangman 19.Wordle 20.TTT",
             "L.Leaderboard  S.Settings  H.Help  Q.Quit",
         ]
         menu_cols = 30
@@ -190,6 +192,7 @@ def print_menu(selection: int, renderer: Renderer) -> None:
             f"17. {u_safe('🔴', 'C')} Connect Four",
             f"18. {u_safe('📝', 'H')} Hangman",
             f"19. {u_safe('🔤', 'W')} Wordle",
+            f"20. {u_safe('❌', 'T')} Tic-Tac-Toe",
             f"L. {u_safe('🏆', 'L')} Leaderboard",
             f"S. {u_safe('⚙️', 'S')} Settings",
             "H. Tutorial",
@@ -393,7 +396,7 @@ def show_tutorial() -> None:
         "  Snake, Breakout, Space Shooter, Tetris, Pac-Man,",
         "  Dungeon Crawler, Minesweeper, Chess, Sudoku, 2048,",
         "  Pong, Asteroids, Frogger, Flappy Bird, Racing,",
-        "  Blackjack, Connect Four, Hangman",
+        "  Blackjack, Connect Four, Hangman, Wordle, Tic-Tac-Toe",
         "",
         f"{C_WHITE}Press any key to return to menu...{C_RESET}"
     ]
@@ -411,7 +414,7 @@ def show_shortcuts() -> None:
         f"{C_BOLD}{C_YELLOW}ARCADE KEYBOARD SHORTCUTS{C_RESET}",
         "",
         f"{C_CYAN}ARCADE MENU{C_RESET}",
-        f"  {C_GREEN}1-18{C_RESET}          Quick-select game by number",
+        f"  {C_GREEN}1-20{C_RESET}          Quick-select game by number",
         f"  {C_GREEN}UP/DOWN{C_RESET}       Navigate menu",
         f"  {C_GREEN}ENTER{C_RESET}          Launch selected game",
         f"  {C_GREEN}L{C_RESET}              Open leaderboard (local + online)",
@@ -429,7 +432,7 @@ def show_shortcuts() -> None:
         "  1-Snake  2-Breakout  3-Shooter  4-Tetris  5-Pac-Man",
         "  6-Dungeon  7-Minesweeper  8-Chess  9-Sudoku  10-2048",
         "  11-Pong  12-Asteroids  13-Frogger  14-Flappy  15-Racing",
-        "  16-Blackjack  17-Connect Four  18-Hangman",
+        "  16-Blackjack  17-Connect Four  18-Hangman  19-Wordle",
         "",
         f"{C_WHITE}Press any key to return...{C_RESET}",
     ]
@@ -480,7 +483,7 @@ def main() -> None:
         print(f"{C_YELLOW}Resize your terminal and restart.{C_RESET}")
         input(f"\n{C_WHITE}Press ENTER to continue anyway...{C_RESET}")
     selection = 0
-    num_options = 23
+    num_options = 24
 
     renderer = Renderer(fps=60)
     input_handler = get_safe_input_handler()
@@ -507,7 +510,7 @@ def main() -> None:
             stop_background_music()
 
             difficulty: Optional[str] = None
-            if selection < 19:
+            if selection < 20:
                 difficulty = select_game_difficulty()
                 if not difficulty:
                     start_background_music()
@@ -558,12 +561,14 @@ def main() -> None:
             elif selection == 18:
                 _play_and_submit(play_wordle, "Wordle", difficulty)
             elif selection == 19:
-                show_leaderboard()
+                _play_and_submit(play_tictactoe, "Tic-Tac-Toe", difficulty)
             elif selection == 20:
-                show_settings()
+                show_leaderboard()
             elif selection == 21:
-                show_tutorial()
+                show_settings()
             elif selection == 22:
+                show_tutorial()
+            elif selection == 23:
                 break
 
             renderer.clear()
