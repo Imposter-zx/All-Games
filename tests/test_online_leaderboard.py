@@ -1,14 +1,13 @@
 """Unit tests for online leaderboard client module."""
 
-import sys
-import os
 import json
-from unittest.mock import patch, MagicMock
+import os
+import sys
+from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'terminal_games'))
 
 import online_leaderboard as olb
-
 
 SERVER = "https://test-server.example.com"
 
@@ -34,7 +33,8 @@ class TestFetchLeaderboard:
     def test_fetch_success(self, mock_urlopen):
         mock_response = MagicMock()
         mock_response.read.return_value = json.dumps([
-            {"rank": 1, "player_name": "PLAYER", "score": 500, "game_name": "snake", "difficulty": "normal", "submitted_at": 1000.0}
+            {"rank": 1, "player_name": "PLAYER", "score": 500,
+             "game_name": "snake", "difficulty": "normal", "submitted_at": 1000.0}
         ]).encode()
         mock_urlopen.return_value = mock_response
         result = olb.fetch_leaderboard("snake", 10, SERVER)

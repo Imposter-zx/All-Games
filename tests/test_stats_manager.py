@@ -2,10 +2,8 @@
 Unit tests for StatsManager (SQLite-backed).
 """
 
-import pytest
-import sys
 import os
-from pathlib import Path
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'terminal_games'))
 

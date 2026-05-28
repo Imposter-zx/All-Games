@@ -1,11 +1,11 @@
 """Unit tests for Blackjack game logic."""
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'terminal_games'))
 
-from blackjack import card_value, hand_value, BlackjackGame, RANKS, SUITS
+from blackjack import RANKS, BlackjackGame, card_value, hand_value
 
 
 class TestCardValue:
@@ -104,7 +104,6 @@ class TestBlackjackGame:
     def test_dealer_stands_on_17(self):
         game = BlackjackGame()
         game.build_deck()
-        initial_len = len(game.deck)
         game.dealer_hand = [('K', 0), ('7', 1)]
         game.dealer_play()
         assert hand_value(game.dealer_hand) >= 17

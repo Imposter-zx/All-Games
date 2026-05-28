@@ -1,11 +1,11 @@
 """Unit tests for Connect Four game logic."""
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'terminal_games'))
 
-from connect_four import ConnectFourGame, ROWS, COLS, EMPTY, PLAYER, AI
+from connect_four import AI, COLS, EMPTY, PLAYER, ROWS, ConnectFourGame
 
 
 class TestConnectFourInit:

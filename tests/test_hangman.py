@@ -1,11 +1,11 @@
 """Unit tests for Hangman game logic."""
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'terminal_games'))
 
-from hangman import HangmanGame, WORDS, HANGMAN_STAGES
+from hangman import HANGMAN_STAGES, WORDS, HangmanGame
 
 
 class TestHangmanInit:

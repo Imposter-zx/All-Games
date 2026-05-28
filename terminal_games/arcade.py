@@ -27,10 +27,10 @@ from arcade_utils import (
     show_popup,
     u_safe,
 )
-from sound_engine import start_background_music, stop_background_music
 from error_handler import safe_game_call
 from input_handler import get_safe_input_handler
 from logger_setup import setup_logger
+from sound_engine import start_background_music, stop_background_music
 from stats_manager import get_stats_manager
 
 logger = setup_logger()
@@ -54,8 +54,6 @@ from flappy import play_flappy
 from frogger import play_frogger
 from game_2048 import play_2048
 from hangman import play_hangman
-from wordle import play_wordle
-from tictactoe import play_tictactoe
 from minesweeper import play_minesweeper
 from pacman import play_pacman
 from pong import play_pong
@@ -64,6 +62,8 @@ from snake import play_snake
 from space_shooter import play_space_shooter
 from sudoku import play_sudoku
 from tetris import play_tetris
+from tictactoe import play_tictactoe
+from wordle import play_wordle
 
 BANNER_TEXT: list[str] = [
     "  ____  _  _  ____  _   _  _____  _   _  ",

@@ -1,13 +1,12 @@
 """Validate XP configs and achievements cover all 20 games."""
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'terminal_games'))
 
-from xp_config import XP_CONFIGS
 from achievements_config import ACHIEVEMENTS
-
+from xp_config import XP_CONFIGS
 
 ALL_GAMES = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",

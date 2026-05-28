@@ -1,22 +1,23 @@
-import unittest
-from unittest.mock import MagicMock, patch
 import os
 import sys
+import unittest
+from unittest.mock import patch
 
 # Add terminal_games to path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'terminal_games'))
 
-from snake import SnakeGame
 from breakout import BreakoutGame
-from tetris import TetrisGame
-from space_shooter import SpaceShooterGame
-from pacman import PacmanGame
-from minesweeper import MinesweeperGame
-from sudoku import SudokuGame
-from dungeon import DungeonGame
-from chess_game import ChessGame, CHESS_AVAILABLE
+from chess_game import CHESS_AVAILABLE, ChessGame
 from connect_four import ConnectFourGame
+from dungeon import DungeonGame
 from hangman import HangmanGame
+from minesweeper import MinesweeperGame
+from pacman import PacmanGame
+from snake import SnakeGame
+from space_shooter import SpaceShooterGame
+from sudoku import SudokuGame
+from tetris import TetrisGame
+
 
 class TestGamesIntegration(unittest.TestCase):
     """Integration tests to ensure all games follow the BaseGame interface."""
@@ -29,7 +30,8 @@ class TestGamesIntegration(unittest.TestCase):
             patch('arcade_utils.clear_screen'),
             patch('arcade_utils.beep'),
             patch('arcade_utils.get_key', return_value='q'), # Force quit on first input
-            patch('msvcrt.kbhit', return_value=False) if os.name == 'nt' else patch('select.select', return_value=([False], [], []))
+            (patch('msvcrt.kbhit', return_value=False) if os.name == 'nt'
+             else patch('select.select', return_value=([False], [], [])))
         ]
         for p in self.patchers:
             p.start()
