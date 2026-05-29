@@ -190,7 +190,10 @@ class Game2048(BaseGame):
                     if self.is_game_over():
                         self.game_over = True
                         beep("lose")
-                        time.sleep(1)
+                        show_popup(
+                            f"GAME OVER! Score: {self.score}  Best Tile: {self.high_tile}",
+                            C_RED, delay=1.5,
+                        )
 
                 key = input_handler.get_safe_key()
                 if key and self._save_and_quit(key):

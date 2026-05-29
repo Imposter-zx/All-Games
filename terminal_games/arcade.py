@@ -463,11 +463,34 @@ def _check_saved_state(game_name: str) -> None:
                 return
 
 
+def _show_game_summary(result: dict, game_name: str, diff: str) -> None:
+    from arcade_utils import get_key
+    score = result.get('high_score', result.get('score', 0))
+    xp = result.get('xp_earned', 0)
+    dur = result.get('duration_seconds', 0)
+    mgr = get_stats_manager()
+    high = mgr.get_high_score(game_name.lower().replace(' ', '_').replace('-', '_'))
+    lines = [
+        f"{C_YELLOW}SCORE     :{C_RESET} {C_GREEN}{score}{C_RESET}",
+        f"{C_YELLOW}XP EARNED :{C_RESET} {C_MAGENTA}{xp}{C_RESET}",
+        f"{C_YELLOW}TIME      :{C_RESET} {C_WHITE}{dur // 60}m {dur % 60}s{C_RESET}",
+        f"{C_YELLOW}BEST      :{C_RESET} {C_CYAN}{high}{C_RESET}",
+        "",
+        f"{C_WHITE}[Any Key] Continue{C_RESET}",
+    ]
+    draw_retro_box(36, f"GAME SUMMARY — {game_name.upper()}", lines, color=C_GREEN)
+    get_key()
+
+
 def _play_and_submit(game_func, game_name: str, difficulty: Optional[str]) -> None:
     """Play a game and submit score to online leaderboard."""
     mgr = get_stats_manager()
     _check_saved_state(game_name)
     result = safe_game_call(game_func, game_name, difficulty=difficulty)
+    if result:
+        clear_screen()
+        print("\n" * 2)
+        _show_game_summary(result, game_name, difficulty or 'normal')
     if result and result.get('high_score', 0) > 0:
         name = mgr.get_settings().get('player_name', 'RETRO_MASTER')
         olb.submit_score(name, game_name, result['high_score'], difficulty or 'normal')

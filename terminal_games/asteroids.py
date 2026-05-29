@@ -95,6 +95,10 @@ class AsteroidsGame(BaseGame):
             if int(a['x']) == int(self.px) and int(a['y']) == int(self.py):
                 self.game_over = True
                 beep("lose")
+                show_popup(
+                    f"GAME OVER! Score: {self.score}",
+                    C_RED, delay=1.5,
+                )
                 return
 
             for b in self.bullets[:]:
