@@ -303,6 +303,22 @@ class StatsManager:
         ).fetchall()
         return [dict(r) for r in rows]
 
+    def get_game_play_count(self, game_name: str) -> int:
+        """Return number of play sessions for a game."""
+        row = self.conn.execute(
+            "SELECT COUNT(*) as cnt FROM play_sessions WHERE game_name = ?",
+            (game_name.lower(),)
+        ).fetchone()
+        return row['cnt'] if row else 0
+
+    def get_game_total_time(self, game_name: str) -> int:
+        """Return total seconds played for a game."""
+        row = self.conn.execute(
+            "SELECT COALESCE(SUM(duration_seconds), 0) as total FROM play_sessions WHERE game_name = ?",
+            (game_name.lower(),)
+        ).fetchone()
+        return int(row['total']) if row else 0
+
     def get_game_leaderboard(self, game_name: str, limit: int = 10) -> List[Dict[str, Any]]:
         """Return top scores for a specific game."""
         rows = self.conn.execute(

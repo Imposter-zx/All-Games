@@ -49,3 +49,12 @@ class TestAchievements:
         assert "tictactoe_win" in ACHIEVEMENTS
         assert "tictactoe_perfect" in ACHIEVEMENTS
         assert "tictactoe_streak" in ACHIEVEMENTS
+        assert "snake_1000" in ACHIEVEMENTS
+        assert "breakout_500" in ACHIEVEMENTS
+        assert "breakout_no_death" in ACHIEVEMENTS
+        assert "space_shooter_5000" in ACHIEVEMENTS
+        assert "space_shooter_10000" in ACHIEVEMENTS
+        assert "dungeon_level_10" in ACHIEVEMENTS
+        assert "dungeon_100_kills" in ACHIEVEMENTS
+        assert "pacman_10000" in ACHIEVEMENTS
+        assert "pacman_no_dot_left" in ACHIEVEMENTS

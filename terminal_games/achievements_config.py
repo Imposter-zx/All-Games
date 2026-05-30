@@ -11,6 +11,7 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
     # Snake
     "snake_100": {"name": "Slither Master", "description": "Score 100 in Snake", "xp": 200},
     "snake_500": {"name": "Python King", "description": "Score 500 in Snake", "xp": 500},
+    "snake_1000": {"name": "Anaconda", "description": "Score 1000 in Snake", "xp": 1000},
 
     # Tetris
     "tetris_1000": {"name": "Block Architect", "description": "Score 1000 in Tetris", "xp": 200},
@@ -23,18 +24,27 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
 
     # Pac-Man
     "pacman_clear": {"name": "Ghost Hunter", "description": "Clear a level in Pac-Man", "xp": 400},
+    "pacman_10000": {"name": "Wakka Wizard", "description": "Score 10000 in Pac-Man", "xp": 600},
+    "pacman_no_dot_left": {"name": "Clean Plate", "description": "Eat ALL dots in a Pac-Man level", "xp": 500},
 
     # Space Shooter
     "space_shooter_1000": {"name": "Space Ace", "description": "Score 1000 in Space Shooter", "xp": 300},
+    "space_shooter_5000": {"name": "Galactic Lord", "description": "Score 5000 in Space Shooter", "xp": 800},
+    "space_shooter_10000": {"name": "Universe Master", "description": "Score 10000 in Space Shooter", "xp": 2000},
 
     # Breakout
     "breakout_win": {"name": "Wall Breaker", "description": "Clear all bricks in Breakout", "xp": 400},
+    "breakout_500": {"name": "Brick Layer", "description": "Score 500 in Breakout", "xp": 300},
+    "breakout_no_death": {"name": "Untouchable",
+                          "description": "Clear a Breakout level without losing a life", "xp": 800},
 
     # Chess
     "chess_win": {"name": "Grandmaster", "description": "Win a game of Chess", "xp": 500},
 
     # Dungeon
     "dungeon_escape": {"name": "Legendary Hero", "description": "Escape the dungeon level 5", "xp": 1000},
+    "dungeon_level_10": {"name": "Immortal", "description": "Reach dungeon level 10", "xp": 2000},
+    "dungeon_100_kills": {"name": "Slayer", "description": "Kill 100 monsters in Dungeon", "xp": 500},
 
     # 2048
     "2048_rookie": {"name": "Halfway There", "description": "Reach the 512 tile in 2048", "xp": 200},

@@ -7,7 +7,6 @@ from typing import Optional
 
 from arcade_utils import (
     C_BLACK,
-    C_BLUE,
     C_BOLD,
     C_CYAN,
     C_GREEN,
@@ -86,6 +85,14 @@ GAMES: list[str] = [
 ]
 
 
+def _format_time(seconds: int) -> str:
+    m, s = divmod(seconds, 60)
+    if m >= 60:
+        h, m = divmod(m, 60)
+        return f"{h}h{m}m"
+    return f"{m}m{s}s" if m else f"{s}s"
+
+
 def draw_profile() -> None:
     """Render the high-score and XP profile."""
     mgr = get_stats_manager()
@@ -95,14 +102,10 @@ def draw_profile() -> None:
     box_width = min(50, term_width - 4)
 
     total_score = 0
+    total_played = 0
     for game in GAMES:
         total_score += mgr.get_high_score(game)
-
-    m_wins_data = mgr.get_stats("minesweeper").get('wins', {})
-    m_wins = sum(m_wins_data.values()) if isinstance(m_wins_data, dict) else 0
-    c_wins = mgr.get_stats("chess").get("wins", 0)
-    p_wins = mgr.get_stats("pacman").get("wins", 0)
-    d_max = mgr.get_stats("dungeon").get("max_level", 1)
+        total_played += mgr.get_game_play_count(game)
 
     level, xp, progress = mgr.get_level_and_xp()
     achievements = mgr.get_unlocked_achievements()
@@ -111,39 +114,50 @@ def draw_profile() -> None:
     xp_bar = f"[{C_GREEN}{u_safe('█', '#') * filled}{C_BLACK}{u_safe('░', '-') * (bar_width - filled)}{C_WHITE}]"
     level_bar = f"[{C_YELLOW}{u_safe('★', '*') * (level % 5)}{C_WHITE}]"
 
+    total_time = sum(mgr.get_game_total_time(g) for g in GAMES)
+
     profile_lines: list[str] = [
-        f"LEVEL: {level} {level_bar}",
-        f"XP: {xp} {xp_bar}",
-        f"{u_safe('🏆', 'A')} ACHIEVEMENTS: {C_YELLOW}{len(achievements)}{C_WHITE}",
+        f"LV:{level} {level_bar} XP:{xp} {xp_bar}",
+        f"{u_safe('🏆', 'A')} {len(achievements)}ach  {u_safe('🎯', 'S')} {total_score}pts  "
+        f"{u_safe('🕹️', 'G')} {total_played}plays  {u_safe('⏱️', 'T')} {_format_time(total_time)}",
         u_safe("══════════════════════════════", "------------------------------"),
-        f"{u_safe('🎯', 'S')} TOTAL SCORE: {C_YELLOW}{total_score}{C_WHITE}",
-        f"{u_safe('🐍', 'S')} Snake Best        : {C_GREEN}{mgr.get_high_score('snake')}{C_WHITE}",
-        f"{u_safe('🧱', 'B')} Breakout Best     : {C_CYAN}{mgr.get_high_score('breakout')}{C_WHITE}",
-        f"{u_safe('🚀', 'X')} Shooter High      : {C_MAGENTA}{mgr.get_high_score('space_shooter')}{C_WHITE}",
-        f"{u_safe('🧩', 'T')} Tetris Best       : {C_BLUE}{mgr.get_high_score('tetris')}{C_WHITE}",
-        f"{u_safe('🟡', 'P')} Pacman Wins       : {C_YELLOW}{p_wins}{C_WHITE}",
-        f"{u_safe('💣', 'M')} Minesweeper Wins  : {C_RED}{m_wins}{C_WHITE}",
-        f"{u_safe('⚔️', 'D')} Dungeon Max Lvl   : {C_MAGENTA}{d_max}{C_WHITE}",
-        f"{u_safe('♟️', 'C')} Chess Wins        : {C_WHITE}{c_wins}{C_WHITE}",
-        f"{u_safe('🔢', '#')} Sudoku Wins       : {C_GREEN}{mgr.get_stats('sudoku').get('wins', 0)}{C_WHITE}",
-        f"{u_safe('🔢', '2')} 2048 Best         : {C_YELLOW}{mgr.get_high_score('2048')}{C_WHITE}",
-        f"{u_safe('🏓', 'O')} Pong High         : {C_BLUE}{mgr.get_high_score('pong')}{C_WHITE}",
-        f"{u_safe('☄️', 'A')} Asteroids High    : {C_MAGENTA}{mgr.get_high_score('asteroids')}{C_WHITE}",
-        f"{u_safe('🐸', 'F')} Frogger High      : {C_GREEN}{mgr.get_high_score('frogger')}{C_WHITE}",
-        f"{u_safe('🐦', 'V')} Flappy High       : {C_YELLOW}{mgr.get_high_score('flappy')}{C_WHITE}",
-        f"{u_safe('🏎️', 'R')} Racing High       : {C_RED}{mgr.get_high_score('racing')}{C_WHITE}",
-        f"{u_safe('🃏', 'B')} Blackjack High    : {C_YELLOW}{mgr.get_high_score('blackjack')}{C_WHITE}",
-        f"{u_safe('🔴', 'C')} Connect4 High     : {C_BLUE}{mgr.get_high_score('connect_four')}{C_WHITE}",
-        f"{u_safe('📝', 'H')} Hangman Score     : {C_GREEN}{mgr.get_high_score('hangman')}{C_WHITE}",
-        f"{u_safe('❌', 'T')} Tic-Tac-Toe Score  : {C_MAGENTA}{mgr.get_high_score('tictactoe')}{C_WHITE}",
     ]
+
+    game_entries = [
+        ("snake", u_safe("🐍", "S")),
+        ("breakout", u_safe("🧱", "B")),
+        ("space_shooter", u_safe("🚀", "X")),
+        ("tetris", u_safe("🧩", "T")),
+        ("pacman", u_safe("🟡", "P")),
+        ("dungeon", u_safe("⚔️", "D")),
+        ("minesweeper", u_safe("💣", "M")),
+        ("chess", u_safe("♟️", "C")),
+        ("sudoku", u_safe("🔢", "#")),
+        ("2048", u_safe("🔢", "2")),
+        ("pong", u_safe("🏓", "O")),
+        ("asteroids", u_safe("☄️", "A")),
+        ("frogger", u_safe("🐸", "F")),
+        ("flappy", u_safe("🐦", "V")),
+        ("racing", u_safe("🏎️", "R")),
+        ("blackjack", u_safe("🃏", "B")),
+        ("connect_four", u_safe("🔴", "C")),
+        ("hangman", u_safe("📝", "H")),
+        ("wordle", u_safe("🔤", "W")),
+        ("tictactoe", u_safe("❌", "T")),
+    ]
+
+    for gname, icon in game_entries:
+        hs = mgr.get_high_score(gname)
+        pc = mgr.get_game_play_count(gname)
+        gt = _format_time(mgr.get_game_total_time(gname))
+        profile_lines.append(f"{icon} {hs:>6}  {pc:>2}pl  {gt}")
 
     if achievements:
         from achievements_config import get_achievement
         recent_ids = achievements[-2:]
         ach_names = [get_achievement(aid)['name'] for aid in recent_ids if get_achievement(aid)]
         if ach_names:
-            profile_lines.append("══════════════════════════════")
+            profile_lines.append(u_safe("══════════════════════════════", "------------------------------"))
             profile_lines.append(f"RECENT: {', '.join(ach_names)}")
 
     draw_retro_box(box_width, f"{u_safe('👤', '')} {player_name}", profile_lines, color=C_WHITE, title_color=C_CYAN)
