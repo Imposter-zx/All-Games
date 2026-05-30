@@ -431,6 +431,8 @@ def show_shortcuts() -> None:
         f"  {C_GREEN}1-20{C_RESET}          Quick-select game by number",
         f"  {C_GREEN}UP/DOWN{C_RESET}       Navigate menu",
         f"  {C_GREEN}ENTER{C_RESET}          Launch selected game",
+        f"  {C_GREEN}A{C_RESET}              View achievements",
+        f"  {C_GREEN}R{C_RESET}              View recent activity",
         f"  {C_GREEN}L{C_RESET}              Open leaderboard (local + online)",
         f"  {C_GREEN}S{C_RESET}              Open settings",
         f"  {C_GREEN}H / ?{C_RESET}          Show this help",
@@ -452,6 +454,110 @@ def show_shortcuts() -> None:
     ]
     for line in lines:
         print(line)
+    get_key()
+
+
+def show_achievements() -> None:
+    """Display all achievements with unlock status."""
+    from achievements_config import ACHIEVEMENTS
+    from arcade_utils import get_key
+    mgr = get_stats_manager()
+    unlocked = set(mgr.get_unlocked_achievements())
+
+    # Group achievements by game
+    groups: dict = {}
+    for aid, ach in ACHIEVEMENTS.items():
+        group = "General"
+        for g in GAMES:
+            if aid.startswith(g):
+                group = g.replace("_", " ").title()
+                break
+        groups.setdefault(group, []).append((aid, ach))
+
+    clear_screen()
+    print("\n" * 1)
+
+    total = len(ACHIEVEMENTS)
+    page = 0
+    per_page = 14
+
+    while True:
+        clear_screen()
+        print("\n" * 1)
+
+        ordered = sorted(groups.items())
+        lines: list[str] = []
+        count = 0
+        start = page * per_page
+        end = start + per_page
+
+        for group_name, achs in ordered:
+            if count >= end:
+                break
+            for aid, ach in achs:
+                if count < start:
+                    count += 1
+                    continue
+                if count >= end:
+                    break
+                status = f"{C_GREEN}✓{C_RESET}" if aid in unlocked else f"{C_RED}✗{C_RESET}"
+                lines.append(f" {status} {ach['name']:<18} {C_YELLOW}{ach['xp']:>4}xp{C_RESET}")
+                count += 1
+            if count < end and count >= start:
+                lines.append("")
+
+        if total > per_page:
+            pages = (total + per_page - 1) // per_page
+            lines.append(f"{C_CYAN}Page {page + 1}/{pages}  [← →] Navigate{C_RESET}")
+        lines.append(f"{C_WHITE}[Any Key] Back  {C_GREEN}{len(unlocked)}/{total} unlocked{C_RESET}")
+
+        draw_retro_box(min(50, get_terminal_size()[0] - 4), "ACHIEVEMENTS", lines, color=C_YELLOW)
+
+        key = get_key()
+        if key in ["left"] and page > 0:
+            page -= 1
+        elif key in ["right"] and (page + 1) * per_page < total:
+            page += 1
+        else:
+            break
+
+
+def show_recent_activity() -> None:
+    """Display recent play sessions."""
+    from arcade_utils import get_key
+    mgr = get_stats_manager()
+    sessions = mgr.get_recent_sessions(10)
+
+    clear_screen()
+    print("\n" * 1)
+
+    if not sessions:
+        lines = [f"{C_YELLOW}No games played yet!{C_RESET}",
+                 "", f"{C_WHITE}Play a game to see your activity here.{C_RESET}"]
+        draw_retro_box(40, "RECENT ACTIVITY", lines, color=C_YELLOW)
+        print(f"\n{C_WHITE}[Any Key] Back{C_RESET}")
+        get_key()
+        return
+
+    lines: list[str] = []
+    for s in sessions:
+        gname = s.get('game_name', '').replace('_', ' ').title()[:12]
+        score = s.get('score', 0)
+        xp = s.get('xp_earned', 0)
+        dur = int(s.get('duration_seconds', 0))
+        diff = s.get('difficulty', 'normal').upper()[:4]
+        m, sec = divmod(dur, 60)
+        time_str = f"{m}m{sec}s" if m else f"{sec}s"
+        lines.append(
+            f"{C_CYAN}{gname:<12}{C_RESET} "
+            f"{C_GREEN}{score:>6}{C_RESET} "
+            f"{C_YELLOW}{xp:>4}xp{C_RESET} "
+            f"{C_WHITE}{time_str:>6}{C_RESET} "
+            f"{C_MAGENTA}{diff:>4}{C_RESET}"
+        )
+
+    draw_retro_box(min(50, get_terminal_size()[0] - 4), "RECENT ACTIVITY", lines, color=C_CYAN)
+    print(f"\n{C_WHITE}[Any Key] Back{C_RESET}")
     get_key()
 
 
@@ -623,6 +729,16 @@ def main() -> None:
         elif key and key.lower() == 'q':
             renderer.show_cursor()
             break
+        elif key and key.lower() == 'a':
+            stop_background_music()
+            show_achievements()
+            renderer.clear()
+            start_background_music()
+        elif key and key.lower() == 'r':
+            stop_background_music()
+            show_recent_activity()
+            renderer.clear()
+            start_background_music()
         elif key and key.lower() == 'l':
             show_leaderboard()
             renderer.clear()
