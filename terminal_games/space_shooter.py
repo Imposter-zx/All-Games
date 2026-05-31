@@ -127,6 +127,8 @@ class SpaceShooterGame(BaseGame):
             return
         if self._save_and_quit(k):
             return
+        if k == 'p':
+            self._pause_game()
         if k == 'h':
             show_popup("SPACE SHOOTER: Move LEFT/RIGHT, shoot SPACE. Don't let enemies past you!", C_MAGENTA, delay=1.5)
             return

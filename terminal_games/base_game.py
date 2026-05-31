@@ -5,7 +5,15 @@ import time
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 
-from arcade_utils import Renderer, beep, show_popup
+from arcade_utils import (
+    C_GREEN,
+    C_RED,
+    C_RESET,
+    C_YELLOW,
+    Renderer,
+    beep,
+    show_popup,
+)
 from stats_manager import get_stats_manager
 from xp_config import get_xp_system
 
@@ -109,6 +117,23 @@ class BaseGame(ABC):
             self.game_over = True
             return True
         return False
+
+    def _pause_game(self) -> None:
+        show_popup(f"{C_YELLOW}PAUSED{C_RESET} — Press {C_GREEN}P{C_RESET} to resume or {C_RED}Q{C_RESET} to quit",
+                   delay=0.0)
+        from input_handler import get_safe_input_handler
+        ih = get_safe_input_handler()
+        while True:
+            k = ih.get_safe_key()
+            if k == 'p':
+                break
+            if k and k.lower() == 'q':
+                self._save_and_quit('q')
+                self.game_over = True
+                break
+            if k == '?':
+                show_popup("P = Resume  Q = Quit (saves progress)", delay=1.0)
+            time.sleep(0.05)
 
     def _prompt_resume(self) -> bool:
         if self.has_saved_state():

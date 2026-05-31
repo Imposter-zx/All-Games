@@ -143,6 +143,8 @@ class BreakoutGame(BaseGame):
             return
         if self._save_and_quit(k):
             return
+        if k == 'p':
+            self._pause_game()
         if k == 'h':
             show_popup("BREAKOUT: Destroy all bricks with the ball. Move paddle with LEFT/RIGHT.", C_CYAN, delay=1.5)
             return

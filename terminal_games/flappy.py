@@ -139,6 +139,8 @@ class FlappyGame(BaseGame):
             return
         if self._save_and_quit(k):
             return
+        if k == 'p':
+            self._pause_game()
         if k == 'h':
             show_popup("FLAPPY BIRD: Press UP/SPACE to flap. Navigate through the pipe gaps!", C_YELLOW, delay=1.5)
             return

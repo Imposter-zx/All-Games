@@ -130,6 +130,8 @@ class RacingGame(BaseGame):
             return
         if self._save_and_quit(k):
             return
+        if k == 'p':
+            self._pause_game()
         if k == 'h':
             show_popup("RACING: LEFT/RIGHT to steer. Dodge oncoming cars!", C_RED, delay=1.5)
             return

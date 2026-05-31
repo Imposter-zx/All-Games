@@ -412,6 +412,8 @@ class PongGame(BaseGame):
                     key = input_handler.get_safe_key()
                     if key and self._save_and_quit(key):
                         break
+                    if key == 'p':
+                        self._pause_game()
                     if key and key.lower() == 'h':
                         self._show_help()
 

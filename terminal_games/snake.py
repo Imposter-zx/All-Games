@@ -130,6 +130,8 @@ class SnakeGame(BaseGame):
             return
         if self._save_and_quit(k):
             return
+        if k == 'p':
+            self._pause_game()
         if k == 'h':
             show_popup("SNAKE: Eat food to grow and score. Don't hit walls or yourself!", C_GREEN, delay=1.5)
             return

@@ -209,6 +209,8 @@ class PacmanGame(BaseGame):
             return
         if self._save_and_quit(k):
             return
+        if k == 'p':
+            self._pause_game()
         if k == 'h':
             show_popup("Eat pellets. Power pellets let you eat ghosts! Avoid ghosts without power.", C_CYAN, delay=1.5)
             return

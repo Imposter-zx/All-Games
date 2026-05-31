@@ -159,6 +159,8 @@ class TetrisGame(BaseGame):
             return
         if self._save_and_quit(k):
             return
+        if k == 'p':
+            self._pause_game()
         if k == 'h':
             show_popup("TETRIS: UP=Rotate, DOWN=Drop, LEFT/RIGHT=Move. Clear full rows!", C_BLUE, delay=1.5)
             return
