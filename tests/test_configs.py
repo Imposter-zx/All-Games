@@ -12,7 +12,7 @@ ALL_GAMES = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing", "blackjack",
-    "connect_four", "hangman", "wordle", "tictactoe", "simon", "trivia",
+    "connect_four", "hangman", "wordle", "tictactoe", "simon", "trivia", "slots",
 ]
 
 
@@ -63,3 +63,6 @@ class TestAchievements:
         assert "trivia_first_win" in ACHIEVEMENTS
         assert "trivia_perfect" in ACHIEVEMENTS
         assert "trivia_grade_a" in ACHIEVEMENTS
+        assert "slots_first_spin" in ACHIEVEMENTS
+        assert "slots_jackpot" in ACHIEVEMENTS
+        assert "slots_100_spins" in ACHIEVEMENTS

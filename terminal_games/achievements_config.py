@@ -114,6 +114,16 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                         "description": "Win 5 Trivia games in a row", "xp": 1000},
     "trivia_grade_a": {"name": "Honor Student",
                        "description": "Score an A grade in Trivia", "xp": 500},
+
+    # Slots
+    "slots_first_spin": {"name": "First Spin",
+                         "description": "Spin the slots for the first time", "xp": 50},
+    "slots_jackpot": {"name": "Jackpot!",
+                      "description": "Hit the jackpot (3 SEVENS)", "xp": 2000},
+    "slots_100_spins": {"name": "Slot Addict",
+                        "description": "Spin 100 times", "xp": 500},
+    "slots_500_coins": {"name": "High Roller",
+                        "description": "Accumulate 500 coins", "xp": 1000},
 }
 
 
