@@ -135,10 +135,23 @@ WORD_LENGTH = 5
 WORD_POOL = [w for w in WORD_POOL if len(w) == WORD_LENGTH]
 
 
+def _daily_seed() -> int:
+    import datetime
+    import hashlib
+    today = datetime.date.today().isoformat()
+    return int(hashlib.md5(today.encode()).hexdigest()[:8], 16)
+
+
+def _daily_word() -> str:
+    rng = random.Random(_daily_seed())
+    return rng.choice(WORD_POOL).upper()
+
+
 class WordleGame(BaseGame):
-    def __init__(self, difficulty: str = 'normal') -> None:
+    def __init__(self, difficulty: str = 'normal', daily: bool = False) -> None:
         super().__init__('wordle', difficulty)
-        self.target = random.choice(WORD_POOL).upper()
+        self.daily = daily
+        self.target = _daily_word() if daily else random.choice(WORD_POOL).upper()
         self.attempts: List[str] = []
         self.max_attempts = 6
         self.used_letters: dict = {}
@@ -216,11 +229,15 @@ class WordleGame(BaseGame):
             print(line)
 
     def _render(self) -> None:
-        lines: list = [
-            f"{C_CYAN}ROUND {self.round}{C_RESET}   DIFFICULTY: {self.difficulty.upper()}",
-            "",
-        ]
-        draw_retro_box(30, f"WORDLE ({WORD_LENGTH} LETTERS)", lines, color=C_GREEN)
+        title = "DAILY WORDLE" if self.daily else f"WORDLE ({WORD_LENGTH} LETTERS)"
+        subtitle = ""
+        if self.daily:
+            import datetime
+            subtitle = f"{C_YELLOW}Daily Puzzle — {datetime.date.today().strftime('%b %d, %Y')}{C_RESET}"
+        else:
+            subtitle = f"{C_CYAN}ROUND {self.round}{C_RESET}   DIFFICULTY: {self.difficulty.upper()}"
+        lines: list = [subtitle, ""]
+        draw_retro_box(30, title, lines, color=C_GREEN)
 
     def play(self) -> dict:
         self.start_timer()
@@ -247,6 +264,9 @@ class WordleGame(BaseGame):
                 if len(self.attempts) >= self.max_attempts:
                     show_popup(f"GAME OVER! The word was {self.target}", C_RED, delay=2.0)
                     self.award_xp_for_action(10)
+                    if self.daily:
+                        self.game_over = True
+                        break
                     self.round += 1
                     self.target = random.choice(WORD_POOL).upper()
                     self.attempts = []
@@ -262,6 +282,9 @@ class WordleGame(BaseGame):
                     beep("win")
                     show_popup(f"CORRECT! The word was {self.target}", C_GREEN, delay=1.5)
                     self.unlock_achievement("wordle_win", "Wordle Wizard")
+                    if self.daily:
+                        self.game_over = True
+                        break
                     self.round += 1
                     self.target = random.choice(WORD_POOL).upper()
                     self.attempts = []
@@ -339,6 +362,38 @@ class WordleGame(BaseGame):
             return final_stats
 
 
+def _select_wordle_mode() -> str:
+    from arcade_utils import C_CYAN, C_RESET, C_WHITE, C_YELLOW, beep, clear_screen, draw_retro_box, get_key
+    options = ["Normal (endless rounds)", "Daily Puzzle (one per day)"]
+    sel = 0
+    while True:
+        clear_screen()
+        print("\n" * 2)
+        lines = []
+        for i, opt in enumerate(options):
+            m = f"{C_YELLOW}►{C_RESET} " if i == sel else "  "
+            s = f"{C_YELLOW}" if i == sel else f"{C_WHITE}"
+            lines.append(f"{m}{s}{opt}{C_RESET}")
+        draw_retro_box(34, "WORDLE MODE", lines, color=C_CYAN)
+        print(f"\n  {C_WHITE}[UP/DOWN] Select  [ENTER] Confirm  [Q] Back{C_RESET}")
+        key = get_key()
+        if key == "up":
+            sel = (sel - 1) % len(options)
+            beep("move")
+        elif key == "down":
+            sel = (sel + 1) % len(options)
+            beep("move")
+        elif key in ["\r", "\n", " ", "enter"]:
+            beep("win")
+            return "daily" if sel == 1 else "normal"
+        elif key and key.lower() == "q":
+            return ""
+
+
 def play_wordle(difficulty: str = 'normal') -> dict:
-    game = WordleGame(difficulty)
+    mode = _select_wordle_mode()
+    if not mode:
+        return {"score": 0, "xp_earned": 0, "duration_seconds": 0, "high_score": 0}
+    daily = mode == "daily"
+    game = WordleGame(difficulty, daily=daily)
     return game.play()
