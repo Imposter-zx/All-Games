@@ -12,7 +12,7 @@ ALL_GAMES = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing", "blackjack",
-    "connect_four", "hangman", "wordle", "tictactoe",
+    "connect_four", "hangman", "wordle", "tictactoe", "simon",
 ]
 
 
@@ -58,3 +58,5 @@ class TestAchievements:
         assert "dungeon_100_kills" in ACHIEVEMENTS
         assert "pacman_10000" in ACHIEVEMENTS
         assert "pacman_no_dot_left" in ACHIEVEMENTS
+        assert "simon_first_win" in ACHIEVEMENTS
+        assert "simon_streak_3" in ACHIEVEMENTS

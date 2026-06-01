@@ -57,6 +57,7 @@ from minesweeper import play_minesweeper
 from pacman import play_pacman
 from pong import play_pong
 from racing import play_racing
+from simon import play_simon
 from snake import play_snake
 from space_shooter import play_space_shooter
 from sudoku import play_sudoku
@@ -81,7 +82,7 @@ GAMES: list[str] = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing",
-    "blackjack", "connect_four", "hangman", "wordle", "tictactoe"
+    "blackjack", "connect_four", "hangman", "wordle", "tictactoe", "simon"
 ]
 
 
@@ -144,6 +145,7 @@ def draw_profile() -> None:
         ("hangman", u_safe("📝", "H")),
         ("wordle", u_safe("🔤", "W")),
         ("tictactoe", u_safe("❌", "T")),
+        ("simon", u_safe("🎨", "S")),
     ]
 
     for gname, icon in game_entries:
@@ -181,7 +183,7 @@ def print_menu(selection: int, renderer: Renderer) -> None:
             "5.Pac-Man 6.Dungeon  7.Mineswp  8.Chess",
             "9.Sudoku  10.2048   11.Pong   12.Asteroid",
             "13.Frogger 14.Flappy 15.Racing 16.Blackjack",
-            "17.Connect4 18.Hangman 19.Wordle 20.TTT",
+            "17.Connect4 18.Hangman 19.Wordle 20.TTT 21.Simon",
             "L.Leaderboard  S.Settings  H.Help  Q.Quit",
         ]
         menu_cols = 30
@@ -207,6 +209,7 @@ def print_menu(selection: int, renderer: Renderer) -> None:
             f"18. {u_safe('📝', 'H')} Hangman",
             f"19. {u_safe('🔤', 'W')} Wordle",
             f"20. {u_safe('❌', 'T')} Tic-Tac-Toe",
+            f"21. {u_safe('🎨', 'S')} Simon Says",
             f"L. {u_safe('🏆', 'L')} Leaderboard",
             f"S. {u_safe('⚙️', 'S')} Settings",
             "H. Tutorial",
@@ -428,7 +431,7 @@ def show_shortcuts() -> None:
         f"{C_BOLD}{C_YELLOW}ARCADE KEYBOARD SHORTCUTS{C_RESET}",
         "",
         f"{C_CYAN}ARCADE MENU{C_RESET}",
-        f"  {C_GREEN}1-20{C_RESET}          Quick-select game by number",
+        f"  {C_GREEN}1-21{C_RESET}          Quick-select game by number",
         f"  {C_GREEN}UP/DOWN{C_RESET}       Navigate menu",
         f"  {C_GREEN}ENTER{C_RESET}          Launch selected game",
         f"  {C_GREEN}A{C_RESET}              View achievements",
@@ -448,7 +451,7 @@ def show_shortcuts() -> None:
         "  1-Snake  2-Breakout  3-Shooter  4-Tetris  5-Pac-Man",
         "  6-Dungeon  7-Minesweeper  8-Chess  9-Sudoku  10-2048",
         "  11-Pong  12-Asteroids  13-Frogger  14-Flappy  15-Racing",
-        "  16-Blackjack  17-Connect Four  18-Hangman  19-Wordle",
+        "  16-Blackjack  17-Connect Four  18-Hangman  19-Wordle  20-TTT",
         "",
         f"{C_WHITE}Press any key to return...{C_RESET}",
     ]
@@ -626,7 +629,7 @@ def main() -> None:
         print(f"{C_YELLOW}Resize your terminal and restart.{C_RESET}")
         input(f"\n{C_WHITE}Press ENTER to continue anyway...{C_RESET}")
     selection = 0
-    num_options = 24
+    num_options = 25
 
     renderer = Renderer(fps=60)
     input_handler = get_safe_input_handler()
@@ -653,7 +656,7 @@ def main() -> None:
             stop_background_music()
 
             difficulty: Optional[str] = None
-            if selection < 20:
+            if selection < 21:
                 difficulty = select_game_difficulty()
                 if not difficulty:
                     start_background_music()
@@ -706,12 +709,14 @@ def main() -> None:
             elif selection == 19:
                 _play_and_submit(play_tictactoe, "Tic-Tac-Toe", difficulty)
             elif selection == 20:
-                show_leaderboard()
+                _play_and_submit(play_simon, "Simon Says", difficulty)
             elif selection == 21:
-                show_settings()
+                show_leaderboard()
             elif selection == 22:
-                show_tutorial()
+                show_settings()
             elif selection == 23:
+                show_tutorial()
+            elif selection == 24:
                 break
 
             renderer.clear()

@@ -94,6 +94,14 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                           "description": "Win without the opponent making a single move", "xp": 500},
     "tictactoe_streak": {"name": "Tic-Tac-Toe Streak", "description": "Win 3 Tic-Tac-Toe games in a row", "xp": 300},
     "tictactoe_streak_5": {"name": "Unstoppable", "description": "Win 5 Tic-Tac-Toe games in a row", "xp": 1000},
+
+    # Simon Says
+    "simon_first_win": {"name": "Simon Says Champion",
+                        "description": "Complete a round in Simon Says", "xp": 150},
+    "simon_streak_3": {"name": "Simon Streak",
+                       "description": "Win 3 Simon Says games in a row", "xp": 300},
+    "simon_streak_5": {"name": "Memory Master",
+                       "description": "Win 5 Simon Says games in a row", "xp": 800},
 }
 
 
