@@ -124,6 +124,16 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                         "description": "Spin 100 times", "xp": 500},
     "slots_500_coins": {"name": "High Roller",
                         "description": "Accumulate 500 coins", "xp": 1000},
+
+    # Memory
+    "memory_first_win": {"name": "First Match",
+                         "description": "Complete your first Memory game", "xp": 100},
+    "memory_perfect": {"name": "Perfect Memory",
+                       "description": "Complete a game with 0 extra attempts", "xp": 1500},
+    "memory_streak_3": {"name": "Memory Streak",
+                        "description": "Win 3 Memory games in a row", "xp": 300},
+    "memory_streak_5": {"name": "Memory Legend",
+                        "description": "Win 5 Memory games in a row", "xp": 1000},
 }
 
 
