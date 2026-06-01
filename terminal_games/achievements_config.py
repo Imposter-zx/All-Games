@@ -102,6 +102,18 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                        "description": "Win 3 Simon Says games in a row", "xp": 300},
     "simon_streak_5": {"name": "Memory Master",
                        "description": "Win 5 Simon Says games in a row", "xp": 800},
+
+    # Trivia
+    "trivia_first_win": {"name": "Trivia Novice",
+                         "description": "Complete your first Trivia game", "xp": 100},
+    "trivia_perfect": {"name": "Trivia Genius",
+                       "description": "Answer every question correctly", "xp": 1000},
+    "trivia_streak_3": {"name": "Trivia Streak",
+                        "description": "Win 3 Trivia games in a row", "xp": 300},
+    "trivia_streak_5": {"name": "Trivia Legend",
+                        "description": "Win 5 Trivia games in a row", "xp": 1000},
+    "trivia_grade_a": {"name": "Honor Student",
+                       "description": "Score an A grade in Trivia", "xp": 500},
 }
 
 
