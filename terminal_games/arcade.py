@@ -36,6 +36,7 @@ logger = setup_logger()
 
 import online_leaderboard as olb
 from asteroids import play_asteroids
+from battleship import play_battleship
 from blackjack import play_blackjack
 from breakout import play_breakout
 
@@ -85,7 +86,7 @@ GAMES: list[str] = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing",
-    "blackjack", "connect_four", "hangman", "wordle", "tictactoe", "simon", "trivia", "slots", "memory"
+    "blackjack", "connect_four", "hangman", "wordle", "tictactoe", "simon", "trivia", "slots", "memory", "battleship"
 ]
 
 
@@ -417,7 +418,7 @@ def show_tutorial() -> None:
         "  Dungeon Crawler, Minesweeper, Chess, Sudoku, 2048,",
         "  Pong, Asteroids, Frogger, Flappy Bird, Racing,",
         "  Blackjack, Connect Four, Hangman, Wordle, Tic-Tac-Toe,",
-        "  Simon Says, Trivia, Slots, Memory",
+        "  Simon Says, Trivia, Slots, Memory, Battleship",
         "",
         f"{C_WHITE}Press any key to return to menu...{C_RESET}"
     ]
@@ -435,7 +436,7 @@ def show_shortcuts() -> None:
         f"{C_BOLD}{C_YELLOW}ARCADE KEYBOARD SHORTCUTS{C_RESET}",
         "",
         f"{C_CYAN}ARCADE MENU{C_RESET}",
-        f"  {C_GREEN}1-24{C_RESET}          Quick-select game by number",
+        f"  {C_GREEN}1-25{C_RESET}          Quick-select game by number",
         f"  {C_GREEN}UP/DOWN{C_RESET}       Navigate menu",
         f"  {C_GREEN}ENTER{C_RESET}          Launch selected game",
         f"  {C_GREEN}A{C_RESET}              View achievements",
@@ -456,7 +457,7 @@ def show_shortcuts() -> None:
         "  6-Dungeon  7-Minesweeper  8-Chess  9-Sudoku  10-2048",
         "  11-Pong  12-Asteroids  13-Frogger  14-Flappy  15-Racing",
         "  16-Blackjack  17-Connect Four  18-Hangman  19-Wordle  20-TTT",
-        "  21-Simon  22-Trivia  23-Slots  24-Memory",
+        "  21-Simon  22-Trivia  23-Slots  24-Memory  25-Battleship",
         "",
         f"{C_WHITE}Press any key to return...{C_RESET}",
     ]
@@ -634,7 +635,7 @@ def main() -> None:
         print(f"{C_YELLOW}Resize your terminal and restart.{C_RESET}")
         input(f"\n{C_WHITE}Press ENTER to continue anyway...{C_RESET}")
     selection = 0
-    num_options = 28
+    num_options = 29
 
     renderer = Renderer(fps=60)
     input_handler = get_safe_input_handler()
@@ -661,7 +662,7 @@ def main() -> None:
             stop_background_music()
 
             difficulty: Optional[str] = None
-            if selection < 24:
+            if selection < 25:
                 difficulty = select_game_difficulty()
                 if not difficulty:
                     start_background_music()
@@ -722,12 +723,14 @@ def main() -> None:
             elif selection == 23:
                 _play_and_submit(play_memory, "Memory", difficulty)
             elif selection == 24:
-                show_leaderboard()
+                _play_and_submit(play_battleship, "Battleship", difficulty)
             elif selection == 25:
-                show_settings()
+                show_leaderboard()
             elif selection == 26:
-                show_tutorial()
+                show_settings()
             elif selection == 27:
+                show_tutorial()
+            elif selection == 28:
                 break
 
             renderer.clear()

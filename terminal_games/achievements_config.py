@@ -134,6 +134,16 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                         "description": "Win 3 Memory games in a row", "xp": 300},
     "memory_streak_5": {"name": "Memory Legend",
                         "description": "Win 5 Memory games in a row", "xp": 1000},
+
+    # Battleship
+    "battleship_first_win": {"name": "First Blood",
+                             "description": "Win your first Battleship game", "xp": 200},
+    "battleship_perfect": {"name": "Perfect Victory",
+                           "description": "Win without losing any ships", "xp": 2000},
+    "battleship_streak_3": {"name": "Naval Commander",
+                            "description": "Win 3 Battleship games in a row", "xp": 500},
+    "battleship_fast_win": {"name": "Speed Demon",
+                            "description": "Win in under 15 turns", "xp": 1000},
 }
 
 

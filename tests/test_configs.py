@@ -12,7 +12,7 @@ ALL_GAMES = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing", "blackjack",
-    "connect_four", "hangman", "wordle", "tictactoe", "simon", "trivia", "slots", "memory",
+    "connect_four", "hangman", "wordle", "tictactoe", "simon", "trivia", "slots", "memory", "battleship",
 ]
 
 
@@ -69,3 +69,6 @@ class TestAchievements:
         assert "memory_first_win" in ACHIEVEMENTS
         assert "memory_perfect" in ACHIEVEMENTS
         assert "memory_streak_3" in ACHIEVEMENTS
+        assert "battleship_first_win" in ACHIEVEMENTS
+        assert "battleship_perfect" in ACHIEVEMENTS
+        assert "battleship_fast_win" in ACHIEVEMENTS
