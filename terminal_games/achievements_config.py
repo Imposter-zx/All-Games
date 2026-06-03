@@ -144,6 +144,14 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                             "description": "Win 3 Battleship games in a row", "xp": 500},
     "battleship_fast_win": {"name": "Speed Demon",
                             "description": "Win in under 15 turns", "xp": 1000},
+
+    # Crossword
+    "crossword_first_win": {"name": "Word Wizard",
+                            "description": "Complete your first Crossword", "xp": 200},
+    "crossword_no_hints": {"name": "Pure Genius",
+                           "description": "Complete a Crossword without hints", "xp": 1500},
+    "crossword_streak_3": {"name": "Crossword Streak",
+                           "description": "Win 3 Crossword games in a row", "xp": 500},
 }
 
 
