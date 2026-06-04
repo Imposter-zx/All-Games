@@ -152,6 +152,16 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                            "description": "Complete a Crossword without hints", "xp": 1500},
     "crossword_streak_3": {"name": "Crossword Streak",
                            "description": "Win 3 Crossword games in a row", "xp": 500},
+
+    # Tower of Hanoi
+    "hanoi_first_win": {"name": "First Tower",
+                        "description": "Solve your first Tower of Hanoi", "xp": 200},
+    "hanoi_perfect": {"name": "Perfect Solution",
+                      "description": "Solve in minimum moves", "xp": 2000},
+    "hanoi_streak_3": {"name": "Hanoi Streak",
+                       "description": "Solve 3 Hanoi puzzles in a row", "xp": 500},
+    "hanoi_5_disks": {"name": "Master of Hanoi",
+                      "description": "Solve with 5 disks", "xp": 1000},
 }
 
 

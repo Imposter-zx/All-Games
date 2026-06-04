@@ -12,7 +12,8 @@ ALL_GAMES = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing", "blackjack",
-    "connect_four", "hangman", "wordle", "tictactoe", "simon", "trivia", "slots", "memory", "battleship", "crossword",
+    "connect_four", "hangman", "wordle", "tictactoe", "simon", "trivia",
+    "slots", "memory", "battleship", "crossword", "hanoi",
 ]
 
 
@@ -75,3 +76,6 @@ class TestAchievements:
         assert "crossword_first_win" in ACHIEVEMENTS
         assert "crossword_no_hints" in ACHIEVEMENTS
         assert "crossword_streak_3" in ACHIEVEMENTS
+        assert "hanoi_first_win" in ACHIEVEMENTS
+        assert "hanoi_perfect" in ACHIEVEMENTS
+        assert "hanoi_5_disks" in ACHIEVEMENTS

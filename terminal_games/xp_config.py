@@ -44,6 +44,7 @@ XP_CONFIGS: Dict[str, GameXPConfig] = {
     'memory': GameXPConfig(name='Memory', base_multiplier=1.5),
     'battleship': GameXPConfig(name='Battleship', base_multiplier=2.0),
     'crossword': GameXPConfig(name='Crossword', base_multiplier=2.0),
+    'hanoi': GameXPConfig(name='Tower of Hanoi', base_multiplier=1.5),
 }
 
 
