@@ -162,6 +162,16 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                        "description": "Solve 3 Hanoi puzzles in a row", "xp": 500},
     "hanoi_5_disks": {"name": "Master of Hanoi",
                       "description": "Solve with 5 disks", "xp": 1000},
+
+    # Typer
+    "typer_first_game": {"name": "First Typing Test",
+                         "description": "Complete your first typing test", "xp": 100},
+    "typer_wpm_50": {"name": "Fast Fingers",
+                     "description": "Achieve 50 WPM", "xp": 500},
+    "typer_wpm_80": {"name": "Speed Demon",
+                     "description": "Achieve 80 WPM", "xp": 1500},
+    "typer_accuracy_100": {"name": "Perfect Accuracy",
+                           "description": "Complete a game with 100% accuracy", "xp": 2000},
 }
 
 

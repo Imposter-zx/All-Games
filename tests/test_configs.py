@@ -13,7 +13,7 @@ ALL_GAMES = [
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing", "blackjack",
     "connect_four", "hangman", "wordle", "tictactoe", "simon", "trivia",
-    "slots", "memory", "battleship", "crossword", "hanoi",
+    "typer", "slots", "memory", "battleship", "crossword", "hanoi",
 ]
 
 
@@ -79,3 +79,6 @@ class TestAchievements:
         assert "hanoi_first_win" in ACHIEVEMENTS
         assert "hanoi_perfect" in ACHIEVEMENTS
         assert "hanoi_5_disks" in ACHIEVEMENTS
+        assert "typer_first_game" in ACHIEVEMENTS
+        assert "typer_wpm_50" in ACHIEVEMENTS
+        assert "typer_accuracy_100" in ACHIEVEMENTS
