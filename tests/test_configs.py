@@ -13,7 +13,7 @@ ALL_GAMES = [
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing", "blackjack",
     "connect_four", "hangman", "wordle", "tictactoe", "simon", "trivia",
-    "typer", "slots", "memory", "battleship", "crossword", "hanoi",
+    "typer", "slots", "memory", "battleship", "crossword", "hanoi", "solitaire",
 ]
 
 
@@ -82,3 +82,6 @@ class TestAchievements:
         assert "typer_first_game" in ACHIEVEMENTS
         assert "typer_wpm_50" in ACHIEVEMENTS
         assert "typer_accuracy_100" in ACHIEVEMENTS
+        assert "solitaire_first_win" in ACHIEVEMENTS
+        assert "solitaire_fast_win" in ACHIEVEMENTS
+        assert "solitaire_streak_3" in ACHIEVEMENTS

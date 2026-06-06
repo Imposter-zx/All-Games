@@ -172,6 +172,14 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                      "description": "Achieve 80 WPM", "xp": 1500},
     "typer_accuracy_100": {"name": "Perfect Accuracy",
                            "description": "Complete a game with 100% accuracy", "xp": 2000},
+
+    # Solitaire
+    "solitaire_first_win": {"name": "First Solitaire",
+                            "description": "Win your first Solitaire game", "xp": 300},
+    "solitaire_fast_win": {"name": "Speed Dealer",
+                           "description": "Win in under 100 moves", "xp": 1500},
+    "solitaire_streak_3": {"name": "Solitaire Streak",
+                           "description": "Win 3 Solitaire games in a row", "xp": 500},
 }
 
 

@@ -64,6 +64,7 @@ from racing import play_racing
 from simon import play_simon
 from slots import play_slots
 from snake import play_snake
+from solitaire import play_solitaire
 from space_shooter import play_space_shooter
 from sudoku import play_sudoku
 from tetris import play_tetris
@@ -90,7 +91,7 @@ GAMES: list[str] = [
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing",
     "blackjack", "connect_four", "hangman", "wordle", "tictactoe",
-    "simon", "trivia", "typer", "slots", "memory", "battleship", "crossword", "hanoi"
+    "simon", "trivia", "typer", "slots", "memory", "battleship", "crossword", "hanoi", "solitaire"
 ]
 
 
@@ -422,7 +423,7 @@ def show_tutorial() -> None:
         "  Dungeon Crawler, Minesweeper, Chess, Sudoku, 2048,",
         "  Pong, Asteroids, Frogger, Flappy Bird, Racing,",
         "  Blackjack, Connect Four, Hangman, Wordle, Tic-Tac-Toe,",
-        "  Simon Says, Trivia, Typer, Slots, Memory, Battleship, Crossword, Hanoi",
+        "  Simon Says, Trivia, Typer, Slots, Memory, Battleship, Crossword, Hanoi, Solitaire",
         "",
         f"{C_WHITE}Press any key to return to menu...{C_RESET}"
     ]
@@ -440,7 +441,7 @@ def show_shortcuts() -> None:
         f"{C_BOLD}{C_YELLOW}ARCADE KEYBOARD SHORTCUTS{C_RESET}",
         "",
         f"{C_CYAN}ARCADE MENU{C_RESET}",
-        f"  {C_GREEN}1-28{C_RESET}          Quick-select game by number",
+        f"  {C_GREEN}1-29{C_RESET}          Quick-select game by number",
         f"  {C_GREEN}UP/DOWN{C_RESET}       Navigate menu",
         f"  {C_GREEN}ENTER{C_RESET}          Launch selected game",
         f"  {C_GREEN}A{C_RESET}              View achievements",
@@ -463,6 +464,7 @@ def show_shortcuts() -> None:
         "  16-Blackjack  17-Connect Four  18-Hangman  19-Wordle  20-TTT",
         "  21-Simon  22-Trivia  23-Slots  24-Memory  25-Battleship",
         "  26-Crossword  27-Hanoi  28-Typer",
+        "  29-Solitaire",
         "",
         f"{C_WHITE}Press any key to return...{C_RESET}",
     ]
@@ -640,7 +642,7 @@ def main() -> None:
         print(f"{C_YELLOW}Resize your terminal and restart.{C_RESET}")
         input(f"\n{C_WHITE}Press ENTER to continue anyway...{C_RESET}")
     selection = 0
-    num_options = 32
+    num_options = 33
 
     renderer = Renderer(fps=60)
     input_handler = get_safe_input_handler()
@@ -667,7 +669,7 @@ def main() -> None:
             stop_background_music()
 
             difficulty: Optional[str] = None
-            if selection < 28:
+            if selection < 29:
                 difficulty = select_game_difficulty()
                 if not difficulty:
                     start_background_music()
@@ -739,12 +741,14 @@ def main() -> None:
             elif selection == 27:
                 _play_and_submit(play_typer, "Typer", difficulty)
             elif selection == 28:
-                show_leaderboard()
+                _play_and_submit(play_solitaire, "Solitaire", difficulty)
             elif selection == 29:
-                show_settings()
+                show_leaderboard()
             elif selection == 30:
-                show_tutorial()
+                show_settings()
             elif selection == 31:
+                show_tutorial()
+            elif selection == 32:
                 break
 
             renderer.clear()
