@@ -180,6 +180,14 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                            "description": "Win in under 100 moves", "xp": 1500},
     "solitaire_streak_3": {"name": "Solitaire Streak",
                            "description": "Win 3 Solitaire games in a row", "xp": 500},
+
+    # RPSLS
+    "rpsls_first_win": {"name": "First Blood",
+                        "description": "Win your first RPSLS match", "xp": 100},
+    "rpsls_perfect": {"name": "Perfect Match",
+                      "description": "Win a match 5-0", "xp": 1000},
+    "rpsls_streak_3": {"name": "RPSLS Streak",
+                       "description": "Win 3 RPSLS matches in a row", "xp": 300},
 }
 
 

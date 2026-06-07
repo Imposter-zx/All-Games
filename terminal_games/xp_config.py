@@ -47,6 +47,7 @@ XP_CONFIGS: Dict[str, GameXPConfig] = {
     'hanoi': GameXPConfig(name='Tower of Hanoi', base_multiplier=1.5),
     'typer': GameXPConfig(name='Typer', base_multiplier=2.0),
     'solitaire': GameXPConfig(name='Solitaire', base_multiplier=1.5),
+    'rpsls': GameXPConfig(name='RPSLS', base_multiplier=1.0),
 }
 
 
