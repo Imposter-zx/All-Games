@@ -48,6 +48,7 @@ XP_CONFIGS: Dict[str, GameXPConfig] = {
     'typer': GameXPConfig(name='Typer', base_multiplier=2.0),
     'solitaire': GameXPConfig(name='Solitaire', base_multiplier=1.5),
     'rpsls': GameXPConfig(name='RPSLS', base_multiplier=1.0),
+    'poker': GameXPConfig(name='Poker', base_multiplier=1.2),
 }
 
 

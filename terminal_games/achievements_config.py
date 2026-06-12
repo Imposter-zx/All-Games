@@ -188,6 +188,14 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                       "description": "Win a match 5-0", "xp": 1000},
     "rpsls_streak_3": {"name": "RPSLS Streak",
                        "description": "Win 3 RPSLS matches in a row", "xp": 300},
+
+    # Poker
+    "poker_royal": {"name": "Royal Flush!",
+                    "description": "Get a Royal Flush in Video Poker", "xp": 2000},
+    "poker_500": {"name": "Poker High Roller",
+                  "description": "Win 500+ total credits in Poker", "xp": 500},
+    "poker_1000": {"name": "Poker Millionaire",
+                   "description": "Reach 1000 credits in a Poker session", "xp": 1000},
 }
 
 
