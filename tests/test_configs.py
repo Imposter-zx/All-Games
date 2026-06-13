@@ -13,7 +13,8 @@ ALL_GAMES = [
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing", "blackjack",
     "connect_four", "hangman", "wordle", "tictactoe", "simon", "trivia",
-    "typer", "slots", "memory", "battleship", "crossword", "hanoi", "solitaire", "rpsls", "poker", "mastermind",
+    "typer", "slots", "memory", "battleship", "crossword", "hanoi",
+    "solitaire", "rpsls", "poker", "mastermind", "gomoku",
 ]
 
 
@@ -94,3 +95,5 @@ class TestAchievements:
         assert "mastermind_first_win" in ACHIEVEMENTS
         assert "mastermind_quick" in ACHIEVEMENTS
         assert "mastermind_perfect" in ACHIEVEMENTS
+        assert "gomoku_first_win" in ACHIEVEMENTS
+        assert "gomoku_streak_3" in ACHIEVEMENTS

@@ -204,6 +204,12 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                          "description": "Solve in 3 tries or fewer", "xp": 500},
     "mastermind_perfect": {"name": "Perfect Mind",
                            "description": "Solve in 1 try!", "xp": 2000},
+
+    # Gomoku
+    "gomoku_first_win": {"name": "First Five",
+                         "description": "Win your first Gomoku game", "xp": 100},
+    "gomoku_streak_3": {"name": "Gomoku Streak",
+                        "description": "Win 3 Gomoku games in a row", "xp": 500},
 }
 
 

@@ -54,6 +54,7 @@ except ImportError:
 from flappy import play_flappy
 from frogger import play_frogger
 from game_2048 import play_2048
+from gomoku import play_gomoku
 from hangman import play_hangman
 from hanoi import play_hanoi
 from mastermind import play_mastermind
@@ -95,7 +96,7 @@ GAMES: list[str] = [
     "pong", "asteroids", "frogger", "flappy", "racing",
     "blackjack", "connect_four", "hangman", "wordle", "tictactoe",
     "simon", "trivia", "typer", "slots", "memory", "battleship",
-    "crossword", "hanoi", "solitaire", "rpsls", "poker", "mastermind"
+    "crossword", "hanoi", "solitaire", "rpsls", "poker", "mastermind", "gomoku"
 ]
 
 
@@ -170,6 +171,7 @@ def draw_profile() -> None:
         ("rpsls", u_safe("🖐️ ", "R")),
         ("poker", u_safe("♠️ ", "P")),
         ("mastermind", u_safe("🧠", "M")),
+        ("gomoku", u_safe("⬛", "G")),
     ]
 
     for gname, icon in game_entries:
@@ -438,7 +440,8 @@ def show_tutorial() -> None:
         "  Dungeon Crawler, Minesweeper, Chess, Sudoku, 2048,",
         "  Pong, Asteroids, Frogger, Flappy Bird, Racing,",
         "  Blackjack, Connect Four, Hangman, Wordle, Tic-Tac-Toe,",
-        "  Simon Says, Trivia, Typer, Slots, Memory, Battleship, Crossword, Hanoi, Solitaire, RPSLS, Poker, Mastermind",
+        "  Simon Says, Trivia, Typer, Slots, Memory, Battleship, Crossword,",
+        "  Hanoi, Solitaire, RPSLS, Poker, Mastermind, Gomoku",
         "",
         f"{C_WHITE}Press any key to return to menu...{C_RESET}"
     ]
@@ -456,7 +459,7 @@ def show_shortcuts() -> None:
         f"{C_BOLD}{C_YELLOW}ARCADE KEYBOARD SHORTCUTS{C_RESET}",
         "",
         f"{C_CYAN}ARCADE MENU{C_RESET}",
-        f"  {C_GREEN}1-32{C_RESET}          Quick-select game by number",
+        f"  {C_GREEN}1-33{C_RESET}          Quick-select game by number",
         f"  {C_GREEN}UP/DOWN{C_RESET}       Navigate menu",
         f"  {C_GREEN}ENTER{C_RESET}          Launch selected game",
         f"  {C_GREEN}A{C_RESET}              View achievements",
@@ -479,7 +482,7 @@ def show_shortcuts() -> None:
         "  16-Blackjack  17-Connect Four  18-Hangman  19-Wordle  20-TTT",
         "  21-Simon  22-Trivia  23-Slots  24-Memory  25-Battleship",
         "  26-Crossword  27-Hanoi  28-Typer",
-        "  29-Solitaire  30-RPSLS  31-Poker  32-Mastermind",
+        "  29-Solitaire  30-RPSLS  31-Poker  32-Mastermind  33-Gomoku",
         "",
         f"{C_WHITE}Press any key to return...{C_RESET}",
     ]
@@ -657,7 +660,7 @@ def main() -> None:
         print(f"{C_YELLOW}Resize your terminal and restart.{C_RESET}")
         input(f"\n{C_WHITE}Press ENTER to continue anyway...{C_RESET}")
     selection = 0
-    num_options = 36
+    num_options = 37
 
     renderer = Renderer(fps=60)
     input_handler = get_safe_input_handler()
@@ -684,7 +687,7 @@ def main() -> None:
             stop_background_music()
 
             difficulty: Optional[str] = None
-            if selection < 32:
+            if selection < 33:
                 difficulty = select_game_difficulty()
                 if not difficulty:
                     start_background_music()
@@ -764,12 +767,14 @@ def main() -> None:
             elif selection == 31:
                 _play_and_submit(play_mastermind, "Mastermind", difficulty)
             elif selection == 32:
-                show_leaderboard()
+                _play_and_submit(play_gomoku, "Gomoku", difficulty)
             elif selection == 33:
-                show_settings()
+                show_leaderboard()
             elif selection == 34:
-                show_tutorial()
+                show_settings()
             elif selection == 35:
+                show_tutorial()
+            elif selection == 36:
                 break
 
             renderer.clear()

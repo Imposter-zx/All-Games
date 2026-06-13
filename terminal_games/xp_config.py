@@ -50,6 +50,7 @@ XP_CONFIGS: Dict[str, GameXPConfig] = {
     'rpsls': GameXPConfig(name='RPSLS', base_multiplier=1.0),
     'poker': GameXPConfig(name='Poker', base_multiplier=1.2),
     'mastermind': GameXPConfig(name='Mastermind', base_multiplier=1.0),
+    'gomoku': GameXPConfig(name='Gomoku', base_multiplier=1.2),
 }
 
 
