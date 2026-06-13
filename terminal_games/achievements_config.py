@@ -196,6 +196,14 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                   "description": "Win 500+ total credits in Poker", "xp": 500},
     "poker_1000": {"name": "Poker Millionaire",
                    "description": "Reach 1000 credits in a Poker session", "xp": 1000},
+
+    # Mastermind
+    "mastermind_first_win": {"name": "First Crack",
+                             "description": "Crack your first Mastermind code", "xp": 100},
+    "mastermind_quick": {"name": "Quick Thinker",
+                         "description": "Solve in 3 tries or fewer", "xp": 500},
+    "mastermind_perfect": {"name": "Perfect Mind",
+                           "description": "Solve in 1 try!", "xp": 2000},
 }
 
 
