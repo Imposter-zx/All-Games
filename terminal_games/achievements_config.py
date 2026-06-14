@@ -210,6 +210,12 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                          "description": "Win your first Gomoku game", "xp": 100},
     "gomoku_streak_3": {"name": "Gomoku Streak",
                         "description": "Win 3 Gomoku games in a row", "xp": 500},
+
+    # Othello
+    "othello_first_win": {"name": "First Flip",
+                          "description": "Win your first Othello game", "xp": 100},
+    "othello_streak_3": {"name": "Othello Streak",
+                         "description": "Win 3 Othello games in a row", "xp": 500},
 }
 
 

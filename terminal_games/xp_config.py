@@ -51,6 +51,7 @@ XP_CONFIGS: Dict[str, GameXPConfig] = {
     'poker': GameXPConfig(name='Poker', base_multiplier=1.2),
     'mastermind': GameXPConfig(name='Mastermind', base_multiplier=1.0),
     'gomoku': GameXPConfig(name='Gomoku', base_multiplier=1.2),
+    'othello': GameXPConfig(name='Othello', base_multiplier=1.2),
 }
 
 

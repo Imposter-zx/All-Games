@@ -14,7 +14,7 @@ ALL_GAMES = [
     "pong", "asteroids", "frogger", "flappy", "racing", "blackjack",
     "connect_four", "hangman", "wordle", "tictactoe", "simon", "trivia",
     "typer", "slots", "memory", "battleship", "crossword", "hanoi",
-    "solitaire", "rpsls", "poker", "mastermind", "gomoku",
+    "solitaire", "rpsls", "poker", "mastermind", "gomoku", "othello",
 ]
 
 
@@ -97,3 +97,5 @@ class TestAchievements:
         assert "mastermind_perfect" in ACHIEVEMENTS
         assert "gomoku_first_win" in ACHIEVEMENTS
         assert "gomoku_streak_3" in ACHIEVEMENTS
+        assert "othello_first_win" in ACHIEVEMENTS
+        assert "othello_streak_3" in ACHIEVEMENTS

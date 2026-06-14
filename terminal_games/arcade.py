@@ -60,6 +60,7 @@ from hanoi import play_hanoi
 from mastermind import play_mastermind
 from memory import play_memory
 from minesweeper import play_minesweeper
+from othello import play_othello
 from pacman import play_pacman
 from poker import play_poker
 from pong import play_pong
@@ -96,7 +97,7 @@ GAMES: list[str] = [
     "pong", "asteroids", "frogger", "flappy", "racing",
     "blackjack", "connect_four", "hangman", "wordle", "tictactoe",
     "simon", "trivia", "typer", "slots", "memory", "battleship",
-    "crossword", "hanoi", "solitaire", "rpsls", "poker", "mastermind", "gomoku"
+    "crossword", "hanoi", "solitaire", "rpsls", "poker", "mastermind", "gomoku", "othello"
 ]
 
 
@@ -172,6 +173,7 @@ def draw_profile() -> None:
         ("poker", u_safe("♠️ ", "P")),
         ("mastermind", u_safe("🧠", "M")),
         ("gomoku", u_safe("⬛", "G")),
+        ("othello", u_safe("⬤", "O")),
     ]
 
     for gname, icon in game_entries:
@@ -441,7 +443,7 @@ def show_tutorial() -> None:
         "  Pong, Asteroids, Frogger, Flappy Bird, Racing,",
         "  Blackjack, Connect Four, Hangman, Wordle, Tic-Tac-Toe,",
         "  Simon Says, Trivia, Typer, Slots, Memory, Battleship, Crossword,",
-        "  Hanoi, Solitaire, RPSLS, Poker, Mastermind, Gomoku",
+        "  Hanoi, Solitaire, RPSLS, Poker, Mastermind, Gomoku, Othello",
         "",
         f"{C_WHITE}Press any key to return to menu...{C_RESET}"
     ]
@@ -459,7 +461,7 @@ def show_shortcuts() -> None:
         f"{C_BOLD}{C_YELLOW}ARCADE KEYBOARD SHORTCUTS{C_RESET}",
         "",
         f"{C_CYAN}ARCADE MENU{C_RESET}",
-        f"  {C_GREEN}1-33{C_RESET}          Quick-select game by number",
+        f"  {C_GREEN}1-34{C_RESET}          Quick-select game by number",
         f"  {C_GREEN}UP/DOWN{C_RESET}       Navigate menu",
         f"  {C_GREEN}ENTER{C_RESET}          Launch selected game",
         f"  {C_GREEN}A{C_RESET}              View achievements",
@@ -482,7 +484,7 @@ def show_shortcuts() -> None:
         "  16-Blackjack  17-Connect Four  18-Hangman  19-Wordle  20-TTT",
         "  21-Simon  22-Trivia  23-Slots  24-Memory  25-Battleship",
         "  26-Crossword  27-Hanoi  28-Typer",
-        "  29-Solitaire  30-RPSLS  31-Poker  32-Mastermind  33-Gomoku",
+        "  29-Solitaire  30-RPSLS  31-Poker  32-Mastermind  33-Gomoku  34-Othello",
         "",
         f"{C_WHITE}Press any key to return...{C_RESET}",
     ]
@@ -660,7 +662,7 @@ def main() -> None:
         print(f"{C_YELLOW}Resize your terminal and restart.{C_RESET}")
         input(f"\n{C_WHITE}Press ENTER to continue anyway...{C_RESET}")
     selection = 0
-    num_options = 37
+    num_options = 38
 
     renderer = Renderer(fps=60)
     input_handler = get_safe_input_handler()
@@ -687,7 +689,7 @@ def main() -> None:
             stop_background_music()
 
             difficulty: Optional[str] = None
-            if selection < 33:
+            if selection < 34:
                 difficulty = select_game_difficulty()
                 if not difficulty:
                     start_background_music()
@@ -769,12 +771,14 @@ def main() -> None:
             elif selection == 32:
                 _play_and_submit(play_gomoku, "Gomoku", difficulty)
             elif selection == 33:
-                show_leaderboard()
+                _play_and_submit(play_othello, "Othello", difficulty)
             elif selection == 34:
-                show_settings()
+                show_leaderboard()
             elif selection == 35:
-                show_tutorial()
+                show_settings()
             elif selection == 36:
+                show_tutorial()
+            elif selection == 37:
                 break
 
             renderer.clear()
