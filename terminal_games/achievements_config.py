@@ -216,6 +216,12 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                           "description": "Win your first Othello game", "xp": 100},
     "othello_streak_3": {"name": "Othello Streak",
                          "description": "Win 3 Othello games in a row", "xp": 500},
+
+    # Nonograms
+    "nonograms_first_win": {"name": "First Picross",
+                            "description": "Solve your first Nonogram puzzle", "xp": 100},
+    "nonograms_perfect": {"name": "Perfect Picross",
+                          "description": "Solve a Nonogram with no mistakes", "xp": 1000},
 }
 
 
