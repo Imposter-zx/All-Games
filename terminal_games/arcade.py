@@ -70,6 +70,7 @@ from rpsls import play_rpsls
 from simon import play_simon
 from slots import play_slots
 from snake import play_snake
+from sokoban import play_sokoban
 from solitaire import play_solitaire
 from space_shooter import play_space_shooter
 from sudoku import play_sudoku
@@ -98,7 +99,7 @@ GAMES: list[str] = [
     "pong", "asteroids", "frogger", "flappy", "racing",
     "blackjack", "connect_four", "hangman", "wordle", "tictactoe",
     "simon", "trivia", "typer", "slots", "memory", "battleship",
-    "crossword", "hanoi", "solitaire", "rpsls", "poker", "mastermind", "gomoku", "othello", "nonograms"
+    "crossword", "hanoi", "solitaire", "rpsls", "poker", "mastermind", "gomoku", "othello", "nonograms", "sokoban"
 ]
 
 
@@ -176,6 +177,7 @@ def draw_profile() -> None:
         ("gomoku", u_safe("⬛", "G")),
         ("othello", u_safe("⬤", "O")),
         ("nonograms", u_safe("🧩", "N")),
+        ("sokoban", u_safe("📦", "K")),
     ]
 
     for gname, icon in game_entries:
@@ -445,7 +447,7 @@ def show_tutorial() -> None:
         "  Pong, Asteroids, Frogger, Flappy Bird, Racing,",
         "  Blackjack, Connect Four, Hangman, Wordle, Tic-Tac-Toe,",
         "  Simon Says, Trivia, Typer, Slots, Memory, Battleship, Crossword,",
-        "  Hanoi, Solitaire, RPSLS, Poker, Mastermind, Gomoku, Othello, Nonograms",
+        "  Hanoi, Solitaire, RPSLS, Poker, Mastermind, Gomoku, Othello, Nonograms, Sokoban",
         "",
         f"{C_WHITE}Press any key to return to menu...{C_RESET}"
     ]
@@ -463,7 +465,7 @@ def show_shortcuts() -> None:
         f"{C_BOLD}{C_YELLOW}ARCADE KEYBOARD SHORTCUTS{C_RESET}",
         "",
         f"{C_CYAN}ARCADE MENU{C_RESET}",
-        f"  {C_GREEN}1-35{C_RESET}          Quick-select game by number",
+        f"  {C_GREEN}1-36{C_RESET}          Quick-select game by number",
         f"  {C_GREEN}UP/DOWN{C_RESET}       Navigate menu",
         f"  {C_GREEN}ENTER{C_RESET}          Launch selected game",
         f"  {C_GREEN}A{C_RESET}              View achievements",
@@ -486,7 +488,7 @@ def show_shortcuts() -> None:
         "  16-Blackjack  17-Connect Four  18-Hangman  19-Wordle  20-TTT",
         "  21-Simon  22-Trivia  23-Slots  24-Memory  25-Battleship",
         "  26-Crossword  27-Hanoi  28-Typer",
-        "  29-Solitaire  30-RPSLS  31-Poker  32-Mastermind  33-Gomoku  34-Othello  35-Nonograms",
+        "  29-Solitaire  30-RPSLS  31-Poker  32-Mastermind  33-Gomoku  34-Othello  35-Nonograms  36-Sokoban",
         "",
         f"{C_WHITE}Press any key to return...{C_RESET}",
     ]
@@ -664,7 +666,7 @@ def main() -> None:
         print(f"{C_YELLOW}Resize your terminal and restart.{C_RESET}")
         input(f"\n{C_WHITE}Press ENTER to continue anyway...{C_RESET}")
     selection = 0
-    num_options = 39
+    num_options = 40
 
     renderer = Renderer(fps=60)
     input_handler = get_safe_input_handler()
@@ -691,7 +693,7 @@ def main() -> None:
             stop_background_music()
 
             difficulty: Optional[str] = None
-            if selection < 35:
+            if selection < 36:
                 difficulty = select_game_difficulty()
                 if not difficulty:
                     start_background_music()
@@ -777,12 +779,14 @@ def main() -> None:
             elif selection == 34:
                 _play_and_submit(play_nonograms, "Nonograms", difficulty)
             elif selection == 35:
-                show_leaderboard()
+                _play_and_submit(play_sokoban, "Sokoban", difficulty)
             elif selection == 36:
-                show_settings()
+                show_leaderboard()
             elif selection == 37:
-                show_tutorial()
+                show_settings()
             elif selection == 38:
+                show_tutorial()
+            elif selection == 39:
                 break
 
             renderer.clear()

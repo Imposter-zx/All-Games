@@ -222,6 +222,12 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                             "description": "Solve your first Nonogram puzzle", "xp": 100},
     "nonograms_perfect": {"name": "Perfect Picross",
                           "description": "Solve a Nonogram with no mistakes", "xp": 1000},
+
+    # Sokoban
+    "sokoban_first_win": {"name": "First Push",
+                          "description": "Solve your first Sokoban level", "xp": 100},
+    "sokoban_all": {"name": "Sokoban Master",
+                    "description": "Solve all Sokoban levels in one session", "xp": 1000},
 }
 
 
