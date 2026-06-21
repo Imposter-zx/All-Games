@@ -15,7 +15,6 @@ from arcade_utils import (
     C_RESET,
     C_WHITE,
     C_YELLOW,
-    THEMES,
     Renderer,
     apply_theme,
     beep,
@@ -357,7 +356,7 @@ def show_leaderboard() -> None:
 
 def show_settings() -> None:
     """Menu to change arcade settings."""
-    from arcade_utils import get_key
+    from arcade_utils import THEMES, get_key
     mgr = get_stats_manager()
 
     while True:
@@ -365,14 +364,23 @@ def show_settings() -> None:
         sound = "ON" if settings.get('sound_enabled', True) else "OFF"
         name = settings.get('player_name', 'RETRO_MASTER')
         theme = settings.get('theme', 'classic').upper()
+        theme_names = list(THEMES.keys())
 
         lines: list[str] = [
             f"1. Sound Effects : {C_YELLOW}{sound}{C_RESET}",
             f"2. Player Name   : {C_CYAN}{name}{C_RESET}",
             f"3. Visual Theme  : {C_GREEN}{theme}{C_RESET}",
-            " ",
-            "Q. Back to Menu"
+            "",
+            "   Theme preview:",
         ]
+        for t in theme_names:
+            tcolors = THEMES[t]
+            bar = (f"{tcolors['red']}\u2588{tcolors['green']}\u2588"
+                   f"{tcolors['yellow']}\u2588{tcolors['blue']}\u2588"
+                   f"{tcolors['magenta']}\u2588{tcolors['cyan']}\u2588{C_RESET}")
+            marker = f"{C_GREEN}\u25B8{C_RESET}" if t.upper() == theme else "  "
+            lines.append(f"   {marker}{t:<12}{bar}")
+        lines += ["", "Q. Back to Menu"]
 
         clear_screen()
         print("\n" * 2)
@@ -439,7 +447,7 @@ def show_tutorial() -> None:
         "  Press S in main menu to change:",
         "  - Sound ON/OFF",
         "  - Player Name",
-        "  - Visual Theme (Classic/Neon/Retro/Monochrome/Matrix)",
+        "  - Visual Theme (Classic/Neon/Retro/Monochrome/Matrix/Cyberpunk/Sunset/Forest)",
         "",
         f"{C_CYAN}GAMES ({len(GAMES)} total):{C_RESET}",
         "  Snake, Breakout, Space Shooter, Tetris, Pac-Man,",
