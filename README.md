@@ -1,195 +1,180 @@
-# 🕹️ Retro Terminal Arcade V2: The Production Release
+# Retro Terminal Arcade
 
-A premium collection of **18 classic terminal games** with a polished TUI, XP/Leveling system, procedural dungeons, and immersive visual effects. **SQLite persistence, sound engine, AI opponents, full type safety, CI/CD pipeline, and online leaderboard.**
-
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Tests](https://img.shields.io/badge/tests-109%2F109%20passing-brightgreen)
-![Python](https://img.shields.io/badge/python-3.9%2B-blue)
-![License](https://img.shields.io/badge/license-MIT-blueviolet)
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
-
-## 🚀 Installation & Usage
-
-### Prerequisites
-* **Python 3.9+** (Required for standard generic type hint compatibility, e.g. `list[str]`)
-
-### Quick Install
-```bash
-pip install git+https://github.com/Imposter-zx/All-Games.git
-retro-arcade
 ```
 
-### Local Development Setup
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Imposter-zx/All-Games.git
-   cd "All Games"
-   ```
+                   ____  _  _  ____  _   _  _____  _   _  
+                  |  _ \| || ||_  _|| | | ||  _  || \ | | 
+                  |  __/| \/ |  ||  | |_| || |_| ||  \| | 
+                  |_|    \__/   |_|  \___/ |_| |_||_|\__| 
+                   _____  ____  ____  __  ____  ____  ____
+                  |  _  ||  _ \|  _ \|  ||  _ \|  __||_  _|
+                  | |_| ||  _/| |  | \__/|  _/|  __|  ||  
+                  |_| |_||_|  |_|__| |__| |_|  |____| |_| 
+                                                          
+                        --- RETRO ARCADE SYSTEM ---       
+```
 
-2. **Create and activate a virtual environment (Python 3.9+ recommended):**
-   * **Windows:**
-     ```powershell
-     py -3.11 -m venv .venv
-     .venv\Scripts\Activate.ps1
-     ```
-   * **macOS/Linux:**
-     ```bash
-     python3 -m venv .venv
-     source .venv/bin/activate
-     ```
+A collection of **36 classic terminal games** with XP progression, achievements, AI opponents, and an online leaderboard.
 
-3. **Install the package in editable mode with dependencies:**
-   ```bash
-   pip install -e .
-   ```
+![Python](https://img.shields.io/badge/python-3.6%2B-blue)
+![Tests](https://img.shields.io/badge/tests-126%2F126%20passing-brightgreen)
+![Lint](https://img.shields.io/badge/lint-passing-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blueviolet)
 
-4. **Run the game launcher:**
-   * **Using the installed entry point:**
-     ```bash
-     retro-arcade
-     ```
-   * **Or running the module directly:**
-     ```bash
-     python -m terminal_games.arcade
-     ```
+## Quick Start
 
-## 🎮 Games Included (18)
+```bash
+git clone https://github.com/Imposter-zx/All-Games.git
+cd "All Games"
+pip install -e .
+python -m terminal_games.arcade
+```
 
-| # | Game | Description | AI |
-|---|------|-------------|----|
-| 1 | **🐍 Snake** | High-speed survival with XP rewards | — |
-| 2 | **🧱 Breakout** | Physics-based brick destruction | — |
-| 3 | **🚀 Space Shooter** | Fast-paced combat with particles | Enemies |
-| 4 | **🧩 Tetris** | Line-clear puzzle action | — |
-| 5 | **🟡 Pac-Man** | Grid movement with ghost AI | 4 ghost personalities |
-| 6 | **⚔️ Dungeon Crawler** | Roguelike procedural dungeon | Monsters |
-| 7 | **💣 Minesweeper** | Logic-based mine detection | — |
-| 8 | **♟️ Chess vs AI** | Full chess with Stockfish/heuristic | Skill levels 1–20 |
-| 9 | **🔢 Sudoku** | Logic puzzles, persistence bonuses | — |
-| 10 | **🔢 2048** | Merge tiles to 2048 | — |
-| 11 | **🏓 Pong** | Table tennis vs CPU | Trajectory prediction |
-| 12 | **☄️ Asteroids** | Vector shooter | — |
-| 13 | **🐸 Frogger** | Cross roads and rivers | Cars/logs |
-| 14 | **🐦 Flappy Bird** | Navigate through pipes | — |
-| 15 | **🏎️ Racing** | Dodge oncoming cars | Traffic |
-| 16 | **🃏 Blackjack** | Card game vs dealer | Dealer AI (hits ≤16) |
-| 17 | **🔴 Connect Four** | Drop 4 in a row | Minimax AI (depth 3–7) |
-| 18 | **📝 Hangman** | Guess the word | Word bank |
+## Screenshots
 
-## ✨ V2.0.0 Features
+### Main Menu
 
-### Core Gaming
-- **Global RPG Progression**: Gain XP across ALL games, level up, track achievements.
-- **Difficulty Selection**: Easy (0.5x), Normal (1.0x), Hard (2.0x) — affects speed & XP.
-- **Visual Juice**: Screen shakes, particles, ANSI-safe rendering, 5 visual themes.
-- **AI Opponents**: Chess (Stockfish + heuristic, 20 skill levels), Pac-Man (4 ghost personalities), Pong (trajectory prediction), Connect Four (minimax α-β pruning).
-- **Tutorial System**: Press `H` in any game for contextual help; tutorial screen in main menu.
+```
+                ╔════════════════════════════════════════════════╗
+                ║                 👤 RETRO_MASTER                 ║
+                ╠════════════════════════════════════════════════╣
+                ║   LV:4 [★★★★] XP:1500 [░░░░░░░░░░░░░░░░░░░░]   ║
+                ║    🏆 2ach  🎯 1162pts  🕹️ 24plays  ⏱️ 11m29s    ║
+                ║         ══════════════════════════════         ║
+                ║               🐍    100   0pl  0s               ║
+                ║               🧱      0   0pl  0s               ║
+                ║               ...                               ║
+                ║               📦      0   0pl  0s               ║
+                ║         ══════════════════════════════         ║
+                ║          RECENT: Speedster, Pro Racer          ║
+                ╚════════════════════════════════════════════════╝
 
-### Infrastructure
-- **SQLite Persistence**: Player stats, sessions, achievements, telemetry stored in `~/.retro_arcade/player.db`.
-- **Sound Engine**: Synthesized WAV audio (sine/square/noise), background music, cross-platform playback.
-- **Online Leaderboard**: REST API to submit/fetch global scores. Player name from settings. Auto-submits after every game. Falls back gracefully when offline.
-- **Full Type Annotations**: mypy-compatible on all 20+ modules.
-- **CI/CD Pipeline**: GitHub Actions — matrix test (3.8–3.11 × Linux/Windows), ruff lint, mypy, pytest with coverage, PyPI publish on release.
 
-## 📊 Current Status
+                         ╔════════════════════════════╗
+                         ║        🕹️ GAME MENU        ║
+                         ╠════════════════════════════╣
+                         ║  ►  1. 🐍 Snake             ║
+                         ║     2. 🧱 Breakout          ║
+                         ║     3. 🚀 Space Shooter     ║
+                         ║     4. 🧩 Tetris            ║
+                         ║     5. 🟡 Pacman            ║
+                         ║     L. 🏆 Leaderboard       ║
+                         ║     S. ⚙️ Settings         ║
+                         ║     H. Tutorial            ║
+                         ║     Q. 🚪 Quit              ║
+                         ╚════════════════════════════╝
 
-| Component | Status | Details |
-|-----------|--------|---------|
-| Infrastructure | ✅ Complete | BaseGame, StatsManager (SQLite), Error Handlers, Input Validation |
-| Testing | ✅ Complete | 109/109 tests passing |
-| Game Migration | ✅ Complete | All 18 games on BaseGame architecture |
-| Difficulty System | ✅ Complete | Dynamic speed/XP scaling per game |
-| XP Integration | ✅ Complete | Global progression synced across all modules |
-| AI Opponents | ✅ Complete | Chess, Pac-Man, Pong, Connect Four |
-| Sound Engine | ✅ Complete | Waveform synthesis, background music, cross-platform |
-| Type Annotations | ✅ Complete | mypy-compatible across all modules |
-| CI/CD Pipeline | ✅ Complete | GitHub Actions — lint, test, type-check, publish |
-| Online Leaderboard | ✅ Complete | FastAPI server + auto-score submission |
-| Tutorial System | ✅ Complete | In-game H key help, dedicated tutorial screen |
-| Packaging & Dist | ✅ Complete | pip-installable via GitHub, `retro-arcade` CLI entry point |
+                      Use Arrows to navigate, Enter to play
+```
 
-## 🧪 Running Tests
+### Game Previews
+
+| Snake | Tetris | Chess | Pong |
+|-------|--------|-------|------|
+| <pre lang="text">╔═════════╗<br>║  SNAKE  ║<br>╚═════════╝</pre> | <pre lang="text">╔══════════╗<br>║  TETRIS  ║<br>╚══════════╝</pre> | <pre lang="text">╔═════════╗<br>║  CHESS  ║<br>╚═════════╝</pre> | <pre lang="text">╔════════╗<br>║  PONG  ║<br>╚════════╝</pre> |
+
+## Games (36)
+
+| # | Game | Description |
+|---|------|-------------|
+| 1 | Snake | High-speed survival |
+| 2 | Breakout | Break bricks with paddle |
+| 3 | Space Shooter | Combat with enemies |
+| 4 | Tetris | Classic line-clear puzzle |
+| 5 | Pac-Man | Maze chase with ghost AI |
+| 6 | Dungeon Crawler | Roguelike dungeon explorer |
+| 7 | Minesweeper | Logic mine detection |
+| 8 | Chess | Chess vs AI with multiple skill levels |
+| 9 | Sudoku | Number logic puzzles |
+| 10 | 2048 | Merge tiles to 2048 |
+| 11 | Pong | Table tennis vs CPU |
+| 12 | Asteroids | Vector asteroid shooter |
+| 13 | Frogger | Cross roads and rivers |
+| 14 | Flappy Bird | Navigate through pipes |
+| 15 | Racing | Dodge oncoming traffic |
+| 16 | Blackjack | Card game vs dealer |
+| 17 | Connect Four | Drop 4 in a row vs AI |
+| 18 | Hangman | Guess the word |
+| 19 | Wordle | Guess the 5-letter word |
+| 20 | Tic-Tac-Toe | 3-in-a-row vs AI or 2-player |
+| 21 | Simon Says | Memory sequence game |
+| 22 | Trivia | Quiz with 7 categories |
+| 23 | Slots | 3-reel slot machine |
+| 24 | Memory | Card matching concentration |
+| 25 | Battleship | Naval combat vs AI |
+| 26 | Crossword | Puzzle with 3 difficulties |
+| 27 | Tower of Hanoi | Disk stacking puzzle |
+| 28 | Typer | Typing speed / WPM game |
+| 29 | Solitaire | Klondike solitaire |
+| 30 | RPSLS | Rock Paper Scissors Lizard Spock |
+| 31 | Video Poker | 5-card draw with payouts |
+| 32 | Mastermind | Code-breaking logic game |
+| 33 | Gomoku | 5-in-a-row on 15x15 board |
+| 34 | Othello | Reversi board game vs AI |
+| 35 | Nonograms | Picross picture puzzle |
+| 36 | Sokoban | Warehouse box-pushing puzzle |
+
+## Features
+
+- **XP & Leveling** — Gain XP across all games, level up, track progress
+- **Achievements** — Unlock over 80 achievements for milestones
+- **Difficulty** — Easy / Normal / Hard per game affects speed and XP
+- **Visual Themes** — 8 color themes (classic, neon, retro, monochrome, matrix, cyberpunk, sunset, forest)
+- **AI Opponents** — Chess, Pac-Man, Pong, Connect Four, Gomoku, Othello, and more
+- **Online Leaderboard** — Submit and compare scores globally
+- **Save & Resume** — Quit any game and resume later
+- **Sound** — Synthesized sound effects and background music
+- **Keyboard Navigation** — Arrow keys, number shortcuts, WASD support
+
+## Stats
+
+| Metric | Value |
+|--------|-------|
+| Games | 36 |
+| Tests | 126 passing |
+| Achievements | 80+ |
+| Visual Themes | 8 |
+| Python Support | 3.6+ |
+
+## Tests
 
 ```bash
 pytest tests/ -v
-pytest tests/ --cov=terminal_games
 ```
 
-## 🛠️ Project Structure
+## Project Structure
 
 ```
-All Games/
-├── terminal_games/
-│   ├── arcade.py              # Main launcher + tutorial screen
-│   ├── base_game.py           # Abstract base class with session/telemetry
-│   ├── stats_manager.py       # SQLite-backed stats, sessions, telemetry
-│   ├── sound_engine.py        # WAV synthesis + background music
-│   ├── error_handler.py       # Error handling wrapper
-│   ├── input_handler.py       # Safe input handling
-│   ├── xp_config.py           # XP calculation logic
-│   ├── logger_setup.py        # Logging configuration
-│   ├── arcade_utils.py        # ANSI-safe UI utilities
-│   ├── achievements_config.py # Achievement definitions
-│   ├── online_leaderboard.py  # REST API client
-│   ├── snake.py, pacman.py, breakout.py, tetris.py
-│   ├── space_shooter.py, minesweeper.py, chess_game.py
-│   ├── sudoku.py, dungeon.py, game_2048.py, pong.py
-│   ├── asteroids.py, frogger.py, flappy.py, racing.py
-│   ├── blackjack.py, connect_four.py, hangman.py
-│   └── requirements.txt
-├── server/
-│   ├── main.py                # FastAPI leaderboard server
-│   ├── Dockerfile             # Container deployment
-│   ├── requirements.txt       # Server dependencies
-│   └── README.md              # Server deployment guide
-├── tests/
-│   ├── test_base_game.py      # BaseGame tests (14)
-│   ├── test_stats_manager.py  # StatsManager SQLite tests (19)
-│   ├── test_games.py          # Game instantiation tests (11)
-│   ├── test_blackjack.py      # Blackjack logic tests (22)
-│   ├── test_connect_four.py   # Connect Four logic tests (13)
-│   ├── test_hangman.py        # Hangman logic tests (11)
-│   ├── test_online_leaderboard.py # HTTP client tests (10)
-│   └── test_configs.py        # XP + achievement validation (5)
-├── .github/workflows/
-│   ├── ci.yml                 # Matrix test + lint + typecheck + publish
-│   └── lint.yml               # Black + ruff check
-├── setup.py                   # v2.0.0 packaging
-├── pyproject.toml              # Build/config
-└── README.md
+terminal_games/
+├── arcade.py              # Main launcher and menu
+├── base_game.py           # Abstract base class
+├── arcade_utils.py        # UI utilities and themes
+├── stats_manager.py       # SQLite-backed persistence
+├── sound_engine.py        # WAV synthesis engine
+├── xp_config.py           # XP calculation
+├── achievements_config.py # Achievement definitions
+├── error_handler.py       # Error handling
+├── input_handler.py       # Safe keyboard input
+├── online_leaderboard.py  # REST API client
+├── logger_setup.py        # Logging configuration
+├── game*.py               # 36 individual game modules
+server/
+├── main.py                # FastAPI leaderboard server
+├── Dockerfile
+└── requirements.txt
+tests/
+├── test_*.py              # 9 test modules
 ```
 
-## 📈 Architecture
+## Architecture
 
-- **BaseGame**: Abstract class — `play()`, `_render()`, `_handle_input()`, `_update_game_state()` — auto-records sessions & telemetry.
-- **StatsManager**: Singleton backed by SQLite — `add_xp()`, `record_session()`, `get_leaderboard()`, `record_telemetry()`.
-- **SoundEngine**: Synthesizes WAV at runtime, falls back to terminal beep gracefully.
-- **OnlineLeaderboard**: REST client — submits scores after each game, fetches global rankings. Graceful offline fallback.
-- **AI Systems**: Chess (Stockfish/heuristic), Pac-Man (4 ghost personalities), Pong (trajectory prediction), Connect Four (minimax with alpha-beta pruning).
+Each game extends `BaseGame` which provides scoring, XP, timers, save/load, and achievements. The `StatsManager` singleton (SQLite-backed) persists all player data. Games follow a uniform `play_X(difficulty) -> dict` pattern for seamless integration.
 
-## 🌐 Online Leaderboard
+## License
 
-Deploy the server yourself:
-```bash
-cd server
-docker build -t retro-leaderboard .
-docker run -p 8000:8000 retro-leaderboard
-```
-
-Or deploy to **Render** (free tier): root dir `server`, start command `uvicorn main:app --host 0.0.0.0 --port $PORT`.
-
-Update `DEFAULT_SERVER` in `terminal_games/online_leaderboard.py` to your server URL.
-
-## 📝 License
-
-MIT License
-
-## 👤 Author
-
-Created and maintained by Imposter-zx
+MIT
 
 ---
 
-**Last Updated**: May 2026 | **Version**: 2.0.0
+**Last Updated**: June 2026 | **Version**: 2.1.0
