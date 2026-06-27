@@ -127,11 +127,21 @@ python -m terminal_games.arcade
 - **Sound** — Synthesized sound effects and background music
 - **Keyboard Navigation** — Arrow keys, number shortcuts, WASD support
 
+### 🥚 Hidden Features
+
+- **Konami Code** — Press ↑↑↓↓←→←→BA on main menu to unlock a secret developer menu
+- **Marathon Mode** — Play all 36 games in one session with cumulative score and limited lives
+- **Chaos Mutators** — Random game-altering effects (speed surges, screen shake, inverted controls, color flashes)
+- **Secret Boss Fight** — A 4-phase meta-boss combining mechanics from multiple games
+- **Rhythm Game** — Full terminal rhythm game with 3 songs and difficulty scaling
+- **Easter Egg OS** — Hidden fake terminal with filesystem, secrets, and hidden messages
+
 ## Stats
 
 | Metric | Value |
 |--------|-------|
 | Games | 36 |
+| Hidden Modes | Marathon, Boss Fight, Rhythm, Chaos |
 | Tests | 126 passing |
 | Achievements | 80+ |
 | Visual Themes | 8 |
@@ -158,6 +168,11 @@ terminal_games/
 ├── input_handler.py       # Safe keyboard input
 ├── online_leaderboard.py  # REST API client
 ├── logger_setup.py        # Logging configuration
+├── chaos_mutator.py       # Random game-altering effects
+├── secret_menu.py         # Konami code easter egg menu
+├── boss_fight.py          # Secret 4-phase boss fight
+├── marathon.py            # 36-game marathon mode
+├── rhythm.py              # Terminal rhythm game
 ├── game*.py               # 36 individual game modules
 server/
 ├── main.py                # FastAPI leaderboard server
