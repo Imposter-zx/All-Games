@@ -141,25 +141,15 @@ class RhythmGame:
                     beat_pos = beat + y * speed
                     line = "  "
                     for lane_idx in range(lane_count):
-                        line += "  "
-                        has_note = False
+                        line += "    "
+                        draw = False
                         for n in self.active_notes:
                             if n["lane"] != lane_idx or n["hit"]:
                                 continue
-                            note_beat = next(
-                                (nn["beat"] for nn in self.notes
-                                 if nn["lane"] == lane_idx and not nn["hit"]),
-                                None
-                            )
-                            if note_beat is not None:
-                                dist = abs(note_beat - beat_pos)
-                                if dist < speed / 2:
-                                    has_note = True
-                                    break
-                        if has_note:
-                            line += f"{C_WHITE}♩{C_RESET}"
-                        else:
-                            line += "  "
+                            if abs(n["beat"] - beat_pos) < speed * 0.6:
+                                draw = True
+                                break
+                        line += f"{C_WHITE}♩{C_RESET}" if draw else " "
                     print(line)
 
                 print(f"  {'─' * (lane_count * 5)}")
@@ -167,12 +157,12 @@ class RhythmGame:
                 glow_str = "  "
                 for lane_idx in range(lane_count):
                     key_label, key_color, _ = self.LANES[lane_idx]
-                    if lane_idx in lane_glow and time.time() - lane_glow[lane_idx] < 0.15:
+                    glow = lane_idx in lane_glow and time.time() - lane_glow[lane_idx] < 0.15
+                    if glow:
                         glow_str += f" {C_BOLD}{key_color}[{key_label}]{C_RESET} "
                     else:
                         glow_str += f"  {key_color}{key_label}{C_RESET}  "
                 print(glow_str)
-                print()
 
                 if self.combo >= 5:
                     pass

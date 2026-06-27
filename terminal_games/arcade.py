@@ -219,7 +219,8 @@ def print_menu(selection: int, renderer: Renderer) -> None:
             "9.Sudoku  10.2048   11.Pong   12.Asteroid",
             "13.Frogger 14.Flappy 15.Racing 16.Blackjack",
             "17.Connect4 18.Hangman 19.Wordle 20.TTT 21.Simon",
-            "L.Leaderboard  S.Settings  H.Help  Q.Quit",
+            "M.Marathon  K.BossFight  L.Leader  S.Settings",
+            "H.Help  Q.Quit",
         ]
         menu_cols = 30
     else:
@@ -856,7 +857,6 @@ def main() -> None:
             show_secret_menu(
                 on_marathon=run_marathon,
                 on_boss=lambda: _play_and_submit(play_boss_fight, "Secret Boss", "hard"),
-                on_chaos_toggle=None,
                 on_rhythm=lambda: _play_and_submit(play_rhythm, "Rhythm Game", "normal"),
             )
             renderer.clear()

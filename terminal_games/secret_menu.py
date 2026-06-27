@@ -68,7 +68,6 @@ def reset() -> None:
 def show_secret_menu(
     on_marathon: Optional[Callable] = None,
     on_boss: Optional[Callable] = None,
-    on_chaos_toggle: Optional[Callable[[bool], None]] = None,
     on_rhythm: Optional[Callable] = None,
 ) -> bool:
     """Show the secret developer menu. Returns True if user wants to quit arcade."""

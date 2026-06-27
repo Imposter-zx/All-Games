@@ -415,6 +415,6 @@ class BossFight:
         return self.player_hp > 0
 
 
-def play_boss_fight() -> dict:
+def play_boss_fight(difficulty: str = "hard") -> dict:
     """Entry point for the secret boss fight."""
     return BossFight().play()
