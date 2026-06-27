@@ -50,12 +50,14 @@ try:
     from dungeon import play_dungeon
 except ImportError:
     play_dungeon = None
+from boss_fight import play_boss_fight
 from flappy import play_flappy
 from frogger import play_frogger
 from game_2048 import play_2048
 from gomoku import play_gomoku
 from hangman import play_hangman
 from hanoi import play_hanoi
+from marathon import run_marathon
 from mastermind import play_mastermind
 from memory import play_memory
 from minesweeper import play_minesweeper
@@ -65,7 +67,9 @@ from pacman import play_pacman
 from poker import play_poker
 from pong import play_pong
 from racing import play_racing
+from rhythm import play_rhythm
 from rpsls import play_rpsls
+from secret_menu import feed_key, reset, show_secret_menu
 from simon import play_simon
 from slots import play_slots
 from snake import play_snake
@@ -243,6 +247,8 @@ def print_menu(selection: int, renderer: Renderer) -> None:
             f"21. {u_safe('🎨', 'S')} Simon Says",
             f"L. {u_safe('🏆', 'L')} Leaderboard",
             f"S. {u_safe('⚙️', 'S')} Settings",
+            f"M. {u_safe('🏃', 'M')} Marathon (36 games!)",
+            f"K. {u_safe('👾', 'K')} Secret Boss Fight",
             "H. Tutorial",
             f"Q. {u_safe('🚪', 'Q')} Quit"
         ]
@@ -676,6 +682,7 @@ def main() -> None:
     selection = 0
     num_options = 40
 
+
     renderer = Renderer(fps=60)
     input_handler = get_safe_input_handler()
 
@@ -825,6 +832,16 @@ def main() -> None:
         elif key and key.lower() == 'l':
             show_leaderboard()
             renderer.clear()
+        elif key and key.lower() == 'm':
+            stop_background_music()
+            run_marathon()
+            renderer.clear()
+            start_background_music()
+        elif key and key.lower() == 'k':
+            stop_background_music()
+            _play_and_submit(play_boss_fight, "Secret Boss", "hard")
+            renderer.clear()
+            start_background_music()
         elif key and key.lower() == 's':
             stop_background_music()
             show_settings()
@@ -833,6 +850,18 @@ def main() -> None:
         elif key in [str(i) for i in range(1, 11)]:
             selection = int(key) - 1
             beep("move")
+
+        if feed_key(key or ""):
+            stop_background_music()
+            show_secret_menu(
+                on_marathon=run_marathon,
+                on_boss=lambda: _play_and_submit(play_boss_fight, "Secret Boss", "hard"),
+                on_chaos_toggle=None,
+                on_rhythm=lambda: _play_and_submit(play_rhythm, "Rhythm Game", "normal"),
+            )
+            renderer.clear()
+            start_background_music()
+            reset()
 
     stop_background_music()
     renderer.show_cursor()
