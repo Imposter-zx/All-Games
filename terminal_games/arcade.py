@@ -51,6 +51,8 @@ try:
 except ImportError:
     play_dungeon = None
 from boss_fight import play_boss_fight
+from celebrations import celebrate_level_up, check_and_celebrate
+from daily_challenge import show_daily_challenge_menu
 from flappy import play_flappy
 from frogger import play_frogger
 from game_2048 import play_2048
@@ -68,6 +70,7 @@ from poker import play_poker
 from pong import play_pong
 from racing import play_racing
 from rhythm import play_rhythm
+from roulette import pick_roulette_game, show_roulette_spin
 from rpsls import play_rpsls
 from secret_menu import feed_key, reset, show_secret_menu
 from simon import play_simon
@@ -81,6 +84,7 @@ from tetris import play_tetris
 from tictactoe import play_tictactoe
 from trivia import play_trivia
 from typer import play_typer
+from vs_mode import run_vs_mode
 from wordle import play_wordle
 
 BANNER_TEXT: list[str] = [
@@ -219,7 +223,8 @@ def print_menu(selection: int, renderer: Renderer) -> None:
             "9.Sudoku  10.2048   11.Pong   12.Asteroid",
             "13.Frogger 14.Flappy 15.Racing 16.Blackjack",
             "17.Connect4 18.Hangman 19.Wordle 20.TTT 21.Simon",
-            "M.Marathon  K.BossFight  L.Leader  S.Settings",
+            "M.Marathon  K.BossFight  R.Roulette",
+            "V.VSMode  D.Daily  L.Leader  S.Settings",
             "H.Help  Q.Quit",
         ]
         menu_cols = 30
@@ -250,6 +255,9 @@ def print_menu(selection: int, renderer: Renderer) -> None:
             f"S. {u_safe('⚙️', 'S')} Settings",
             f"M. {u_safe('🏃', 'M')} Marathon (36 games!)",
             f"K. {u_safe('👾', 'K')} Secret Boss Fight",
+            f"R. {u_safe('🎲', 'R')} Roulette",
+            f"V. {u_safe('⚡', 'V')} VS Mode (2-Player)",
+            f"D. {u_safe('📅', 'D')} Daily Challenge",
             "H. Tutorial",
             f"Q. {u_safe('🚪', 'Q')} Quit"
         ]
@@ -657,15 +665,40 @@ def _show_game_summary(result: dict, game_name: str, diff: str) -> None:
     get_key()
 
 
+def _build_game_map() -> dict:
+    """Build a mapping of game keys to their play functions."""
+    return {
+        "snake": play_snake, "breakout": play_breakout, "space_shooter": play_space_shooter,
+        "tetris": play_tetris, "pacman": play_pacman, "dungeon": play_dungeon,
+        "minesweeper": play_minesweeper, "chess": play_chess, "sudoku": play_sudoku,
+        "2048": play_2048, "pong": play_pong, "asteroids": play_asteroids,
+        "frogger": play_frogger, "flappy": play_flappy, "racing": play_racing,
+        "blackjack": play_blackjack, "connect_four": play_connect_four, "hangman": play_hangman,
+        "wordle": play_wordle, "tictactoe": play_tictactoe, "simon": play_simon,
+        "trivia": play_trivia, "slots": play_slots, "memory": play_memory,
+        "battleship": play_battleship, "crossword": play_crossword, "hanoi": play_hanoi,
+        "typer": play_typer, "solitaire": play_solitaire, "rpsls": play_rpsls,
+        "poker": play_poker, "mastermind": play_mastermind, "gomoku": play_gomoku,
+        "othello": play_othello, "nonograms": play_nonograms, "sokoban": play_sokoban,
+    }
+
+
 def _play_and_submit(game_func, game_name: str, difficulty: Optional[str]) -> None:
     """Play a game and submit score to online leaderboard."""
     mgr = get_stats_manager()
+    old_level = mgr.get_level_and_xp()[0] if hasattr(mgr, 'get_level_and_xp') else 0
     _check_saved_state(game_name)
     result = safe_game_call(game_func, game_name, difficulty=difficulty)
     if result:
         clear_screen()
         print("\n" * 2)
         _show_game_summary(result, game_name, difficulty or 'normal')
+        score = result.get('high_score', result.get('score', 0))
+        if score > 0:
+            check_and_celebrate(game_name, score)
+        new_level = mgr.get_level_and_xp()[0] if hasattr(mgr, 'get_level_and_xp') else 0
+        if new_level > old_level:
+            celebrate_level_up(new_level)
     if result and result.get('high_score', 0) > 0:
         name = mgr.get_settings().get('player_name', 'RETRO_MASTER')
         olb.submit_score(name, game_name, result['high_score'], difficulty or 'normal')
@@ -841,6 +874,43 @@ def main() -> None:
         elif key and key.lower() == 'k':
             stop_background_music()
             _play_and_submit(play_boss_fight, "Secret Boss", "hard")
+            renderer.clear()
+            start_background_music()
+        elif key and key.lower() == 'r':
+            stop_background_music()
+            chosen = pick_roulette_game(GAMES)
+            if chosen:
+                result = show_roulette_spin(chosen)
+                if result:
+                    diff = select_game_difficulty()
+                    if diff:
+                        game_map = _build_game_map()
+                        func = game_map.get(chosen)
+                        if func:
+                            _play_and_submit(func, chosen.replace('_', ' ').title(), diff)
+            renderer.clear()
+            start_background_music()
+        elif key and key.lower() == 'v':
+            stop_background_music()
+            run_vs_mode(GAMES)
+            renderer.clear()
+            start_background_music()
+        elif key and key.lower() == 'd':
+            stop_background_music()
+            chosen_game = show_daily_challenge_menu(GAMES)
+            if chosen_game:
+                game_map = _build_game_map()
+                func = game_map.get(chosen_game)
+                if func:
+                    from daily_challenge import mark_daily_played, set_daily_high_score
+                    result = safe_game_call(func, chosen_game, difficulty="normal")
+                    if result:
+                        score = result.get('high_score', result.get('score', 0))
+                        set_daily_high_score(chosen_game, score)
+                        mark_daily_played(chosen_game)
+                        clear_screen()
+                        print("\n" * 2)
+                        _show_game_summary(result, chosen_game.replace('_', ' ').title(), 'normal')
             renderer.clear()
             start_background_music()
         elif key and key.lower() == 's':
