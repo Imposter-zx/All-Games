@@ -2,6 +2,7 @@
 import datetime
 import hashlib
 import random
+from typing import Optional
 
 from arcade_utils import (
     C_BOLD,
@@ -61,7 +62,7 @@ def set_daily_high_score(game_name: str, score: int) -> None:
         mgr._set_profile_int(key, score)
 
 
-def show_daily_challenge_menu(games_list) -> None:
+def show_daily_challenge_menu(games_list) -> Optional[str]:
     """Show daily challenge menu with today's featured game."""
     seed = daily_seed()
     rng = random.Random(seed)
