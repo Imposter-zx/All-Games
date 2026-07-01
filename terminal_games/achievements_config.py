@@ -228,6 +228,50 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
                           "description": "Solve your first Sokoban level", "xp": 100},
     "sokoban_all": {"name": "Sokoban Master",
                     "description": "Solve all Sokoban levels in one session", "xp": 1000},
+
+    # Marathon
+    "marathon_first": {"name": "Marathon Runner",
+                       "description": "Complete your first Marathon session", "xp": 500},
+    "marathon_half": {"name": "Half Marathon",
+                      "description": "Complete 18 games in a Marathon", "xp": 1000},
+    "marathon_full": {"name": "Full Marathon",
+                       "description": "Complete all 37 games in a Marathon", "xp": 5000},
+
+    # Boss Fight
+    "boss_first": {"name": "Boss Challenger",
+                   "description": "Face the Secret Boss for the first time", "xp": 300},
+    "boss_defeat": {"name": "Boss Slayer",
+                    "description": "Defeat the Secret Boss", "xp": 2000},
+
+    # Rhythm
+    "rhythm_first": {"name": "First Beat",
+                     "description": "Play the Rhythm Game", "xp": 200},
+    "rhythm_combo_50": {"name": "Rhythm Master",
+                        "description": "Achieve 50x combo in Rhythm", "xp": 1000},
+
+    # Chaos
+    "chaos_first": {"name": "Chaos Initiate",
+                    "description": "Toggle Chaos Mode for the first time", "xp": 200},
+    "chaos_survive": {"name": "Chaos Survivor",
+                      "description": "Play a game with Chaos Mode on", "xp": 500},
+
+    # VS Mode
+    "vs_first": {"name": "VS Rookie",
+                 "description": "Complete a VS Mode match", "xp": 300},
+    "vs_win": {"name": "VS Champion",
+               "description": "Win a VS Mode match", "xp": 1000},
+
+    # Daily Challenge
+    "daily_first": {"name": "Daily Player",
+                    "description": "Complete your first Daily Challenge", "xp": 200},
+    "daily_streak_3": {"name": "Daily Streak",
+                       "description": "Complete 3 Daily Challenges", "xp": 500},
+
+    # Invaders
+    "invaders_first": {"name": "Space Invader",
+                       "description": "Play the secret Invaders game", "xp": 300},
+    "invaders_wave_5": {"name": "Wave Rider",
+                        "description": "Reach wave 5 in Invaders", "xp": 1000},
 }
 
 

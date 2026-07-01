@@ -108,7 +108,16 @@ def show_daily_leaderboard() -> None:
     print("\n" * 2)
     lines = [f"{C_YELLOW}Daily Challenge Scores — {today}{C_RESET}", ""]
     count = 0
-    for game_key in ["snake", "tetris", "racing", "flappy", "blackjack", "pong"]:
+    all_game_keys = [
+        "snake", "breakout", "space_shooter", "tetris", "pacman",
+        "dungeon", "minesweeper", "chess", "sudoku", "2048",
+        "pong", "asteroids", "frogger", "flappy", "racing",
+        "blackjack", "connect_four", "hangman", "wordle", "tictactoe",
+        "simon", "trivia", "slots", "memory", "battleship",
+        "crossword", "hanoi", "typer", "solitaire", "rpsls",
+        "poker", "mastermind", "gomoku", "othello", "nonograms", "sokoban",
+    ]
+    for game_key in all_game_keys:
         key = f"daily_score_{game_key}_{today}"
         score = mgr._get_profile_int(key, 0)
         if score > 0:

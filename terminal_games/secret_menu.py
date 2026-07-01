@@ -76,7 +76,7 @@ def show_secret_menu(
     chaos_state = is_chaos()
     selection = 0
     options = [
-        "MARATHON MODE — Play all 36 games!",
+        "MARATHON MODE — Play all 37 games!",
         f"CHAOS MODE — {'ON' if chaos_state else 'OFF'}",
         "SECRET BOSS — The Final Challenge",
         "RHYTHM GAME — Terminal beats",
@@ -171,7 +171,7 @@ def _show_easter_egg_os() -> None:
             "type": "file",
             "content": [
                 "[LOG] Session started",
-                "[LOG] 36 games loaded",
+                "[LOG] 37 games loaded",
                 "[LOG] Theme: classic",
                 "[LOG] Achievements: 80+ registered",
                 "[LOG] Chaos mode: available",
@@ -199,7 +199,7 @@ def _show_easter_egg_os() -> None:
             "type": "file",
             "content": [
                 "Welcome to the Retro Terminal Arcade.",
-                "All 36 games are ready.",
+                "All 37 games are ready.",
                 "Have fun. Or else.",
             ],
         },
@@ -314,7 +314,7 @@ def _show_easter_egg_os() -> None:
                 print(f"  {C_CYAN}OS:{C_RESET} Retro Arcade OS v3.1.4")
                 print(f"  {C_CYAN}Kernel:{C_RESET} Python 3.11")
                 print(f"  {C_CYAN}Shell:{C_RESET} retro-sh")
-                print(f"  {C_CYAN}Games:{C_RESET} 36")
+                print(f"  {C_CYAN}Games:{C_RESET} 37")
                 print(f"  {C_CYAN}Terminal:{C_RESET} ANSI 256-color")
                 print(f"  {C_CYAN}Theme:{C_RESET} classic")
                 print(f"  {C_CYAN}Uptime:{C_RESET} 84 years, 3 days")

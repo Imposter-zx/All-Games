@@ -78,9 +78,11 @@ def celebrate_level_up(level: int) -> None:
     screen_shake(0.3, 1)
 
 
-def check_and_celebrate(game_name: str, new_score: int) -> None:
+def check_and_celebrate(game_name: str, new_score: int, game_key: str = None) -> None:
     """Check if this is a new high score and celebrate if so."""
+    if game_key is None:
+        game_key = game_name.lower().replace(" ", "_")
     mgr = get_stats_manager()
-    prev = mgr.get_high_score(game_name.lower().replace(" ", "_"))
+    prev = mgr.get_high_score(game_key)
     if new_score > prev and new_score > 0:
         celebrate_high_score(game_name, new_score, prev)

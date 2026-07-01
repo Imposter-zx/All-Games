@@ -57,6 +57,7 @@ XP_CONFIGS: Dict[str, GameXPConfig] = {
     'rhythm': GameXPConfig(name='Rhythm Game', base_multiplier=2.0),
     'boss_fight': GameXPConfig(name='Secret Boss', base_multiplier=5.0),
     'marathon': GameXPConfig(name='Marathon', base_multiplier=10.0),
+    'invaders': GameXPConfig(name='Invaders', base_multiplier=1.5),
 }
 
 

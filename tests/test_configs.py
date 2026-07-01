@@ -1,4 +1,4 @@
-"""Validate XP configs and achievements cover all 20 games."""
+"""Validate XP configs and achievements cover all games."""
 
 import os
 import sys
@@ -14,7 +14,8 @@ ALL_GAMES = [
     "pong", "asteroids", "frogger", "flappy", "racing", "blackjack",
     "connect_four", "hangman", "wordle", "tictactoe", "simon", "trivia",
     "typer", "slots", "memory", "battleship", "crossword", "hanoi",
-    "solitaire", "rpsls", "poker", "mastermind", "gomoku", "othello", "nonograms", "sokoban",
+    "solitaire", "rpsls", "poker", "mastermind", "gomoku", "othello",
+    "nonograms", "sokoban", "invaders",
 ]
 
 

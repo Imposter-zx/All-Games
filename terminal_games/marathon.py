@@ -1,4 +1,4 @@
-"""Marathon Mode — play all 36 games in one session with cumulative scoring."""
+"""Marathon Mode — play all 37 games in one session with cumulative scoring."""
 import time
 from typing import Any, Callable, Dict, List, Tuple
 
@@ -55,6 +55,7 @@ GAME_NAMES: List[Tuple[str, str]] = [
     ("othello", "Othello"),
     ("nonograms", "Nonograms"),
     ("sokoban", "Sokoban"),
+    ("invaders", "Invaders"),
 ]
 
 
@@ -237,6 +238,11 @@ def _register_funcs() -> None:
     except ImportError:
         pass
     try:
+        from invaders import play_invaders
+        GAME_PLAY_FUNCS["invaders"] = play_invaders
+    except ImportError:
+        pass
+    try:
         from space_shooter import play_space_shooter
         GAME_PLAY_FUNCS["space_shooter"] = play_space_shooter
     except ImportError:
@@ -244,7 +250,7 @@ def _register_funcs() -> None:
 
 
 def run_marathon() -> None:
-    """Run all 36 games sequentially with cumulative scoring."""
+    """Run all 37 games sequentially with cumulative scoring."""
     _register_funcs()
     mgr = get_stats_manager()
 
@@ -259,10 +265,10 @@ def run_marathon() -> None:
     clear_screen()
     print("\n" * 3)
     print(f"  {C_YELLOW}{C_BOLD}╔═══════════════════════════════════════╗{C_RESET}")
-    print(f"  {C_YELLOW}{C_BOLD}║     36-GAME MARATHON MODE!           ║{C_RESET}")
+    print(f"  {C_YELLOW}{C_BOLD}║     37-GAME MARATHON MODE!           ║{C_RESET}")
     print(f"  {C_YELLOW}{C_BOLD}╚═══════════════════════════════════════╝{C_RESET}")
     print()
-    print(f"  {C_WHITE}Play ALL 36 games in one session.{C_RESET}")
+    print(f"  {C_WHITE}Play ALL 37 games in one session.{C_RESET}")
     print(f"  {C_WHITE}Cumulative score. Permadeath: 3 lives.{C_RESET}")
     print(f"  {C_WHITE}Each failed game costs 1 life.{C_RESET}")
     print(f"  {C_WHITE}Lose all lives = GAME OVER.{C_RESET}")
@@ -296,7 +302,7 @@ def run_marathon() -> None:
         diff = diffs[min(diff_idx, 2)]
 
         clear_screen()
-        print(f"\n  {C_MAGENTA}{C_BOLD}MARATHON — Game {idx + 1}/36{C_RESET}")
+        print(f"\n  {C_MAGENTA}{C_BOLD}MARATHON — Game {idx + 1}/37{C_RESET}")
         print(f"  {C_CYAN}╔═══════════════════════════════════════╗{C_RESET}")
         print(f"  {C_CYAN}║{C_RESET}  {C_YELLOW}Next:{C_RESET} {C_BOLD}{game_name:<22}{C_RESET}{C_CYAN}║{C_RESET}")
         print(f"  {C_CYAN}║{C_RESET}  {C_YELLOW}Diff:{C_RESET} {C_BOLD}{diff.upper():<12}{C_RESET}{C_CYAN}║{C_RESET}")
@@ -311,7 +317,7 @@ def run_marathon() -> None:
                 break
             if key and key.lower() == "q":
                 clear_screen()
-                print(f"\n  {C_YELLOW}Marathon aborted at game {idx + 1}/36{C_RESET}")
+                print(f"\n  {C_YELLOW}Marathon aborted at game {idx + 1}/37{C_RESET}")
                 time.sleep(1)
                 _show_marathon_summary(total_score, total_xp, completed, failed,
                                        int(time.time() - start_time), results, False)
@@ -364,7 +370,7 @@ def _show_marathon_progress(total_score: int, total_xp: int, completed: int,
     clear_screen()
     print(f"\n  {C_CYAN}{C_BOLD}MARATHON PROGRESS{C_RESET}")
     print(f"  {C_WHITE}╔═══════════════════════════════════════╗{C_RESET}")
-    print(f"  {C_WHITE}║{C_RESET}  Games: {current}/36  Lives: {'♥' * lives}   {C_WHITE}║{C_RESET}")
+    print(f"  {C_WHITE}║{C_RESET}  Games: {current}/37  Lives: {'♥' * lives}   {C_WHITE}║{C_RESET}")
     print(f"  {C_WHITE}║{C_RESET}  Score: {total_score:<6}  XP: {total_xp:<6}{C_WHITE}    ║{C_RESET}")
     print(f"  {C_WHITE}║{C_RESET}  ✅ {completed} completed  ❌ {failed} failed{C_WHITE}   ║{C_RESET}")
     print(f"  {C_WHITE}╚═══════════════════════════════════════╝{C_RESET}")

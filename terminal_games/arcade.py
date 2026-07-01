@@ -59,6 +59,7 @@ from game_2048 import play_2048
 from gomoku import play_gomoku
 from hangman import play_hangman
 from hanoi import play_hanoi
+from invaders import play_invaders
 from marathon import run_marathon
 from mastermind import play_mastermind
 from memory import play_memory
@@ -106,8 +107,22 @@ GAMES: list[str] = [
     "pong", "asteroids", "frogger", "flappy", "racing",
     "blackjack", "connect_four", "hangman", "wordle", "tictactoe",
     "simon", "trivia", "typer", "slots", "memory", "battleship",
-    "crossword", "hanoi", "solitaire", "rpsls", "poker", "mastermind", "gomoku", "othello", "nonograms", "sokoban"
+    "crossword", "hanoi", "solitaire", "rpsls", "poker", "mastermind",
+    "gomoku", "othello", "nonograms", "sokoban", "invaders"
 ]
+
+GAME_DISPLAY_NAMES: list[str] = [
+    "Snake", "Breakout", "Space Shooter", "Tetris", "Pac-Man",
+    "Dungeon Crawler", "Minesweeper", "Chess", "Sudoku", "2048",
+    "Pong", "Asteroids", "Frogger", "Flappy Bird", "Racing",
+    "Blackjack", "Connect Four", "Hangman", "Wordle", "Tic-Tac-Toe",
+    "Simon Says", "Trivia", "Typer", "Slots", "Memory", "Battleship",
+    "Crossword", "Tower of Hanoi", "Solitaire", "RPSLS",
+    "Poker", "Mastermind", "Gomoku", "Othello", "Nonograms",
+    "Sokoban", "Invaders",
+]
+
+NAME_TO_KEY: dict[str, str] = dict(zip(GAME_DISPLAY_NAMES, GAMES))
 
 
 def _format_time(seconds: int) -> str:
@@ -185,6 +200,7 @@ def draw_profile() -> None:
         ("othello", u_safe("⬤", "O")),
         ("nonograms", u_safe("🧩", "N")),
         ("sokoban", u_safe("📦", "K")),
+        ("invaders", u_safe("👾", "I")),
     ]
 
     for gname, icon in game_entries:
@@ -223,7 +239,7 @@ def print_menu(selection: int, renderer: Renderer) -> None:
             "9.Sudoku  10.2048   11.Pong   12.Asteroid",
             "13.Frogger 14.Flappy 15.Racing 16.Blackjack",
             "17.Connect4 18.Hangman 19.Wordle 20.TTT 21.Simon",
-            "M.Marathon  K.BossFight  R.Roulette",
+            "M.Marathon  K.BossFight  Z.Roulette",
             "V.VSMode  D.Daily  L.Leader  S.Settings",
             "H.Help  Q.Quit",
         ]
@@ -255,7 +271,7 @@ def print_menu(selection: int, renderer: Renderer) -> None:
             f"S. {u_safe('⚙️', 'S')} Settings",
             f"M. {u_safe('🏃', 'M')} Marathon (36 games!)",
             f"K. {u_safe('👾', 'K')} Secret Boss Fight",
-            f"R. {u_safe('🎲', 'R')} Roulette",
+            f"Z. {u_safe('🎲', 'Z')} Roulette",
             f"V. {u_safe('⚡', 'V')} VS Mode (2-Player)",
             f"D. {u_safe('📅', 'D')} Daily Challenge",
             "H. Tutorial",
@@ -624,10 +640,10 @@ def show_recent_activity() -> None:
     get_key()
 
 
-def _check_saved_state(game_name: str) -> None:
+def _check_saved_state(game_name: str, game_key: str) -> None:
     """Prompt to resume if a saved state exists, otherwise start fresh."""
     mgr = get_stats_manager()
-    if mgr.has_game_state(game_name):
+    if mgr.has_game_state(game_key):
         from arcade_utils import clear_screen, draw_retro_box, get_key
         clear_screen()
         print("\n" * 5)
@@ -642,7 +658,7 @@ def _check_saved_state(game_name: str) -> None:
             if key in ['\r', '\n', ' ']:
                 return
             if key and key.lower() == 'q':
-                mgr.delete_game_state(game_name)
+                mgr.delete_game_state(game_key)
                 return
 
 
@@ -652,7 +668,8 @@ def _show_game_summary(result: dict, game_name: str, diff: str) -> None:
     xp = result.get('xp_earned', 0)
     dur = result.get('duration_seconds', 0)
     mgr = get_stats_manager()
-    high = mgr.get_high_score(game_name.lower().replace(' ', '_').replace('-', '_'))
+    key = NAME_TO_KEY.get(game_name, game_name.lower().replace(' ', '_').replace('-', '_'))
+    high = mgr.get_high_score(key)
     lines = [
         f"{C_YELLOW}SCORE     :{C_RESET} {C_GREEN}{score}{C_RESET}",
         f"{C_YELLOW}XP EARNED :{C_RESET} {C_MAGENTA}{xp}{C_RESET}",
@@ -680,6 +697,7 @@ def _build_game_map() -> dict:
         "typer": play_typer, "solitaire": play_solitaire, "rpsls": play_rpsls,
         "poker": play_poker, "mastermind": play_mastermind, "gomoku": play_gomoku,
         "othello": play_othello, "nonograms": play_nonograms, "sokoban": play_sokoban,
+        "invaders": play_invaders,
     }
 
 
@@ -687,7 +705,8 @@ def _play_and_submit(game_func, game_name: str, difficulty: Optional[str]) -> No
     """Play a game and submit score to online leaderboard."""
     mgr = get_stats_manager()
     old_level = mgr.get_level_and_xp()[0] if hasattr(mgr, 'get_level_and_xp') else 0
-    _check_saved_state(game_name)
+    game_key = NAME_TO_KEY.get(game_name, game_name.lower().replace(' ', '_').replace('-', '_'))
+    _check_saved_state(game_name, game_key)
     result = safe_game_call(game_func, game_name, difficulty=difficulty)
     if result:
         clear_screen()
@@ -695,7 +714,7 @@ def _play_and_submit(game_func, game_name: str, difficulty: Optional[str]) -> No
         _show_game_summary(result, game_name, difficulty or 'normal')
         score = result.get('high_score', result.get('score', 0))
         if score > 0:
-            check_and_celebrate(game_name, score)
+            check_and_celebrate(game_name, score, game_key)
         new_level = mgr.get_level_and_xp()[0] if hasattr(mgr, 'get_level_and_xp') else 0
         if new_level > old_level:
             celebrate_level_up(new_level)
@@ -714,7 +733,7 @@ def main() -> None:
         print(f"{C_YELLOW}Resize your terminal and restart.{C_RESET}")
         input(f"\n{C_WHITE}Press ENTER to continue anyway...{C_RESET}")
     selection = 0
-    num_options = 40
+    num_options = 41
 
 
     renderer = Renderer(fps=60)
@@ -742,7 +761,7 @@ def main() -> None:
             stop_background_music()
 
             difficulty: Optional[str] = None
-            if selection < 36:
+            if selection < 37:
                 difficulty = select_game_difficulty()
                 if not difficulty:
                     start_background_music()
@@ -830,12 +849,14 @@ def main() -> None:
             elif selection == 35:
                 _play_and_submit(play_sokoban, "Sokoban", difficulty)
             elif selection == 36:
-                show_leaderboard()
+                _play_and_submit(play_invaders, "Invaders", difficulty)
             elif selection == 37:
-                show_settings()
+                show_leaderboard()
             elif selection == 38:
-                show_tutorial()
+                show_settings()
             elif selection == 39:
+                show_tutorial()
+            elif selection == 40:
                 break
 
             renderer.clear()
@@ -863,20 +884,7 @@ def main() -> None:
             show_recent_activity()
             renderer.clear()
             start_background_music()
-        elif key and key.lower() == 'l':
-            show_leaderboard()
-            renderer.clear()
-        elif key and key.lower() == 'm':
-            stop_background_music()
-            run_marathon()
-            renderer.clear()
-            start_background_music()
-        elif key and key.lower() == 'k':
-            stop_background_music()
-            _play_and_submit(play_boss_fight, "Secret Boss", "hard")
-            renderer.clear()
-            start_background_music()
-        elif key and key.lower() == 'r':
+        elif key and key.lower() == 'z':
             stop_background_music()
             chosen = pick_roulette_game(GAMES)
             if chosen:
