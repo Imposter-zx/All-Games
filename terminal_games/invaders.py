@@ -47,6 +47,7 @@ class InvadersGame:
         self.move_delay = 8
         self.game_over = False
         self.won = False
+        self.start_time = 0.0
 
     def _init_wave(self) -> None:
         self.enemies = []
@@ -61,6 +62,7 @@ class InvadersGame:
         self.move_delay = max(3, 8 - (self.wave - 1))
 
     def play(self) -> dict:
+        self.start_time = time.time()
         self._init_wave()
         self.player_x = self.width // 2
 
@@ -175,7 +177,8 @@ class InvadersGame:
 
         mgr = get_stats_manager()
         mgr.add_xp(final_xp)
-        mgr.record_session("Invaders", self.score, final_xp, 0, self.difficulty)
+        elapsed = int(time.time() - self.start_time)
+        mgr.record_session("Invaders", self.score, final_xp, elapsed, self.difficulty)
 
         clear_screen()
         print(f"\n  {C_RED}{C_BOLD}INVADERS — GAME OVER{C_RESET}")
@@ -185,7 +188,8 @@ class InvadersGame:
         print(f"\n  {C_WHITE}[Any Key] Continue{C_RESET}")
         get_key()
 
-        return {"score": self.score, "xp_earned": final_xp, "high_score": self.score, "duration_seconds": 0}
+        return {"score": self.score, "xp_earned": final_xp, "high_score": self.score,
+                "duration_seconds": elapsed}
 
 
 def play_invaders(difficulty: str = "normal") -> dict:

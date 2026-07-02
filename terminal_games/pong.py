@@ -312,6 +312,7 @@ class PongGame(BaseGame):
                     if state.get("winner") == self.player_name:
                         self.unlock_achievement("pong_pro", "Pong Pro")
                         show_popup("YOU WIN!", C_GREEN)
+                        self.award_xp_for_action(self.score)
                     else:
                         show_popup("YOU LOSE!", C_RED)
                     break

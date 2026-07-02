@@ -164,9 +164,6 @@ class RhythmGame:
                         glow_str += f"  {key_color}{key_label}{C_RESET}  "
                 print(glow_str)
 
-                if self.combo >= 5:
-                    pass
-
             key = get_key()
             if key:
                 if key.lower() == "q":
@@ -205,7 +202,7 @@ class RhythmGame:
         from stats_manager import get_stats_manager
         mgr = get_stats_manager()
         mgr.add_xp(final_xp)
-        mgr.record_session("Rhythm Game", self.score, final_xp, 0, self.difficulty)
+        mgr.record_session("Rhythm Game", self.score, final_xp, int(self.elapsed), self.difficulty)
 
         clear_screen()
         print(f"\n  {C_MAGENTA}{C_BOLD}♫ RHYTHM COMPLETE! ♫{C_RESET}")
