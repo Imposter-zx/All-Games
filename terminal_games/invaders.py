@@ -173,7 +173,7 @@ class InvadersGame:
         total_xp = self.score // 10
         from xp_config import get_xp_system
         xp_sys = get_xp_system(self.difficulty)
-        final_xp = xp_sys.calculate_xp("invaders", total_xp) if hasattr(xp_sys, 'calculate_xp') else total_xp
+        final_xp = xp_sys.calculate_xp("invaders", total_xp)
 
         mgr = get_stats_manager()
         mgr.add_xp(final_xp)

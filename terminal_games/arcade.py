@@ -704,7 +704,7 @@ def _build_game_map() -> dict:
 def _play_and_submit(game_func, game_name: str, difficulty: Optional[str]) -> None:
     """Play a game and submit score to online leaderboard."""
     mgr = get_stats_manager()
-    old_level = mgr.get_level_and_xp()[0] if hasattr(mgr, 'get_level_and_xp') else 0
+    old_level = mgr.get_level_and_xp()[0]
     game_key = NAME_TO_KEY.get(game_name, game_name.lower().replace(' ', '_').replace('-', '_'))
     _check_saved_state(game_name, game_key)
     result = safe_game_call(game_func, game_name, difficulty=difficulty)
@@ -715,7 +715,7 @@ def _play_and_submit(game_func, game_name: str, difficulty: Optional[str]) -> No
         score = result.get('high_score', result.get('score', 0))
         if score > 0:
             check_and_celebrate(game_name, score, game_key)
-        new_level = mgr.get_level_and_xp()[0] if hasattr(mgr, 'get_level_and_xp') else 0
+        new_level = mgr.get_level_and_xp()[0]
         if new_level > old_level:
             celebrate_level_up(new_level)
     if result and result.get('high_score', 0) > 0:
