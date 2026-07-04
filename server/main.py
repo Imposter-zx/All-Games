@@ -128,6 +128,19 @@ class ChessRoom:
 
 CHESS_ROOMS: Dict[str, ChessRoom] = {}
 
+# Periodic chess room cleanup
+def _chess_cleanup_loop() -> None:
+    while True:
+        time.sleep(60)
+        now = time.time()
+        expired = [rid for rid, r in list(CHESS_ROOMS.items())
+                   if r.status == "finished" and now - r.created_at > 3600]
+        for rid in expired:
+            del CHESS_ROOMS[rid]
+
+_chess_cleanup_thread = threading.Thread(target=_chess_cleanup_loop, daemon=True)
+_chess_cleanup_thread.start()
+
 
 def _get_chess_db() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
@@ -193,6 +206,15 @@ def chess_move(
         raise HTTPException(400, f"Not your turn — waiting for {expected}")
 
     room.moves.append(move)
+    # Persist after each move
+    conn = _get_chess_db()
+    conn.execute(
+        "INSERT OR REPLACE INTO chess_games VALUES (?, ?, ?, ?, ?, ?)",
+        (room.room_id, room.player_white, room.player_black, room.winner,
+         json.dumps(room.moves), room.created_at),
+    )
+    conn.commit()
+    conn.close()
     return {"move_number": len(room.moves), "ack": True}
 
 
@@ -379,11 +401,16 @@ def _pong_background_loop() -> None:
     while True:
         now = time.time()
         with _PONG_LOCK:
-            for room in PONG_ROOMS.values():
+            for room in list(PONG_ROOMS.values()):
                 if room.status == "playing":
                     dt = now - room.last_tick
                     _tick_pong(room, dt)
                     room.last_tick = now
+            # Clean up finished rooms after 5 minutes
+            expired = [rid for rid, r in list(PONG_ROOMS.items())
+                       if r.status == "finished" and now - r.last_tick > 300]
+            for rid in expired:
+                del PONG_ROOMS[rid]
         time.sleep(PONG_TICK)
 
 
