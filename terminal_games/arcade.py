@@ -486,7 +486,7 @@ def show_tutorial() -> None:
         "  Pong, Asteroids, Frogger, Flappy Bird, Racing,",
         "  Blackjack, Connect Four, Hangman, Wordle, Tic-Tac-Toe,",
         "  Simon Says, Trivia, Typer, Slots, Memory, Battleship, Crossword,",
-        "  Hanoi, Solitaire, RPSLS, Poker, Mastermind, Gomoku, Othello, Nonograms, Sokoban",
+        "  Hanoi, Solitaire, RPSLS, Poker, Mastermind, Gomoku, Othello, Nonograms, Sokoban, Invaders",
         "",
         f"{C_WHITE}Press any key to return to menu...{C_RESET}"
     ]
@@ -504,7 +504,7 @@ def show_shortcuts() -> None:
         f"{C_BOLD}{C_YELLOW}ARCADE KEYBOARD SHORTCUTS{C_RESET}",
         "",
         f"{C_CYAN}ARCADE MENU{C_RESET}",
-        f"  {C_GREEN}1-36{C_RESET}          Quick-select game by number",
+        f"  {C_GREEN}1-10{C_RESET}          Quick-select game by number (1-10)",
         f"  {C_GREEN}UP/DOWN{C_RESET}       Navigate menu",
         f"  {C_GREEN}ENTER{C_RESET}          Launch selected game",
         f"  {C_GREEN}A{C_RESET}              View achievements",
@@ -526,8 +526,9 @@ def show_shortcuts() -> None:
         "  11-Pong  12-Asteroids  13-Frogger  14-Flappy  15-Racing",
         "  16-Blackjack  17-Connect Four  18-Hangman  19-Wordle  20-TTT",
         "  21-Simon  22-Trivia  23-Slots  24-Memory  25-Battleship",
-        "  26-Crossword  27-Hanoi  28-Typer",
-        "  29-Solitaire  30-RPSLS  31-Poker  32-Mastermind  33-Gomoku  34-Othello  35-Nonograms  36-Sokoban",
+        "  26-Crossword  27-Hanoi  28-Typer  29-Solitaire  30-RPSLS",
+        "  31-Poker  32-Mastermind  33-Gomoku  34-Othello  35-Nonograms",
+        "  36-Sokoban  37-Invaders",
         "",
         f"{C_WHITE}Press any key to return...{C_RESET}",
     ]
