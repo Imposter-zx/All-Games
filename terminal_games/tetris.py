@@ -234,7 +234,7 @@ class TetrisGame(BaseGame):
                 new_board.insert(0, [0] * WIDTH)
             self.board = new_board
 
-            if self.score // 1000 > self.level:
+            if self.score // 1000 >= self.level:
                 self.level += 1
                 show_popup(f"LEVEL UP: {self.level}", C_CYAN)
 

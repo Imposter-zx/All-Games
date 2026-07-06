@@ -301,12 +301,28 @@ class PacmanGame(BaseGame):
     def _handle_death(self) -> None:
         beep("lose")
         animated_flash(C_RED)
-        show_popup(f"GHOST CAUGHT YOU! Score: {self.score}", C_RED)
-        self.game_over = True
+        self.lives -= 1
+        if self.lives > 0:
+            show_popup(f"GHOST CAUGHT YOU! {self.lives} lives left", C_RED, delay=1)
+            self._reset_positions()
+        else:
+            show_popup(f"GAME OVER! Score: {self.score}", C_RED)
+            self.game_over = True
 
     def _handle_win(self) -> None:
         beep("win")
         show_popup(f"LEVEL CLEAR! YOU WIN! Score: {self.score}", C_YELLOW)
+
+    def _reset_positions(self) -> None:
+        self.pac_x, self.pac_y = 7, 8
+        self.ghosts = [
+            Ghost(0, 1, 1),
+            Ghost(1, 13, 1),
+            Ghost(2, 1, 12),
+            Ghost(3, 13, 12),
+        ]
+        self.power_timer = 0
+        self.last_move_time = time.time()
         self.game_over = True
 
 

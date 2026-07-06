@@ -171,8 +171,20 @@ class SudokuGame(BaseGame):
 
     def _check_win(self) -> bool:
         for r in range(9):
-            if 0 in self.board[r]:
+            for c in range(9):
+                if self.board[r][c] == 0:
+                    return False
+        for i in range(9):
+            if sorted(self.board[i]) != list(range(1, 10)):
                 return False
+            col = [self.board[r][i] for r in range(9)]
+            if sorted(col) != list(range(1, 10)):
+                return False
+        for br in range(0, 9, 3):
+            for bc in range(0, 9, 3):
+                box = [self.board[br + r][bc + c] for r in range(3) for c in range(3)]
+                if sorted(box) != list(range(1, 10)):
+                    return False
         return True
 
     def _handle_win(self) -> None:

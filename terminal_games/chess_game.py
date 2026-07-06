@@ -79,6 +79,7 @@ class ChessGame(BaseGame):
         self.player_name = player_name
         self.my_color = my_color
         self._last_known_moves = 0
+        self._poll_failures = 0
 
         # Init Stockfish engine if available
         if _STOCKFISH_PATH and CHESS_AVAILABLE:
@@ -329,26 +330,34 @@ class ChessGame(BaseGame):
         else:
             # Poll server for opponent's move
             state = network_game.get_chess_game_state(self.room_id, self.player_name)
-            if state and state.get("status") == "finished":
-                if state.get("winner"):
-                    winner = state["winner"]
-                    show_popup(f"{winner.upper()} wins!", C_GREEN if winner == self.my_color else C_RED)
-                self.game_over = True
-                return
-            if state and len(state.get("moves", [])) > self._last_known_moves:
-                new_moves = state["moves"][self._last_known_moves:]
-                for move_uci in new_moves:
-                    try:
-                        move = chess.Move.from_uci(move_uci)
-                        if move in self.board.legal_moves:
-                            self.board.push(move)
-                            beep("correct")
-                        else:
-                            logger.warning(f"Invalid remote move: {move_uci}")
-                    except Exception as e:
-                        logger.warning(f"Failed to apply remote move {move_uci}: {e}")
-                self._last_known_moves = len(state["moves"])
-                self.score += 5
+            if state is None:
+                self._poll_failures += 1
+                if self._poll_failures > 150:  # ~30 seconds of failures
+                    show_popup("Server unreachable — game ended", C_RED, delay=1.5)
+                    self.game_over = True
+                    return
+            else:
+                self._poll_failures = 0
+                if state.get("status") == "finished":
+                    if state.get("winner"):
+                        winner = state["winner"]
+                        show_popup(f"{winner.upper()} wins!", C_GREEN if winner == self.my_color else C_RED)
+                    self.game_over = True
+                    return
+                if len(state.get("moves", [])) > self._last_known_moves:
+                    new_moves = state["moves"][self._last_known_moves:]
+                    for move_uci in new_moves:
+                        try:
+                            move = chess.Move.from_uci(move_uci)
+                            if move in self.board.legal_moves:
+                                self.board.push(move)
+                                beep("correct")
+                            else:
+                                logger.warning(f"Invalid remote move: {move_uci}")
+                        except Exception as e:
+                            logger.warning(f"Failed to apply remote move {move_uci}: {e}")
+                    self._last_known_moves = len(state["moves"])
+                    self.score += 5
             time.sleep(0.2)
 
     def _handle_online_selection(self) -> None:
