@@ -328,6 +328,9 @@ class WordleGame(BaseGame):
                     if guess in self.attempts:
                         show_popup("Already guessed!", C_RED, delay=0.8)
                         continue
+                    if guess.lower() not in WORD_POOL:
+                        show_popup("Not a valid word!", C_RED, delay=0.8)
+                        continue
 
                     self.attempts.append(guess)
                     result = self._check_guess(guess)

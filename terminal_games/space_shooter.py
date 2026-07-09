@@ -175,12 +175,9 @@ class SpaceShooterGame(BaseGame):
                     break
 
         for e in self.enemies[:]:
-            if e['y'] >= HEIGHT - 1:
-                if e['x'] == self.player_x and e['y'] == HEIGHT - 1:
-                    self._handle_collision()
-                self.enemies.remove(e)
-            elif e['x'] == self.player_x and e['y'] == HEIGHT - 1:
+            if e['x'] == self.player_x and e['y'] >= HEIGHT - 1:
                 self._handle_collision()
+            if e['y'] >= HEIGHT - 1:
                 self.enemies.remove(e)
 
     def _handle_collision(self) -> None:
