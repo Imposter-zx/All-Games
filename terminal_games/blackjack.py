@@ -248,7 +248,10 @@ class BlackjackGame(BaseGame):
             pass
         finally:
             self.end_timer()
-            return self.get_final_stats()
+            final_stats = self.get_final_stats()
+            final_stats['high_score'] = self.score
+            self.save_stats(final_stats)
+            return final_stats
 
 
 def play_blackjack(difficulty: str = 'normal') -> dict:

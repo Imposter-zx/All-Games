@@ -292,6 +292,7 @@ class GomokuGame(BaseGame):
             stats = self.get_final_stats()
             stats['high_score'] = self.high_score
             stats['wins'] = self.wins
+            self.save_stats(stats)
             return stats
 
 

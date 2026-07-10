@@ -321,6 +321,7 @@ class SokobanGame(BaseGame):
             self.end_timer()
             stats = self.get_final_stats()
             stats['high_score'] = self.high_score
+            self.save_stats(stats)
             return stats
 
 

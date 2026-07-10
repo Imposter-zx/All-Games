@@ -452,11 +452,8 @@ class TriviaGame(BaseGame):
         self.renderer.hide_cursor()
 
         try:
-            if not self.select_category():
-                self.end_timer()
-                return {"score": 0, "xp_earned": 0, "duration_seconds": 0}
-
-            self.build_question_pool()
+            if self.select_category():
+                self.build_question_pool()
 
             while self.question_index < self.total_questions and not self.game_over:
                 self.render_question()
@@ -506,7 +503,10 @@ class TriviaGame(BaseGame):
         finally:
             self.end_timer()
             self.renderer.show_cursor()
-            return self.get_final_stats()
+            final_stats = self.get_final_stats()
+            final_stats['high_score'] = self.score
+            self.save_stats(final_stats)
+            return final_stats
 
     def _show_help(self) -> None:
         lines = [
