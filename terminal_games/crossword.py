@@ -364,7 +364,10 @@ class CrosswordGame(BaseGame):
         finally:
             self.end_timer()
             self.renderer.show_cursor()
-            return self.get_final_stats()
+            final_stats = self.get_final_stats()
+            final_stats['high_score'] = self.correct_words
+            self.save_stats(final_stats)
+            return final_stats
 
     def _show_help(self) -> None:
         lines = [

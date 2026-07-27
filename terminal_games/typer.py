@@ -208,7 +208,10 @@ class TyperGame(BaseGame):
         finally:
             self.end_timer()
             self.renderer.show_cursor()
-            return self.get_final_stats()
+            final_stats = self.get_final_stats()
+            final_stats['high_score'] = self.score
+            self.save_stats(final_stats)
+            return final_stats
 
     def _score_and_show(self) -> None:
         minutes = max(0.1, self.time_elapsed) / 60.0

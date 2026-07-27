@@ -901,7 +901,7 @@ def main() -> None:
             start_background_music()
         elif key and key.lower() == 'v':
             stop_background_music()
-            run_vs_mode(GAMES)
+            run_vs_mode()
             renderer.clear()
             start_background_music()
         elif key and key.lower() == 'd':

@@ -21,8 +21,7 @@ from stats_manager import get_stats_manager
 class VSMode:
     """Two players take turns playing games, competing for highest total."""
 
-    def __init__(self, games_list: list):
-        self.games = games_list[:10]
+    def __init__(self):
         self.scores: Dict[str, int] = {"Player 1": 0, "Player 2": 0}
         self.round = 0
         self.max_rounds = 3
@@ -222,5 +221,5 @@ class VSMode:
         get_key()
 
 
-def run_vs_mode(games_list: list) -> None:
-    VSMode(games_list).run()
+def run_vs_mode() -> None:
+    VSMode().run()

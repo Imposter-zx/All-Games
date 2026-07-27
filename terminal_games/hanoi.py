@@ -183,7 +183,10 @@ class HanoiGame(BaseGame):
         finally:
             self.end_timer()
             self.renderer.show_cursor()
-            return self.get_final_stats()
+            final_stats = self.get_final_stats()
+            final_stats['high_score'] = max(0, self.min_moves * 10 - self.moves)
+            self.save_stats(final_stats)
+            return final_stats
 
     def _show_help(self) -> None:
         lines = [
