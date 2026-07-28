@@ -71,7 +71,9 @@ class BossFight:
 
         mgr = get_stats_manager()
         mgr.add_xp(final_xp)
-        mgr.record_session("Secret Boss", self.score, final_xp, 0, "hard")
+        mgr.record_session("boss_fight", self.score, final_xp, 0, "hard")
+        mgr.update_game_stats("boss_fight", {"score": self.score, "xp_earned": final_xp,
+                                             "high_score": self.score, "duration_seconds": 0})
 
         clear_screen()
         print("\n" * 2)

@@ -175,10 +175,12 @@ class InvadersGame:
         xp_sys = get_xp_system(self.difficulty)
         final_xp = xp_sys.calculate_xp("invaders", total_xp)
 
+        elapsed = int(time.time() - self.start_time)
         mgr = get_stats_manager()
         mgr.add_xp(final_xp)
-        elapsed = int(time.time() - self.start_time)
-        mgr.record_session("Invaders", self.score, final_xp, elapsed, self.difficulty)
+        mgr.record_session("invaders", self.score, final_xp, elapsed, self.difficulty)
+        mgr.update_game_stats("invaders", {"score": self.score, "xp_earned": final_xp,
+                                           "high_score": self.score, "duration_seconds": elapsed})
 
         clear_screen()
         print(f"\n  {C_RED}{C_BOLD}INVADERS — GAME OVER{C_RESET}")
