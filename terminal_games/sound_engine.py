@@ -123,7 +123,6 @@ def _get_wav(event: str) -> Optional[bytes]:
         data = b''
         for freq in (523, 659, 784):
             data += _generate_sine_wave(freq, 0.12, 0.3)
-            data += _generate_sine_wave(freq, 0.12, 0.3)
         _wave_cache[event] = _build_wav(data)
     elif event == 'level_up':
         data = _generate_sine_wave(1047, 0.08, 0.3) * 3
@@ -145,6 +144,9 @@ def _get_wav(event: str) -> Optional[bytes]:
     return _wave_cache[event]
 
 
+_wav_lock = threading.Lock()
+
+
 def _play_wav(wav_data: bytes) -> None:
     """Play a WAV blob on the current platform."""
     if not wav_data:
@@ -152,12 +154,13 @@ def _play_wav(wav_data: bytes) -> None:
     tmp_dir = Path.home() / ".retro_arcade" / ".sounds"
     tmp_dir.mkdir(parents=True, exist_ok=True)
     tmp_path = tmp_dir / "_sfx.wav"
-    try:
-        with open(tmp_path, 'wb') as f:
-            f.write(wav_data)
-    except IOError:
-        return
-    _play_file(str(tmp_path))
+    with _wav_lock:
+        try:
+            with open(tmp_path, 'wb') as f:
+                f.write(wav_data)
+        except IOError:
+            return
+        _play_file(str(tmp_path))
 
 
 def _play_file(path: str) -> None:
@@ -218,19 +221,22 @@ def _music_worker(bpm: int = 120) -> None:
             melody.append(0)
 
     wav_data = b''
+    loop_duration = 0.0
     for note in melody:
         if note > 0:
             wav_data += _generate_sine_wave(note, beat_dur * 0.8, 0.08)
             wav_data += _generate_sine_wave(note * 2, beat_dur * 0.2, 0.04)
+            loop_duration += beat_dur
         else:
             wav_data += b'\x00' * int(SAMPLE_RATE * beat_dur * 2)
+            loop_duration += beat_dur * 2
 
     while not _music_stop.is_set():
         mgr = get_stats_manager()
         settings = mgr.get_settings()
         if settings.get('sound_enabled', True):
             _play_wav(_build_wav(wav_data))
-        _music_stop.wait(beat_dur * len(melody) * 0.5)
+        _music_stop.wait(loop_duration)
 
 
 def start_background_music(bpm: int = 120) -> None:

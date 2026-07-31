@@ -47,7 +47,7 @@ def create_chess_room(
 ) -> Optional[Dict[str, Any]]:
     """Create a new chess room. Returns room info or None."""
     return _post(
-        f"{server}/api/chess/create_room?player_name={urllib.request.quote(player_name)}",
+        f"{server}/api/chess/create_room?player_name={urllib.parse.quote(player_name)}",
         "",
         server,
     )
@@ -60,7 +60,7 @@ def join_chess_room(
 ) -> Optional[Dict[str, Any]]:
     """Join an existing chess room. Returns room info or None."""
     return _post(
-        f"{server}/api/chess/join_room?room_id={room_id}&player_name={urllib.request.quote(player_name)}",
+        f"{server}/api/chess/join_room?room_id={room_id}&player_name={urllib.parse.quote(player_name)}",
         "",
         server,
     )
@@ -74,7 +74,7 @@ def submit_chess_move(
 ) -> Optional[Dict[str, Any]]:
     """Submit a chess move to the server. Returns ack info or None."""
     return _post(
-        f"{server}/api/chess/move?room_id={room_id}&player_name={urllib.request.quote(player_name)}&move={move}",
+        f"{server}/api/chess/move?room_id={room_id}&player_name={urllib.parse.quote(player_name)}&move={move}",
         "",
         server,
     )
@@ -87,7 +87,7 @@ def get_chess_game_state(
 ) -> Optional[Dict[str, Any]]:
     """Get the current chess game state from the server."""
     return _get(
-        f"{server}/api/chess/game_state?room_id={room_id}&player_name={urllib.request.quote(player_name)}",
+        f"{server}/api/chess/game_state?room_id={room_id}&player_name={urllib.parse.quote(player_name)}",
         server,
     )
 
@@ -99,7 +99,7 @@ def resign_chess(
 ) -> Optional[Dict[str, Any]]:
     """Resign from a chess game."""
     return _post(
-        f"{server}/api/chess/resign?room_id={room_id}&player_name={urllib.request.quote(player_name)}",
+        f"{server}/api/chess/resign?room_id={room_id}&player_name={urllib.parse.quote(player_name)}",
         "",
         server,
     )
@@ -113,7 +113,7 @@ def create_pong_room(
 ) -> Optional[Dict[str, Any]]:
     """Create a new Pong room. Returns room info or None."""
     return _post(
-        f"{server}/api/pong/create_room?player_name={urllib.request.quote(player_name)}",
+        f"{server}/api/pong/create_room?player_name={urllib.parse.quote(player_name)}",
         "",
         server,
     )
@@ -126,7 +126,7 @@ def join_pong_room(
 ) -> Optional[Dict[str, Any]]:
     """Join an existing Pong room. Returns room info or None."""
     return _post(
-        f"{server}/api/pong/join_room?room_id={room_id}&player_name={urllib.request.quote(player_name)}",
+        f"{server}/api/pong/join_room?room_id={room_id}&player_name={urllib.parse.quote(player_name)}",
         "",
         server,
     )
@@ -140,7 +140,7 @@ def send_pong_paddle(
 ) -> Optional[Dict[str, Any]]:
     """Send paddle direction to the server."""
     return _post(
-        f"{server}/api/pong/paddle?room_id={room_id}&player_name={urllib.request.quote(player_name)}&direction={direction}",
+        f"{server}/api/pong/paddle?room_id={room_id}&player_name={urllib.parse.quote(player_name)}&direction={direction}",
         "",
         server,
     )
@@ -153,7 +153,7 @@ def get_pong_state(
 ) -> Optional[Dict[str, Any]]:
     """Get the current Pong game state from the server."""
     return _get(
-        f"{server}/api/pong/state?room_id={room_id}&player_name={urllib.request.quote(player_name)}",
+        f"{server}/api/pong/state?room_id={room_id}&player_name={urllib.parse.quote(player_name)}",
         server,
     )
 
@@ -165,7 +165,7 @@ def forfeit_pong(
 ) -> Optional[Dict[str, Any]]:
     """Forfeit from a Pong game."""
     return _post(
-        f"{server}/api/pong/forfeit?room_id={room_id}&player_name={urllib.request.quote(player_name)}",
+        f"{server}/api/pong/forfeit?room_id={room_id}&player_name={urllib.parse.quote(player_name)}",
         "",
         server,
     )

@@ -721,7 +721,7 @@ def _play_and_submit(game_func, game_name: str, difficulty: Optional[str]) -> No
             celebrate_level_up(new_level)
     if result and result.get('high_score', 0) > 0:
         name = mgr.get_settings().get('player_name', 'RETRO_MASTER')
-        olb.submit_score(name, game_name, result['high_score'], difficulty or 'normal')
+        olb.submit_score(name, game_key, result['high_score'], difficulty or 'normal')
 
 
 def main() -> None:

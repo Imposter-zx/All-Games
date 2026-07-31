@@ -169,11 +169,11 @@ class StatsManager:
         now = time.time()
         try:
             with self.conn:
-                self.conn.execute(
+                cursor = self.conn.execute(
                     "INSERT OR IGNORE INTO achievements (achievement_id, unlocked_at) VALUES (?, ?)",
                     (achievement_id, now)
                 )
-                return self.conn.total_changes > 0
+                return cursor.rowcount > 0
         except sqlite3.IntegrityError:
             return False
 

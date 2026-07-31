@@ -214,7 +214,7 @@ class MinesweeperGame(BaseGame):
     def _handle_win(self) -> None:
         beep("win")
         self.award_xp_for_action(200)
-        self.unlock_achievement("mines_win", "Demolition Expert")
+        self.unlock_achievement("minesweeper_first_win", "Demolition Expert")
         show_popup("YOU CLEARED THE MINEFIELD!", C_GREEN)
         self.game_over = True
 

@@ -1,6 +1,7 @@
 """High score celebration effects."""
 import random
 import time
+from typing import Optional
 
 from arcade_utils import (
     C_BOLD,
@@ -41,9 +42,8 @@ def celebrate_high_score(game_name: str, score: int, prev_best: int) -> None:
     print(f"  {C_WHITE}  Previous Best:      {C_RED}{prev_best:>8}{C_RESET}")
 
     improvement = score - prev_best
-    if improvement > 0:
-        pct = int((improvement / prev_best) * 100) if prev_best > 0 else 100
-        print(f"  {C_WHITE}  Improvement:        +{C_GREEN}{improvement}{C_RESET}  ({C_YELLOW}+{pct}%{C_RESET})")
+    pct = int((improvement / prev_best) * 100) if prev_best > 0 else 100
+    print(f"  {C_WHITE}  Improvement:        +{C_GREEN}{improvement}{C_RESET}  ({C_YELLOW}+{pct}%{C_RESET})")
 
     print()
     for row in range(3):
@@ -78,10 +78,10 @@ def celebrate_level_up(level: int) -> None:
     screen_shake(0.3, 1)
 
 
-def check_and_celebrate(game_name: str, new_score: int, game_key: str = None) -> None:
+def check_and_celebrate(game_name: str, new_score: int, game_key: Optional[str] = None) -> None:
     """Check if this is a new high score and celebrate if so."""
     if game_key is None:
-        game_key = game_name.lower().replace(" ", "_")
+        game_key = game_name.lower().replace(" ", "_").replace("-", "")
     mgr = get_stats_manager()
     prev = mgr.get_high_score(game_key)
     if new_score > prev and new_score > 0:

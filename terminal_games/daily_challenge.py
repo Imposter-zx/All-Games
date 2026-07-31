@@ -113,9 +113,9 @@ def show_daily_leaderboard() -> None:
         "dungeon", "minesweeper", "chess", "sudoku", "2048",
         "pong", "asteroids", "frogger", "flappy", "racing",
         "blackjack", "connect_four", "hangman", "wordle", "tictactoe",
-        "simon", "trivia", "slots", "memory", "battleship",
-        "crossword", "hanoi", "typer", "solitaire", "rpsls",
-        "poker", "mastermind", "gomoku", "othello", "nonograms", "sokoban",
+        "simon", "trivia", "typer", "slots", "memory", "battleship",
+        "crossword", "hanoi", "solitaire", "rpsls",
+        "poker", "mastermind", "gomoku", "othello", "nonograms", "sokoban", "invaders",
     ]
     for game_key in all_game_keys:
         key = f"daily_score_{game_key}_{today}"

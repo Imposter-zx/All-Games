@@ -17,7 +17,7 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
     "tetris_1000": {"name": "Block Architect", "description": "Score 1000 in Tetris", "xp": 200},
 
     # Minesweeper
-    "mines_win": {"name": "Demolition Expert", "description": "Clear a Minesweeper board", "xp": 300},
+    "minesweeper_first_win": {"name": "Demolition Expert", "description": "Clear a Minesweeper board", "xp": 300},
 
     # Sudoku
     "sudoku_win": {"name": "Logic Wizard", "description": "Complete a Sudoku puzzle", "xp": 300},
@@ -48,7 +48,7 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
 
     # 2048
     "2048_rookie": {"name": "Halfway There", "description": "Reach the 512 tile in 2048", "xp": 200},
-    "2048_expert": {"name": "Millennial", "description": "Reach the 1024 tile in 2048", "xp": 500},
+    "2048_expert": {"name": "1024 Expert", "description": "Reach the 1024 tile in 2048", "xp": 500},
     "2048_master": {"name": "Ultimate Logic", "description": "Reach the 2048 tile in 2048", "xp": 1000},
 
     # Pong

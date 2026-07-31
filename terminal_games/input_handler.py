@@ -33,7 +33,7 @@ class InputValidator:
         key_str = str(key).lower()
 
         for direction, valid_keys in self.DIRECTION_MAP.items():
-            if key_str in valid_keys or key in valid_keys:
+            if key_str in valid_keys:
                 self.last_direction = direction
                 return direction
 
