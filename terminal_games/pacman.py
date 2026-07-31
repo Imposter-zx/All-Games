@@ -258,7 +258,10 @@ class PacmanGame(BaseGame):
         self._check_collisions()
         if self.power_timer > 0:
             self.power_timer -= 1
+        if self.score >= 10000:
+            self.unlock_achievement("pacman_10000", "Wakka Wizard")
         if self.pellets_eaten >= self.total_pellets:
+            self.unlock_achievement("pacman_no_dot_left", "Clean Plate")
             self.unlock_achievement("pacman_clear", "Ghost Hunter")
             self._handle_win()
 

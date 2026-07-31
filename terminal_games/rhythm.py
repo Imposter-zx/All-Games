@@ -201,6 +201,9 @@ class RhythmGame:
 
         from stats_manager import get_stats_manager
         mgr = get_stats_manager()
+        mgr.unlock_achievement("rhythm_first")
+        if self.max_combo >= 50:
+            mgr.unlock_achievement("rhythm_combo_50")
         mgr.add_xp(final_xp)
         mgr.record_session("rhythm", self.score, final_xp, int(self.elapsed), self.difficulty)
         mgr.update_game_stats("rhythm", {"score": self.score, "xp_earned": final_xp,

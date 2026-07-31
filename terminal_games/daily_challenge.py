@@ -39,6 +39,7 @@ def has_daily_played(game_name: str) -> bool:
 def mark_daily_played(game_name: str) -> None:
     """Mark daily challenge as played for today."""
     mgr = get_stats_manager()
+    mgr.unlock_achievement("daily_first")
     today = datetime.date.today().isoformat()
     key = f"daily_{game_name}_{today}"
     mgr._set_profile_str(key, "done")

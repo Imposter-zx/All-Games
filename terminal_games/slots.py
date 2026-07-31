@@ -189,6 +189,15 @@ class SlotsGame(BaseGame):
                     self.render_game()
                     self.show_result(winnings, result)
 
+                    if self.spins == 1:
+                        self.unlock_achievement('slots_first_spin', 'First Spin')
+                    if result == "JACKPOT":
+                        self.unlock_achievement('slots_jackpot', 'Jackpot!')
+                    if self.spins >= 100:
+                        self.unlock_achievement('slots_100_spins', 'Slot Addict')
+                    if self.coins >= 500:
+                        self.unlock_achievement('slots_500_coins', 'High Roller')
+
                 elif key and key.lower() == 'b':
                     self.select_bet()
 

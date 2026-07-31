@@ -360,6 +360,12 @@ def run_marathon() -> None:
     elapsed = int(time.time() - start_time)
     _show_marathon_summary(total_score, total_xp, completed, failed, elapsed, results, lives > 0)
 
+    mgr.unlock_achievement("marathon_first")
+    if completed >= 18:
+        mgr.unlock_achievement("marathon_half")
+    if completed >= len(GAME_NAMES):
+        mgr.unlock_achievement("marathon_full")
+
     mgr.add_xp(total_xp)
     marquee_bonus = completed * 50
     mgr.add_xp(marquee_bonus)

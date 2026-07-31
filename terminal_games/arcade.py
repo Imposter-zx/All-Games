@@ -708,6 +708,7 @@ def _play_and_submit(game_func, game_name: str, difficulty: Optional[str]) -> No
     old_level = mgr.get_level_and_xp()[0]
     game_key = NAME_TO_KEY.get(game_name, game_name.lower().replace(' ', '_').replace('-', '_'))
     _check_saved_state(game_name, game_key)
+    mgr.unlock_achievement("first_game")
     result = safe_game_call(game_func, game_name, difficulty=difficulty)
     if result:
         clear_screen()
@@ -719,6 +720,10 @@ def _play_and_submit(game_func, game_name: str, difficulty: Optional[str]) -> No
         new_level = mgr.get_level_and_xp()[0]
         if new_level > old_level:
             celebrate_level_up(new_level)
+        if new_level >= 5:
+            mgr.unlock_achievement("level_5")
+        if new_level >= 10:
+            mgr.unlock_achievement("level_10")
     if result and result.get('high_score', 0) > 0:
         name = mgr.get_settings().get('player_name', 'RETRO_MASTER')
         olb.submit_score(name, game_key, result['high_score'], difficulty or 'normal')

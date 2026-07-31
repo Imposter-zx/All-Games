@@ -250,6 +250,9 @@ class SokobanGame(BaseGame):
                     if self.score > self.high_score:
                         self.high_score = self.score
                     self.award_xp_for_action(self.score)
+                    self.unlock_achievement("sokoban_first_win", "First Push")
+                    if self.level_idx == len(self.levels) - 1:
+                        self.unlock_achievement("sokoban_all", "Sokoban Master")
                     self.end_timer()
                     final_stats = self.get_final_stats()
                     final_stats['high_score'] = self.high_score

@@ -285,6 +285,9 @@ class SolitaireGame(BaseGame):
                 while self.auto_foundation():
                     pass
                 if self.check_win():
+                    self.unlock_achievement("solitaire_first_win", "First Solitaire")
+                    if self.moves < 100:
+                        self.unlock_achievement("solitaire_fast_win", "Speed Dealer")
                     self.award_xp_for_action(200)
                     self.end_timer()
                     clear_screen()

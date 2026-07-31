@@ -493,6 +493,14 @@ class TriviaGame(BaseGame):
             if not self.game_over:
                 self.show_summary()
 
+                if self.question_index > 0:
+                    self.unlock_achievement('trivia_first_win', 'Trivia Novice')
+                if self.correct_count == self.total_questions and self.total_questions > 0:
+                    self.unlock_achievement('trivia_perfect', 'Trivia Genius')
+                pct = int((self.correct_count / self.total_questions) * 100) if self.total_questions else 0
+                if pct >= 90:
+                    self.unlock_achievement('trivia_grade_a', 'Honor Student')
+
             final_stats = self.get_final_stats()
             final_stats['high_score'] = self.score
             self.save_stats(final_stats)

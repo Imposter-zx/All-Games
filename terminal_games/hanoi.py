@@ -156,6 +156,11 @@ class HanoiGame(BaseGame):
                             self.move_disk(self.source, dst)
                             beep("win")
                             if self.check_win():
+                                self.unlock_achievement("hanoi_first_win", "First Tower")
+                                if self.moves == self.min_moves:
+                                    self.unlock_achievement("hanoi_perfect", "Perfect Solution")
+                                if self.num_disks == 5:
+                                    self.unlock_achievement("hanoi_5_disks", "Master of Hanoi")
                                 eff = self.min_moves / max(self.moves, 1)
                                 base_xp = int(self.min_moves * 5 * eff)
                                 self.award_xp_for_action(max(base_xp, 10))

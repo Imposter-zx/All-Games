@@ -175,6 +175,8 @@ class DungeonGame(BaseGame):
 
         self.hp -= dmg_to_player
         self.enemies_defeated += 1
+        if self.enemies_defeated >= 100:
+            self.unlock_achievement("dungeon_100_kills", "Slayer")
         self.dungeon_map[r][c] = 0
         self.score += 50
         self.award_xp_for_action(20)
@@ -189,6 +191,9 @@ class DungeonGame(BaseGame):
         self.score += 100
         self.award_xp_for_action(50)
         beep("win")
+
+        if self.level >= 10:
+            self.unlock_achievement("dungeon_level_10", "Immortal")
 
         if self.level >= 5:
             self.unlock_achievement("dungeon_escape", "Legendary Hero")

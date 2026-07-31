@@ -242,6 +242,7 @@ class OthelloGame(BaseGame):
                         self.score += 100
                         self.wins += 1
                         self.streak += 1
+                        self.unlock_achievement("othello_first_win", "First Flip")
                         if self.streak >= 3:
                             self.unlock_achievement("othello_streak_3", "Othello Streak")
                         if self.score > self.high_score:

@@ -142,6 +142,9 @@ class RPSLSGame(BaseGame):
 
         if self.player_wins > self.ai_wins:
             title = f"{C_GREEN}YOU WIN THE MATCH!{C_RESET}"
+            self.unlock_achievement("rpsls_first_win", "First Blood")
+            if self.player_wins == self.total_rounds:
+                self.unlock_achievement("rpsls_perfect", "Perfect Match")
             self.award_xp_for_action(50)
         elif self.player_wins < self.ai_wins:
             title = f"{C_RED}AI WINS THE MATCH!{C_RESET}"

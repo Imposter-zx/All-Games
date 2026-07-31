@@ -169,6 +169,8 @@ class SnakeGame(BaseGame):
                 self.unlock_achievement("snake_100", "Slither Master")
             elif self.score == 500:
                 self.unlock_achievement("snake_500", "Python King")
+            elif self.score >= 1000:
+                self.unlock_achievement("snake_1000", "Anaconda")
 
             if self.score % 50 == 0:
                 self.speed = max(0.05, self.speed - 0.01)

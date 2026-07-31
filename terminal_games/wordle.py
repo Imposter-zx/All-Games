@@ -281,6 +281,8 @@ class WordleGame(BaseGame):
                     self.award_xp_for_action(xp)
                     beep("win")
                     show_popup(f"CORRECT! The word was {self.target}", C_GREEN, delay=1.5)
+                    if len(self.attempts) == 1:
+                        self.unlock_achievement("wordle_first_try", "Lucky Guess")
                     self.unlock_achievement("wordle_win", "Wordle Wizard")
                     if self.daily:
                         self.game_over = True

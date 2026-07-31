@@ -214,6 +214,9 @@ class VSMode:
             print(f"  {C_GREEN}{C_BOLD}TIE!{C_RESET}")
 
         mgr = get_stats_manager()
+        mgr.unlock_achievement("vs_first")
+        if p1 != p2:
+            mgr.unlock_achievement("vs_win")
         mgr.add_xp(abs(p1 - p2) * 2)
         mgr.record_session("VS Mode", p1 + p2, abs(p1 - p2) * 2, 0, "normal")
 

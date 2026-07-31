@@ -210,6 +210,7 @@ class NonogramsGame(BaseGame):
                     if self.score > self.high_score:
                         self.high_score = self.score
                     self.award_xp_for_action(self.score)
+                    self.unlock_achievement("nonograms_first_win", "First Picross")
                     if self.mistakes == 0:
                         self.unlock_achievement("nonograms_perfect", "Perfect Picross")
                     self.end_timer()

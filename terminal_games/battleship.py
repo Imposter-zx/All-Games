@@ -466,6 +466,11 @@ class BattleshipGame(BaseGame):
                         self.award_xp_for_action(100)
                         self.end_timer()
                         self.show_game_over(player_won=True)
+                        self.unlock_achievement('battleship_first_win', 'First Blood')
+                        if self.enemy_hits == 0:
+                            self.unlock_achievement('battleship_perfect', 'Perfect Victory')
+                        if self.turns < 15:
+                            self.unlock_achievement('battleship_fast_win', 'Speed Demon')
                         break
 
                     e_hit, e_sunk = self.enemy_turn()

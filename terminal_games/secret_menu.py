@@ -118,6 +118,9 @@ def show_secret_menu(
             elif selection == 1:
                 chaos_state = not chaos_state
                 set_chaos(chaos_state)
+                if chaos_state:
+                    from stats_manager import get_stats_manager
+                    get_stats_manager().unlock_achievement("chaos_first")
                 options[1] = f"CHAOS MODE — {'ON' if chaos_state else 'OFF'}"
                 show_popup(f"Chaos Mode: {'ACTIVATED' if chaos_state else 'DEACTIVATED'}", C_MAGENTA)
             elif selection == 2 and on_boss:

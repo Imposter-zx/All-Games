@@ -136,6 +136,10 @@ class MemoryGame(BaseGame):
                 self.streak += 1
                 if self.streak > self.best_streak:
                     self.best_streak = self.streak
+                if self.streak == 3:
+                    self.unlock_achievement('memory_streak_3', 'Memory Streak')
+                if self.streak == 5:
+                    self.unlock_achievement('memory_streak_5', 'Memory Legend')
                 self.award_xp_for_action(20)
                 beep("win")
 
@@ -202,6 +206,9 @@ class MemoryGame(BaseGame):
                     self.end_timer()
                     self.render_game()
                     self.show_summary()
+                    self.unlock_achievement('memory_first_win', 'First Match')
+                    if self.attempts == self.num_pairs:
+                        self.unlock_achievement('memory_perfect', 'Perfect Memory')
                     break
 
                 time.sleep(0.05)

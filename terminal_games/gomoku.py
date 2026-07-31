@@ -230,6 +230,7 @@ class GomokuGame(BaseGame):
                         if self.score > self.high_score:
                             self.high_score = self.score
                         self.award_xp_for_action(50)
+                        self.unlock_achievement("gomoku_first_win", "First Five")
                         if self.streak >= 3:
                             self.unlock_achievement("gomoku_streak_3", "Gomoku Streak")
                     elif self.winner == AI_PIECE:

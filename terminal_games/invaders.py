@@ -177,6 +177,9 @@ class InvadersGame:
 
         elapsed = int(time.time() - self.start_time)
         mgr = get_stats_manager()
+        mgr.unlock_achievement("invaders_first")
+        if self.wave >= 5:
+            mgr.unlock_achievement("invaders_wave_5")
         mgr.add_xp(final_xp)
         mgr.record_session("invaders", self.score, final_xp, elapsed, self.difficulty)
         mgr.update_game_stats("invaders", {"score": self.score, "xp_earned": final_xp,

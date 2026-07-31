@@ -224,6 +224,14 @@ class TyperGame(BaseGame):
         base_xp = max(10, wpm * accuracy // 10)
         self.award_xp_for_action(base_xp)
 
+        self.unlock_achievement("typer_first_game", "First Typing Test")
+        if wpm >= 50:
+            self.unlock_achievement("typer_wpm_50", "Fast Fingers")
+        if wpm >= 80:
+            self.unlock_achievement("typer_wpm_80", "Speed Demon")
+        if accuracy == 100:
+            self.unlock_achievement("typer_accuracy_100", "Perfect Accuracy")
+
         self.show_results()
         self.game_over = True
 

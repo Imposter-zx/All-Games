@@ -138,6 +138,7 @@ class MastermindGame(BaseGame):
                         if self.score > self.high_score:
                             self.high_score = self.score
                         self.award_xp_for_action(self.score)
+                        self.unlock_achievement("mastermind_first_win", "First Crack")
                         if self.try_count == 1:
                             self.unlock_achievement("mastermind_perfect", "Perfect Mind!")
                         if self.try_count <= 3:

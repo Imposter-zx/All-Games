@@ -341,6 +341,9 @@ class CrosswordGame(BaseGame):
                             self.end_timer()
                             self.render_game()
                             self.show_summary()
+                            self.unlock_achievement('crossword_first_win', 'Word Wizard')
+                            if self.hints_used == 0:
+                                self.unlock_achievement('crossword_no_hints', 'Pure Genius')
                             break
                         nc = (self.cursor_c + 1) % self.cols
                         if self.solution[self.cursor_r][nc] is None:

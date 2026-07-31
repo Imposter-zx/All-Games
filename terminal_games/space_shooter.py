@@ -159,6 +159,10 @@ class SpaceShooterGame(BaseGame):
 
         if self.score >= 1000:
             self.unlock_achievement("space_shooter_1000", "Space Ace")
+        if self.score >= 5000:
+            self.unlock_achievement("space_shooter_5000", "Galactic Lord")
+        if self.score >= 10000:
+            self.unlock_achievement("space_shooter_10000", "Universe Master")
 
         for b in self.bullets[:]:
             for e in self.enemies[:]:

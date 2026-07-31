@@ -53,6 +53,7 @@ class BossFight:
             if key in ["\r", "\n", " ", "enter"]:
                 break
 
+        get_stats_manager().unlock_achievement("boss_first")
         for phase_idx in range(4):
             self.phase = phase_idx
             if self.player_hp <= 0:
@@ -78,6 +79,7 @@ class BossFight:
         clear_screen()
         print("\n" * 2)
         if self.boss_hp <= 0:
+            mgr.unlock_achievement("boss_defeat")
             print(f"  {C_GREEN}{C_BOLD}╔═══════════════════════════════╗{C_RESET}")
             print(f"  {C_GREEN}{C_BOLD}║    BOSS DEFEATED! VICTORY!    ║{C_RESET}")
             print(f"  {C_GREEN}{C_BOLD}╚═══════════════════════════════╝{C_RESET}")

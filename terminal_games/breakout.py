@@ -188,8 +188,13 @@ class BreakoutGame(BaseGame):
                     beep("eat")
                     break
 
+        if self.score >= 500:
+            self.unlock_achievement("breakout_500", "Brick Layer")
+
         if all(not b['active'] for b in self.bricks):
             self.unlock_achievement("breakout_win", "Wall Breaker")
+            if self.lives == 3:
+                self.unlock_achievement("breakout_no_death", "Untouchable")
             self._handle_win()
 
     def _handle_life_lost(self) -> None:
