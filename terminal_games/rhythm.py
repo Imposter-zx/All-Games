@@ -15,6 +15,7 @@ from arcade_utils import (
     clear_screen,
     get_key,
 )
+from chaos_mutator import chaos_start_game
 
 
 class RhythmGame:
@@ -97,6 +98,7 @@ class RhythmGame:
         lane_keys = {self.LANES[li][2]: li for li in range(lane_count)}
 
         self.start_time = time.time()
+        chaos_start_game()
 
         note_idx = 0
         last_render = 0.0

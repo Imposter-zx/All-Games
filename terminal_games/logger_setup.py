@@ -16,7 +16,7 @@ def setup_logger(name: str = 'arcade', level: int = logging.INFO) -> logging.Log
 
     if not logger.handlers:
         try:
-            file_handler = logging.FileHandler(str(log_file))
+            file_handler = logging.FileHandler(str(log_file), encoding='utf-8')
             file_handler.setLevel(level)
 
             formatter = logging.Formatter(

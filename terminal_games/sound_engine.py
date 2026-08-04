@@ -172,11 +172,15 @@ def _play_file(path: str) -> None:
         except Exception:
             pass
     else:
-        # Unix: try aplay, paplay, or sox
+        # Unix: try aplay, paplay, sox, or ffplay
         for player in ('aplay', 'paplay', 'sox', 'ffplay'):
             try:
-                subprocess.Popen([player, path, '-q'], stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL)
+                if player == 'ffplay':
+                    subprocess.Popen([player, '-nodisp', '-autoexit', '-loglevel', 'quiet', path],
+                                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                else:
+                    subprocess.Popen([player, path, '-q'], stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.DEVNULL)
                 return
             except FileNotFoundError:
                 continue

@@ -1,7 +1,7 @@
 """Easter egg system — Konami code unlocks secret content."""
 import random
 import time
-from typing import Callable, Optional
+from typing import Callable, List, Optional
 
 from arcade_utils import (
     C_CYAN,
@@ -17,11 +17,11 @@ from arcade_utils import (
 )
 from sound_engine import play_sound
 
-KONAMI_CODE: list[str] = ["up", "up", "down", "down", "left", "right", "left", "right", "b", "a"]
-_entry: list[str] = []
+KONAMI_CODE: List[str] = ["up", "up", "down", "down", "left", "right", "left", "right", "b", "a"]
+_entry: List[str] = []
 _unlocked: bool = False
 
-SECRET_PHRASES: list[str] = [
+SECRET_PHRASES: List[str] = [
     "You found the DEBUG ROOM...",
     "REALITY INDEX: CORRUPTED",
     "The arcade remembers everything.",

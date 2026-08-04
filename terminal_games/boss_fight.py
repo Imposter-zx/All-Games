@@ -14,6 +14,7 @@ from arcade_utils import (
     clear_screen,
     get_key,
 )
+from chaos_mutator import chaos_start_game
 from stats_manager import get_stats_manager
 
 
@@ -54,6 +55,7 @@ class BossFight:
                 break
 
         get_stats_manager().unlock_achievement("boss_first")
+        chaos_start_game()
         for phase_idx in range(4):
             self.phase = phase_idx
             if self.player_hp <= 0:

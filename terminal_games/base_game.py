@@ -90,6 +90,17 @@ class BaseGame(ABC):
 
     def start_timer(self) -> None:
         self.start_time = time.time()
+        self._apply_chaos_start()
+
+    def _apply_chaos_start(self) -> None:
+        """Apply Chaos Mode effects once at game start if enabled."""
+        if getattr(self, '_chaos_applied', False):
+            return
+        from chaos_mutator import chaos_start_game, is_chaos
+        if not is_chaos():
+            return
+        self._chaos_applied = True
+        chaos_start_game()
 
     def end_timer(self) -> None:
         self.end_time = time.time()

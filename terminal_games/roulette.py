@@ -27,9 +27,6 @@ def pick_roulette_game(games_list: List[str]) -> Optional[str]:
         weights[g] = weight
 
     total = sum(weights.values())
-    if total <= 0:
-        return random.choice(games_list)
-
     r = random.uniform(0, total)
     cumulative = 0.0
     for g in games_list:
@@ -39,7 +36,7 @@ def pick_roulette_game(games_list: List[str]) -> Optional[str]:
     return games_list[-1]
 
 
-def show_roulette_spin(game_name: str) -> str:
+def show_roulette_spin(game_name: str) -> Optional[str]:
     """Animated roulette spin showing the selected game."""
     display = game_name.replace("_", " ").title()
 

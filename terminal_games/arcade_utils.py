@@ -246,7 +246,19 @@ def get_input_util() -> Callable[[], Optional[str]]:
         return getch
 
 
-get_key: Callable[[], Optional[str]] = get_input_util()
+_raw_get_key: Callable[[], Optional[str]] = get_input_util()
+
+
+def _chaos_get_key() -> Optional[str]:
+    """Read a key, then apply Chaos Mode input mutation if active."""
+    key = _raw_get_key()
+    if key is None:
+        return None
+    from chaos_mutator import chaos_mutate_input
+    return chaos_mutate_input(key)
+
+
+get_key: Callable[[], Optional[str]] = _chaos_get_key
 
 
 def clear_screen() -> None:

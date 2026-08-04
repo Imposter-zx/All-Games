@@ -3,7 +3,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import time
-from typing import Optional
+from typing import Dict, List, Optional
 
 from arcade_utils import (
     C_BLACK,
@@ -88,7 +88,7 @@ from typer import play_typer
 from vs_mode import run_vs_mode
 from wordle import play_wordle
 
-BANNER_TEXT: list[str] = [
+BANNER_TEXT: List[str] = [
     "  ____  _  _  ____  _   _  _____  _   _  ",
     " |  _ \\| || ||_  _|| | | ||  _  || \\ | | ",
     " |  __/| \\/ |  ||  | |_| || |_| ||  \\| | ",
@@ -101,7 +101,7 @@ BANNER_TEXT: list[str] = [
     "       --- RETRO ARCADE SYSTEM ---       "
 ]
 
-GAMES: list[str] = [
+GAMES: List[str] = [
     "snake", "breakout", "space_shooter", "tetris", "pacman",
     "dungeon", "minesweeper", "chess", "sudoku", "2048",
     "pong", "asteroids", "frogger", "flappy", "racing",
@@ -111,7 +111,7 @@ GAMES: list[str] = [
     "gomoku", "othello", "nonograms", "sokoban", "invaders"
 ]
 
-GAME_DISPLAY_NAMES: list[str] = [
+GAME_DISPLAY_NAMES: List[str] = [
     "Snake", "Breakout", "Space Shooter", "Tetris", "Pac-Man",
     "Dungeon Crawler", "Minesweeper", "Chess", "Sudoku", "2048",
     "Pong", "Asteroids", "Frogger", "Flappy Bird", "Racing",
@@ -122,7 +122,7 @@ GAME_DISPLAY_NAMES: list[str] = [
     "Sokoban", "Invaders",
 ]
 
-NAME_TO_KEY: dict[str, str] = dict(zip(GAME_DISPLAY_NAMES, GAMES))
+NAME_TO_KEY: Dict[str, str] = dict(zip(GAME_DISPLAY_NAMES, GAMES))
 
 
 def _format_time(seconds: int) -> str:

@@ -16,6 +16,7 @@ from arcade_utils import (
     clear_screen,
     get_key,
 )
+from chaos_mutator import chaos_start_game
 from stats_manager import get_stats_manager
 
 
@@ -63,6 +64,7 @@ class InvadersGame:
 
     def play(self) -> dict:
         self.start_time = time.time()
+        chaos_start_game()
         self._init_wave()
         self.player_x = self.width // 2
 

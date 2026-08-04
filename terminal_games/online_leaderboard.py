@@ -3,6 +3,7 @@
 import json
 import logging
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import Any, Dict, List, Optional
 
@@ -49,7 +50,7 @@ def fetch_leaderboard(
     try:
         url = f"{server}/api/leaderboard?limit={limit}"
         if game_name:
-            url += f"&game_name={game_name}"
+            url += f"&game_name={urllib.parse.quote(game_name)}"
         req = urllib.request.Request(url)
         resp = urllib.request.urlopen(req, timeout=TIMEOUT)
         return json.loads(resp.read().decode())

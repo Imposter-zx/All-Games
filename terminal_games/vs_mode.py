@@ -15,6 +15,7 @@ from arcade_utils import (
     clear_screen,
     get_key,
 )
+from chaos_mutator import chaos_start_game
 from stats_manager import get_stats_manager
 
 
@@ -48,6 +49,7 @@ class VSMode:
             if key and key.lower() == "q":
                 return
 
+        chaos_start_game()
         for self.round in range(1, self.max_rounds + 1):
             for player in ["Player 1", "Player 2"]:
                 self._player_turn(player)

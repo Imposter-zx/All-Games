@@ -1,7 +1,7 @@
 """Chaos Mutator system — applies random game-altering effects."""
 import random
 import time
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from arcade_utils import (
     C_BOLD,
@@ -16,7 +16,7 @@ from arcade_utils import (
     screen_shake,
 )
 
-CHAOS_EFFECTS: list[str] = [
+CHAOS_EFFECTS: List[str] = [
     "speed_surge",
     "speed_slow",
     "screen_shake",
@@ -50,7 +50,7 @@ EFFECT_COLORS: Dict[str, str] = {
 }
 
 _chaos_active: bool = False
-_current_effects: dict[str, Any] = {}
+_current_effects: Dict[str, Any] = {}
 
 
 def set_chaos(enabled: bool) -> None:
@@ -62,7 +62,7 @@ def is_chaos() -> bool:
     return _chaos_active
 
 
-def apply_chaos(effects: Optional[list[str]] = None) -> dict[str, Any]:
+def apply_chaos(effects: Optional[List[str]] = None) -> Dict[str, Any]:
     global _current_effects
     if not _chaos_active:
         _current_effects = {}
@@ -77,8 +77,8 @@ def apply_chaos(effects: Optional[list[str]] = None) -> dict[str, Any]:
     return _current_effects
 
 
-def _effect_params(effect: str) -> dict[str, Any]:
-    params: dict[str, Any] = {"active": True, "duration": random.uniform(3, 8)}
+def _effect_params(effect: str) -> Dict[str, Any]:
+    params: Dict[str, Any] = {"active": True, "duration": random.uniform(3, 8)}
     if effect == "speed_surge":
         params["multiplier"] = random.uniform(1.5, 3.0)
     elif effect == "speed_slow":
@@ -91,7 +91,7 @@ def _effect_params(effect: str) -> dict[str, Any]:
     return params
 
 
-def get_active_effects() -> dict[str, Any]:
+def get_active_effects() -> Dict[str, Any]:
     return _current_effects
 
 
@@ -167,3 +167,13 @@ def cycle_chaos_effect() -> None:
     if not _chaos_active:
         return
     apply_chaos()
+
+
+def chaos_start_game() -> None:
+    """Apply Chaos Mode effects and show the strike banner at game start."""
+    from stats_manager import get_stats_manager
+    if not _chaos_active:
+        return
+    apply_chaos()
+    trigger_chaos_event()
+    get_stats_manager().unlock_achievement("chaos_survive")
