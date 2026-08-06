@@ -131,6 +131,7 @@ class HanoiGame(BaseGame):
                 key = self.input_handler.get_safe_key()
 
                 if key and self._save_and_quit(key.lower()):
+                    self.stats_manager.register_loss("hanoi")
                     break
                 if key == '?':
                     self._show_help()
@@ -161,6 +162,8 @@ class HanoiGame(BaseGame):
                                     self.unlock_achievement("hanoi_perfect", "Perfect Solution")
                                 if self.num_disks == 5:
                                     self.unlock_achievement("hanoi_5_disks", "Master of Hanoi")
+                                if self.stats_manager.register_win("hanoi") >= 3:
+                                    self.unlock_achievement("hanoi_streak_3", "Hanoi Streak")
                                 eff = self.min_moves / max(self.moves, 1)
                                 base_xp = int(self.min_moves * 5 * eff)
                                 self.award_xp_for_action(max(base_xp, 10))

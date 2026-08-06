@@ -50,6 +50,7 @@ class VSMode:
                 return
 
         chaos_start_game()
+        self._vs_start = time.time()
         for self.round in range(1, self.max_rounds + 1):
             for player in ["Player 1", "Player 2"]:
                 self._player_turn(player)
@@ -220,7 +221,8 @@ class VSMode:
         if p1 != p2:
             mgr.unlock_achievement("vs_win")
         mgr.add_xp(abs(p1 - p2) * 2)
-        mgr.record_session("VS Mode", p1 + p2, abs(p1 - p2) * 2, 0, "normal")
+        duration = int(time.time() - getattr(self, "_vs_start", time.time()))
+        mgr.record_session("VS Mode", p1 + p2, abs(p1 - p2) * 2, duration, "normal")
 
         print(f"\n  {C_WHITE}[Any Key] Continue{C_RESET}")
         get_key()

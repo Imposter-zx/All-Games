@@ -264,6 +264,7 @@ class WordleGame(BaseGame):
                 if len(self.attempts) >= self.max_attempts:
                     show_popup(f"GAME OVER! The word was {self.target}", C_RED, delay=2.0)
                     self.award_xp_for_action(10)
+                    self.stats_manager.register_loss("wordle")
                     if self.daily:
                         self.game_over = True
                         break
@@ -287,6 +288,8 @@ class WordleGame(BaseGame):
                     if self.daily:
                         self.game_over = True
                         break
+                    if self.stats_manager.register_win("wordle") >= 3:
+                        self.unlock_achievement("wordle_streak", "Wordle Streak")
                     self.round += 1
                     self.target = random.choice(WORD_POOL).upper()
                     self.attempts = []

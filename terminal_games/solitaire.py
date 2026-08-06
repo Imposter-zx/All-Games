@@ -288,6 +288,8 @@ class SolitaireGame(BaseGame):
                     self.unlock_achievement("solitaire_first_win", "First Solitaire")
                     if self.moves < 100:
                         self.unlock_achievement("solitaire_fast_win", "Speed Dealer")
+                    if self.stats_manager.register_win("solitaire") >= 3:
+                        self.unlock_achievement("solitaire_streak_3", "Solitaire Streak")
                     self.award_xp_for_action(200)
                     self.end_timer()
                     clear_screen()
@@ -299,6 +301,7 @@ class SolitaireGame(BaseGame):
                 key = self.input_handler.get_safe_key()
 
                 if key and self._save_and_quit(key.lower()):
+                    self.stats_manager.register_loss("solitaire")
                     break
                 if key == '?':
                     self._show_help()

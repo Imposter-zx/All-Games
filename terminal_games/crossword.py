@@ -301,6 +301,7 @@ class CrosswordGame(BaseGame):
                 key = self.input_handler.get_safe_key()
 
                 if key and self._save_and_quit(key.lower()):
+                    self.stats_manager.register_loss("crossword")
                     break
                 if key == '?':
                     self._show_help()
@@ -344,6 +345,8 @@ class CrosswordGame(BaseGame):
                             self.unlock_achievement('crossword_first_win', 'Word Wizard')
                             if self.hints_used == 0:
                                 self.unlock_achievement('crossword_no_hints', 'Pure Genius')
+                            if self.stats_manager.register_win("crossword") >= 3:
+                                self.unlock_achievement('crossword_streak_3', 'Crossword Streak')
                             break
                         nc = (self.cursor_c + 1) % self.cols
                         if self.solution[self.cursor_r][nc] is None:

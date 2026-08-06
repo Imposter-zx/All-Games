@@ -471,6 +471,8 @@ class BattleshipGame(BaseGame):
                             self.unlock_achievement('battleship_perfect', 'Perfect Victory')
                         if self.turns < 15:
                             self.unlock_achievement('battleship_fast_win', 'Speed Demon')
+                        if self.stats_manager.register_win("battleship") >= 3:
+                            self.unlock_achievement('battleship_streak_3', 'Naval Commander')
                         break
 
                     e_hit, e_sunk = self.enemy_turn()
@@ -478,6 +480,7 @@ class BattleshipGame(BaseGame):
 
                     if self.check_all_sunk(self.player_grid, self.player_ship_cells):
                         self.end_timer()
+                        self.stats_manager.register_loss("battleship")
                         self.show_game_over(player_won=False)
                         break
 

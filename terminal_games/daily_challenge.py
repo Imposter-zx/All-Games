@@ -43,6 +43,15 @@ def mark_daily_played(game_name: str) -> None:
     today = datetime.date.today().isoformat()
     key = f"daily_{game_name}_{today}"
     mgr._set_profile_str(key, "done")
+    yesterday = (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
+    last = mgr._get_profile_str("daily_streak_last", "1970-01-01")
+    count = mgr._get_profile_int("daily_streak_count", 0)
+    if last != today:
+        count = count + 1 if last == yesterday else 1
+        mgr._set_profile_int("daily_streak_count", count)
+        mgr._set_profile_str("daily_streak_last", today)
+    if count >= 3:
+        mgr.unlock_achievement("daily_streak_3")
 
 
 def get_daily_high_score(game_name: str) -> int:

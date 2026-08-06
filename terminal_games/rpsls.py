@@ -145,10 +145,14 @@ class RPSLSGame(BaseGame):
             self.unlock_achievement("rpsls_first_win", "First Blood")
             if self.player_wins == self.total_rounds:
                 self.unlock_achievement("rpsls_perfect", "Perfect Match")
+            if self.stats_manager.register_win("rpsls") >= 3:
+                self.unlock_achievement("rpsls_streak_3", "RPSLS Streak")
             self.award_xp_for_action(50)
         elif self.player_wins < self.ai_wins:
+            self.stats_manager.register_loss("rpsls")
             title = f"{C_RED}AI WINS THE MATCH!{C_RESET}"
         else:
+            self.stats_manager.register_loss("rpsls")
             title = f"{C_YELLOW}MATCH DRAW!{C_RESET}"
 
         lines = [

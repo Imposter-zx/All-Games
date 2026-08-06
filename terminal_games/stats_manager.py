@@ -128,6 +128,17 @@ class StatsManager:
                 (key, value)
             )
 
+    def register_win(self, game_name: str) -> int:
+        """Increment a game's consecutive-win streak. Returns the new streak."""
+        streak_key = f"streak_{game_name.lower()}"
+        streak = self._get_profile_int(streak_key, 0) + 1
+        self._set_profile_int(streak_key, streak)
+        return streak
+
+    def register_loss(self, game_name: str) -> None:
+        """Reset a game's consecutive-win streak after a loss."""
+        self._set_profile_int(f"streak_{game_name.lower()}", 0)
+
     # --- Public API ---
 
     def update_game_stats(self, game_name: str, stats_dict: Dict[str, Any]) -> None:

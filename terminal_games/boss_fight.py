@@ -35,6 +35,7 @@ class BossFight:
         ]
 
     def play(self) -> dict:
+        self._start_time = time.time()
         clear_screen()
         print("\n" * 3)
         print(f"  {C_RED}{C_BOLD}╔═══════════════════════════════════════╗{C_RESET}")
@@ -68,15 +69,16 @@ class BossFight:
 
     def _game_result(self) -> dict:
         xp = max(0, self.score * 10)
+        duration = int(time.time() - getattr(self, "_start_time", time.time()))
         from xp_config import get_xp_system
         xp_sys = get_xp_system("hard")
         final_xp = xp_sys.calculate_xp("boss_fight", xp)
 
         mgr = get_stats_manager()
         mgr.add_xp(final_xp)
-        mgr.record_session("boss_fight", self.score, final_xp, 0, "hard")
+        mgr.record_session("boss_fight", self.score, final_xp, duration, "hard")
         mgr.update_game_stats("boss_fight", {"score": self.score, "xp_earned": final_xp,
-                                             "high_score": self.score, "duration_seconds": 0})
+                                             "high_score": self.score, "duration_seconds": duration})
 
         clear_screen()
         print("\n" * 2)
@@ -101,7 +103,7 @@ class BossFight:
             "score": self.score,
             "xp_earned": final_xp,
             "high_score": self.score,
-            "duration_seconds": 0,
+            "duration_seconds": duration,
             "boss_defeated": self.boss_hp <= 0,
         }
 

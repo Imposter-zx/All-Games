@@ -460,6 +460,7 @@ class TriviaGame(BaseGame):
                 key = self.input_handler.get_safe_key()
 
                 if key and self._save_and_quit(key.lower()):
+                    self.stats_manager.register_loss("trivia")
                     break
                 if key == '?':
                     self._show_help()
@@ -500,6 +501,11 @@ class TriviaGame(BaseGame):
                 pct = int((self.correct_count / self.total_questions) * 100) if self.total_questions else 0
                 if pct >= 90:
                     self.unlock_achievement('trivia_grade_a', 'Honor Student')
+                streak = self.stats_manager.register_win('trivia')
+                if streak >= 5:
+                    self.unlock_achievement('trivia_streak_5', 'Trivia Legend')
+                elif streak >= 3:
+                    self.unlock_achievement('trivia_streak_3', 'Trivia Streak')
 
             final_stats = self.get_final_stats()
             final_stats['high_score'] = self.score
