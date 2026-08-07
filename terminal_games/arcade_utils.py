@@ -60,6 +60,17 @@ class Color:
     def __format__(self, spec: str) -> str: return str(self.value)
     def __add__(self, other: object) -> str: return str(self.value) + str(other)
     def __radd__(self, other: object) -> str: return str(other) + str(self.value)
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Color):
+            return self.value == other.value
+        return NotImplemented
+    def __ne__(self, other: object) -> bool:
+        result = self.__eq__(other)
+        if result is NotImplemented:
+            return result
+        return not result
+    def __hash__(self) -> int:
+        return hash(self.value)
 
 # ANSI Color Codes
 C_RESET = "\033[0m"
@@ -270,24 +281,19 @@ def load_stats() -> Dict[str, Any]:
 
 
 def save_stats(stats: Dict[str, Any]) -> None:
+    """Persist load_stats()-style global stats (scalar keys only)."""
     mgr = get_stats_manager()
-    mgr.save()
+    for key, value in stats.items():
+        if isinstance(value, bool):
+            mgr._set_profile_str(key, 'true' if value else 'false')
+        elif isinstance(value, (int, float, str)):
+            mgr._set_profile_str(key, str(value))
 
 
 def update_stats(game: str, key: str, value: Any, subkey: Optional[str] = None) -> None:
     mgr = get_stats_manager()
-    if subkey:
-        stats = mgr.get_stats(game)
-        if key not in stats or not isinstance(stats[key], dict):
-            if isinstance(stats.get(key), dict):
-                pass
-            else:
-                stats[key] = {}
-        if isinstance(stats.get(key), dict):
-            stats[key][subkey] = value  # type: ignore
-        mgr.update_game_stats(game, stats)
-    else:
-        mgr.update_game_stats(game, {key: value})
+    stat_key = f"{key}_{subkey}" if subkey else key
+    mgr.update_game_stats(game, {stat_key: value})
 
 
 def add_xp(amount: int) -> Dict[str, Any]:
@@ -320,7 +326,10 @@ def particle_effect(char: str = "*", color: Color = C_WHITE, count: int = 10) ->
 
 
 def animated_flash(color: Color = C_RED, duration: float = 0.1, count: int = 1) -> None:
-    bg = "\033[41m" if color == C_RED else "\033[47m"
+    value = str(color)
+    red_codes = ("\033[31", "\033[38;5;196m", "\033[38;5;124m",
+                 "\033[38;5;160m", "\033[38;5;197m")
+    bg = "\033[41m" if any(c in value for c in red_codes) else "\033[47m"
     for _ in range(count):
         print(bg, end="", flush=True)
         clear_screen()
