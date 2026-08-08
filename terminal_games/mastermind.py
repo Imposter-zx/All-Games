@@ -195,7 +195,8 @@ class MastermindGame(BaseGame):
             self.end_timer()
             stats = self.get_final_stats()
             stats['high_score'] = self.high_score
-            self.save_stats(stats)
+            if not getattr(self, '_stats_saved', False):
+                self.save_stats(stats)
             return stats
 
 

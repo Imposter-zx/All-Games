@@ -31,6 +31,7 @@ class BaseGame(ABC):
         self.start_time: Optional[float] = None
         self.end_time: Optional[float] = None
         self.game_over = False
+        self._stats_saved = False
         self.stats_manager = get_stats_manager()
         self.xp_system = get_xp_system(difficulty)
         self.renderer = Renderer(fps=20)
@@ -72,6 +73,7 @@ class BaseGame(ABC):
             )
             self.stats_manager.record_telemetry('game_completed', self.game_name)
             self.stats_manager.delete_game_state(self.game_name)
+            self._stats_saved = True
             logger.debug(f"Saved stats for {self.game_name}: {stats_dict}")
         except Exception as e:
             logger.error(f"Failed to save stats for {self.game_name}: {e}")

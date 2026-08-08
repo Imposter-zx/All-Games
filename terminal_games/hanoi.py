@@ -193,7 +193,8 @@ class HanoiGame(BaseGame):
             self.renderer.show_cursor()
             final_stats = self.get_final_stats()
             final_stats['high_score'] = max(0, self.min_moves * 10 - self.moves)
-            self.save_stats(final_stats)
+            if not getattr(self, '_stats_saved', False):
+                self.save_stats(final_stats)
             return final_stats
 
     def _show_help(self) -> None:

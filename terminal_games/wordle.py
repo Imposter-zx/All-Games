@@ -366,7 +366,8 @@ class WordleGame(BaseGame):
             self.end_timer()
             final_stats = self.get_final_stats()
             final_stats['high_score'] = self.score
-            self.save_stats(final_stats)
+            if not getattr(self, '_stats_saved', False):
+                self.save_stats(final_stats)
             return final_stats
 
 

@@ -208,7 +208,8 @@ class Game2048(BaseGame):
         finally:
             self.end_timer()
             final_stats = self.get_final_stats()
-            self.save_stats(final_stats)
+            if not getattr(self, '_stats_saved', False):
+                self.save_stats(final_stats)
             return final_stats
 
 

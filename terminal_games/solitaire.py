@@ -352,7 +352,8 @@ class SolitaireGame(BaseGame):
             self.renderer.show_cursor()
             final_stats = self.get_final_stats()
             final_stats['high_score'] = self.moves
-            self.save_stats(final_stats)
+            if not getattr(self, '_stats_saved', False):
+                self.save_stats(final_stats)
             return final_stats
 
     def _show_help(self) -> None:

@@ -339,7 +339,8 @@ class PokerGame(BaseGame):
             stats = self.get_final_stats()
             stats['high_score'] = self.high_score
             stats['credits'] = self.credits
-            self.save_stats(stats)
+            if not getattr(self, '_stats_saved', False):
+                self.save_stats(stats)
             return stats
 
 
