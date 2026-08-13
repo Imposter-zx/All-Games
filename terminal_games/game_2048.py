@@ -196,7 +196,7 @@ class Game2048(BaseGame):
                         )
 
                 key = input_handler.get_safe_key()
-                if key and self._save_and_quit(key):
+                if key and self._save_and_quit(key.lower()):
                     break
                 if key and key.lower() == 'h':
                     self._show_help()

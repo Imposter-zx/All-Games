@@ -187,9 +187,9 @@ class AsteroidsGame(BaseGame):
                 self.renderer.render_frame(self.render)
 
                 key = input_handler.get_safe_key()
-                if self._save_and_quit(key):
+                if key and self._save_and_quit(key.lower()):
                     break
-                if key == 'p':
+                if key and key.lower() == 'p':
                     self._pause_game()
                 if key == 'h':
                     self._show_help()
