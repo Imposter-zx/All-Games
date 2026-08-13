@@ -349,11 +349,11 @@ def show_online_leaderboard() -> None:
         draw_retro_box(40, "🌐 ONLINE LEADERBOARD", lines, color=C_YELLOW)
     else:
         lines: list[str] = []
-        for e in entries:
-            rank = e['rank']
+        for i, e in enumerate(entries):
+            rank = e.get('rank', i + 1)
             medal = {1: '🥇', 2: '🥈', 3: '🥉'}.get(rank, f"{rank:>2}.")
-            name = e['player_name'][:12]
-            score = e['score']
+            name = e.get('player_name', '?')[:12]
+            score = e.get('score', 0)
             game = e.get('game_name', '')
             entry = f"{medal} {C_GREEN}{name:<10}{C_RESET}:{C_YELLOW}{score:>6}{C_RESET} {C_CYAN}{game:<10}{C_RESET}"
             lines.append(entry)
