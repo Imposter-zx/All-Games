@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 MOVES = ["Rock", "Paper", "Scissors", "Lizard", "Spock"]
 MOVE_KEYS = ['r', 'p', 's', 'l', 'k']
-MOVE_ICONS = ["👊", "✋", "✂️", "🦎", "🖖"]
 MOVE_ICONS_FALLBACK = ["O", "[]", "X", "~", "^"]
 
 WINNERS = {
@@ -62,14 +61,7 @@ class RPSLSGame(BaseGame):
         difficulty_map = {"easy": 0.3, "normal": 0.5, "hard": 0.7}
         skill = difficulty_map.get(self.difficulty, 0.5)
         if random.random() < skill:
-            best = "Rock"
-            score = 0
-            for move in MOVES:
-                beats = WINNERS[move]
-                if "Rock" in beats:
-                    score += 1
-                if score > 0:
-                    best = move
+            best = random.choice([m for m in MOVES if "Rock" in WINNERS[m]])
             return best
         return random.choice(MOVES)
 
