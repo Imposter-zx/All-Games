@@ -366,7 +366,6 @@ def run_marathon() -> None:
     if completed >= len(GAME_NAMES):
         mgr.unlock_achievement("marathon_full")
 
-    mgr.add_xp(total_xp)
     marquee_bonus = completed * 50
     mgr.add_xp(marquee_bonus)
 
@@ -404,7 +403,7 @@ def _show_marathon_summary(total_score: int, total_xp: int, completed: int,
     print()
     print(f"  {C_YELLOW}Final Score:  {C_WHITE}{total_score}{C_RESET}")
     print(f"  {C_YELLOW}Total XP:     {C_WHITE}{total_xp}{C_RESET}")
-    print(f"  {C_YELLOW}Completed:    {C_GREEN}{completed}/36{C_RESET}")
+    print(f"  {C_YELLOW}Completed:    {C_GREEN}{completed}/{len(GAME_NAMES)}{C_RESET}")
     print(f"  {C_YELLOW}Failed:       {C_RED}{failed}{C_RESET}")
     print(f"  {C_YELLOW}Time:         {C_WHITE}{time_str}{C_RESET}")
     print()
