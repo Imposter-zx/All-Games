@@ -79,13 +79,13 @@ class MinesweeperGame(BaseGame):
         }
 
     def load_state_json(self, state: dict) -> None:
-        self.board = state['board']
-        self.revealed = state['revealed']
-        self.flags = state['flags']
-        self.cursor_x = state['cursor_x']
-        self.cursor_y = state['cursor_y']
-        self.score = state['score']
-        self.first_move = state['first_move']
+        self.board = state.get('board', [[0 for _ in range(self.width)] for _ in range(self.height)])
+        self.revealed = state.get('revealed', [[False for _ in range(self.width)] for _ in range(self.height)])
+        self.flags = state.get('flags', [[False for _ in range(self.width)] for _ in range(self.height)])
+        self.cursor_x = state.get('cursor_x', 0)
+        self.cursor_y = state.get('cursor_y', 0)
+        self.score = state.get('score', 0)
+        self.first_move = state.get('first_move', True)
 
     def play(self) -> dict:
         self.start_timer()
@@ -164,9 +164,9 @@ class MinesweeperGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if self._save_and_quit(k):
+        if self._save_and_quit(k.lower()):
             return
-        elif k == 'h':
+        elif k and k.lower() == 'h':
             show_popup("MINESWEEPER: Reveal safe cells. F=flag mine. Numbers = adjacent count.", C_RED, delay=1.5)
         elif k in [' ', '\r', '\n', 'enter']:
             self._reveal(self.cursor_x, self.cursor_y)
