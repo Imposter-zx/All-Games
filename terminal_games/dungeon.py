@@ -192,9 +192,6 @@ class DungeonGame(BaseGame):
         self.award_xp_for_action(50)
         beep("win")
 
-        if self.level >= 10:
-            self.unlock_achievement("dungeon_level_10", "Immortal")
-
         if self.level >= 5:
             self.unlock_achievement("dungeon_escape", "Legendary Hero")
             show_popup("YOU ESCAPED THE DUNGEON!", C_YELLOW)

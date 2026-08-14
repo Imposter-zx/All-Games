@@ -317,6 +317,7 @@ class PacmanGame(BaseGame):
     def _handle_win(self) -> None:
         beep("win")
         show_popup(f"LEVEL CLEAR! YOU WIN! Score: {self.score}", C_YELLOW)
+        self.game_over = True
 
     def _reset_positions(self) -> None:
         self.pac_x, self.pac_y = 7, 8
@@ -328,7 +329,6 @@ class PacmanGame(BaseGame):
         ]
         self.power_timer = 0
         self.last_move_time = time.time()
-        self.game_over = True
 
 
 def play_pacman(difficulty: str = 'normal') -> dict:

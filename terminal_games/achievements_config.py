@@ -43,7 +43,6 @@ ACHIEVEMENTS: Dict[str, Dict[str, Any]] = {
 
     # Dungeon
     "dungeon_escape": {"name": "Legendary Hero", "description": "Escape the dungeon level 5", "xp": 1000},
-    "dungeon_level_10": {"name": "Immortal", "description": "Reach dungeon level 10", "xp": 2000},
     "dungeon_100_kills": {"name": "Slayer", "description": "Kill 100 monsters in Dungeon", "xp": 500},
 
     # 2048
