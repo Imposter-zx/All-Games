@@ -53,12 +53,12 @@ class SpaceShooterGame(BaseGame):
         }
 
     def load_state_json(self, state: dict) -> None:
-        self.player_x = state['player_x']
-        self.enemies = state['enemies']
-        self.bullets = state['bullets']
-        self.score = state['score']
-        self.lives = state['lives']
-        self.spawn_timer = state['spawn_timer']
+        self.player_x = state.get('player_x', WIDTH // 2)
+        self.enemies = state.get('enemies', [])
+        self.bullets = state.get('bullets', [])
+        self.score = state.get('score', self.score)
+        self.lives = state.get('lives', 3)
+        self.spawn_timer = state.get('spawn_timer', 0)
 
     def play(self) -> dict:
         self.start_timer()

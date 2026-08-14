@@ -60,13 +60,13 @@ class DungeonGame(BaseGame):
         }
 
     def load_state_json(self, state: dict) -> None:
-        self.dungeon_map = state['dungeon_map']
-        self.player_pos = state['player_pos']
-        self.hp = state['hp']
-        self.max_hp = state['max_hp']
-        self.level = state['level']
-        self.enemies_defeated = state['enemies_defeated']
-        self.score = state['score']
+        self.dungeon_map = state.get('dungeon_map', self.dungeon_map)
+        self.player_pos = state.get('player_pos', [1, 1])
+        self.hp = state.get('hp', self.hp)
+        self.max_hp = state.get('max_hp', self.max_hp)
+        self.level = state.get('level', 1)
+        self.enemies_defeated = state.get('enemies_defeated', 0)
+        self.score = state.get('score', self.score)
 
     def play(self) -> dict:
         self.start_timer()

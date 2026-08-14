@@ -52,14 +52,14 @@ class BreakoutGame(BaseGame):
         }
 
     def load_state_json(self, state: dict) -> None:
-        self.paddle_x = state['paddle_x']
-        self.ball_x = state['ball_x']
-        self.ball_y = state['ball_y']
-        self.ball_dx = state['ball_dx']
-        self.ball_dy = state['ball_dy']
-        self.bricks = state['bricks']
-        self.score = state['score']
-        self.lives = state['lives']
+        self.paddle_x = state.get('paddle_x', WIDTH // 2 - PADDLE_WIDTH // 2)
+        self.ball_x = state.get('ball_x', float(WIDTH // 2))
+        self.ball_y = state.get('ball_y', float(HEIGHT - 2))
+        self.ball_dx = state.get('ball_dx', 1)
+        self.ball_dy = state.get('ball_dy', -1)
+        self.bricks = state.get('bricks', self._init_bricks())
+        self.score = state.get('score', self.score)
+        self.lives = state.get('lives', 3)
 
     def _init_bricks(self) -> List[Dict[str, Any]]:
         bricks: List[Dict[str, Any]] = []

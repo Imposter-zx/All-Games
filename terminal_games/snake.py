@@ -57,27 +57,30 @@ class SnakeGame(BaseGame):
         }
 
     def load_state_json(self, state: dict) -> None:
-        self.snake = state['snake']
-        self.food = tuple(state['food']) if state['food'] else None
-        self.direction = tuple(state['direction'])
-        self.speed = state['speed']
-        self.score = state['score']
+        self.snake = state.get('snake', [])
+        self.food = tuple(state.get('food')) if state.get('food') else None
+        self.direction = tuple(state.get('direction', (0, 1)))
+        self.speed = state.get('speed', 0.15)
+        self.score = state.get('score', 0)
 
     def play(self) -> dict:
         self.start_timer()
+        loaded = False
         if self.has_saved_state():
             saved = self.stats_manager.load_game_state(self.game_name)
             if saved:
                 self.load_state_json(saved)
+                loaded = bool(self.snake)
         clear_screen()
         print_big_title("SNAKE", color=C_GREEN)
         time.sleep(1)
 
-        self.snake = [(BOARD_HEIGHT // 2, BOARD_WIDTH // 2)]
-        self.direction = (0, 1)
-        self.food = create_food(self.snake)
-        self.score = 0
-        self.speed = 0.15
+        if not loaded:
+            self.snake = [(BOARD_HEIGHT // 2, BOARD_WIDTH // 2)]
+            self.direction = (0, 1)
+            self.food = create_food(self.snake)
+            self.score = 0
+            self.speed = 0.15
 
         while not self.game_over:
             self.renderer.render_frame(self._render)

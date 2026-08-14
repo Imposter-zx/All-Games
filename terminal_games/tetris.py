@@ -62,16 +62,18 @@ class TetrisGame(BaseGame):
             'piece': self.piece,
             'next_piece': self.next_piece,
             'score': self.score,
+            'level': self.level,
             'fall_speed': self.fall_speed,
             'last_fall_time': self.last_fall_time,
         }
 
     def load_state_json(self, state: dict) -> None:
-        self.board = state['board']
-        self.piece = state['piece']
-        self.next_piece = state['next_piece']
-        self.score = state['score']
-        self.fall_speed = state['fall_speed']
+        self.board = state.get('board', [[0 for _ in range(WIDTH)] for _ in range(HEIGHT)])
+        self.piece = state.get('piece', self._new_piece())
+        self.next_piece = state.get('next_piece', self._new_piece())
+        self.score = state.get('score', self.score)
+        self.level = state.get('level', 1)
+        self.fall_speed = state.get('fall_speed', 0.5)
         self.last_fall_time = time.time()
 
     def _new_piece(self) -> Dict[str, Any]:

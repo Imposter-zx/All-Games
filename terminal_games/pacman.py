@@ -121,17 +121,19 @@ class PacmanGame(BaseGame):
         }
 
     def load_state_json(self, state: dict) -> None:
-        self.pac_x, self.pac_y = state['player_pos']
+        pp = state.get('player_pos', (7, 8))
+        self.pac_x, self.pac_y = pp[0], pp[1]
+        ghosts = state.get('ghosts', [])
         for i, g in enumerate(self.ghosts):
-            gd = state['ghosts'][i]
-            g.x, g.y = gd['pos']
-            g.direction = gd['direction']
-            g.mode = gd['mode']
-            g.frightened_timer = gd['frightened_timer']
-        self.game_map = state['dots']
-        self.power_timer = state['power_timer']
-        self.score = state['score']
-        self.lives = state['lives']
+            gd = ghosts[i] if i < len(ghosts) else {}
+            g.x, g.y = gd.get('pos', (g.x, g.y))
+            g.direction = gd.get('direction', g.direction)
+            g.mode = gd.get('mode', g.mode)
+            g.frightened_timer = gd.get('frightened_timer', g.frightened_timer)
+        self.game_map = [row[:] for row in state.get('dots', PACMAN_MAP)]
+        self.power_timer = state.get('power_timer', 0)
+        self.score = state.get('score', self.score)
+        self.lives = state.get('lives', 3)
 
     def play(self) -> dict:
         self.start_timer()
