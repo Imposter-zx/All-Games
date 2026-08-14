@@ -208,8 +208,10 @@ class RhythmGame:
             mgr.unlock_achievement("rhythm_combo_50")
         mgr.add_xp(final_xp)
         mgr.record_session("rhythm", self.score, final_xp, int(self.elapsed), self.difficulty)
+        high_score = mgr.get_high_score("rhythm")
         mgr.update_game_stats("rhythm", {"score": self.score, "xp_earned": final_xp,
-                                         "high_score": self.score, "duration_seconds": int(self.elapsed)})
+                                         "high_score": max(self.score, high_score),
+                                         "duration_seconds": int(self.elapsed)})
 
         clear_screen()
         print(f"\n  {C_MAGENTA}{C_BOLD}♫ RHYTHM COMPLETE! ♫{C_RESET}")

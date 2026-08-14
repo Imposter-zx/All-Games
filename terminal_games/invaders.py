@@ -184,8 +184,10 @@ class InvadersGame:
             mgr.unlock_achievement("invaders_wave_5")
         mgr.add_xp(final_xp)
         mgr.record_session("invaders", self.score, final_xp, elapsed, self.difficulty)
+        high_score = mgr.get_high_score("invaders")
         mgr.update_game_stats("invaders", {"score": self.score, "xp_earned": final_xp,
-                                           "high_score": self.score, "duration_seconds": elapsed})
+                                           "high_score": max(self.score, high_score),
+                                           "duration_seconds": elapsed})
 
         clear_screen()
         print(f"\n  {C_RED}{C_BOLD}INVADERS — GAME OVER{C_RESET}")

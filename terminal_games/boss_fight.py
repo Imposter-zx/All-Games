@@ -77,8 +77,10 @@ class BossFight:
         mgr = get_stats_manager()
         mgr.add_xp(final_xp)
         mgr.record_session("boss_fight", self.score, final_xp, duration, "hard")
+        high_score = mgr.get_high_score("boss_fight")
         mgr.update_game_stats("boss_fight", {"score": self.score, "xp_earned": final_xp,
-                                             "high_score": self.score, "duration_seconds": duration})
+                                             "high_score": max(self.score, high_score),
+                                             "duration_seconds": duration})
 
         clear_screen()
         print("\n" * 2)

@@ -53,11 +53,12 @@ class VSMode:
         self._vs_start = time.time()
         for self.round in range(1, self.max_rounds + 1):
             for player in ["Player 1", "Player 2"]:
-                self._player_turn(player)
+                if not self._player_turn(player):
+                    return
 
         self._show_results()
 
-    def _player_turn(self, player: str) -> None:
+    def _player_turn(self, player: str) -> bool:
         clear_screen()
         print(f"\n  {C_YELLOW}VS MODE — Round {self.round}/{self.max_rounds}{C_RESET}")
         print(f"  {C_CYAN}╔═══════════════════════════════════════╗{C_RESET}")
@@ -75,7 +76,7 @@ class VSMode:
             if key in ["\r", "\n", " ", "enter"]:
                 break
             if key and key.lower() == "q":
-                return
+                return False
 
         print(f"\n  {C_GREEN}Playing game for {player}...{C_RESET}")
         time.sleep(0.5)
@@ -95,6 +96,7 @@ class VSMode:
                 key = get_key()
                 if key in ["\r", "\n", " ", "enter"]:
                     break
+        return True
 
     def _pick_game(self, difficulty: str = "normal") -> dict:
         """Play a random mini-challenge for VS mode."""
