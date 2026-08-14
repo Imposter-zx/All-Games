@@ -191,7 +191,7 @@ class AsteroidsGame(BaseGame):
                     break
                 if key and key.lower() == 'p':
                     self._pause_game()
-                if key == 'h':
+                if key and key.lower() == 'h':
                     self._show_help()
                 elif key == ' ':
                     dx, dy = 0.0, 0.0

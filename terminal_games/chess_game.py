@@ -311,9 +311,9 @@ class ChessGame(BaseGame):
                 self.game_over = True
                 show_popup("You resigned!", C_RED)
                 return
-            if self._save_and_quit(k):
+            if self._save_and_quit(k.lower()):
                 return
-            if k == 'h':
+            if k and k.lower() == 'h':
                 show_popup("R to resign, ARROWS/WASD to move, SPACE to select", C_CYAN, delay=1.5)
             elif k in [' ', '\r', '\n', 'enter']:
                 self._handle_online_selection()
@@ -402,9 +402,9 @@ class ChessGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if self._save_and_quit(k):
+        if self._save_and_quit(k.lower()):
             return
-        elif k == 'h':
+        elif k and k.lower() == 'h':
             show_popup("CHESS: Select piece, then target square. Promotions auto-queen.", C_CYAN, delay=1.5)
         elif k in [' ', '\r', '\n', 'enter']:
             self._handle_selection()

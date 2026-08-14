@@ -141,11 +141,11 @@ class BreakoutGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if self._save_and_quit(k):
+        if self._save_and_quit(k.lower()):
             return
-        if k == 'p':
+        if k and k.lower() == 'p':
             self._pause_game()
-        if k == 'h':
+        if k and k.lower() == 'h':
             show_popup("BREAKOUT: Destroy all bricks with the ball. Move paddle with LEFT/RIGHT.", C_CYAN, delay=1.5)
             return
         direction = self.input_handler.validator.validate_direction(k)

@@ -207,11 +207,11 @@ class PacmanGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if self._save_and_quit(k):
+        if self._save_and_quit(k.lower()):
             return
-        if k == 'p':
+        if k and k.lower() == 'p':
             self._pause_game()
-        if k == 'h':
+        if k and k.lower() == 'h':
             show_popup("Eat pellets. Power pellets let you eat ghosts! Avoid ghosts without power.", C_CYAN, delay=1.5)
             return
 

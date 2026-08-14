@@ -127,9 +127,9 @@ class DungeonGame(BaseGame):
         k = self.input_handler.get_safe_key()
         if not k:
             return
-        if self._save_and_quit(k):
+        if self._save_and_quit(k.lower()):
             return
-        if k == 'h':
+        if k and k.lower() == 'h':
             show_popup("DUNGEON: E=fight, H=heal, X=exit. Descend 5 levels!", C_RED, delay=1.5)
             return
 

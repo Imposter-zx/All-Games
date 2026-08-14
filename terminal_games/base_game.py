@@ -138,7 +138,7 @@ class BaseGame(ABC):
         ih = get_safe_input_handler()
         while True:
             k = ih.get_safe_key()
-            if k == 'p':
+            if k and k.lower() == 'p':
                 break
             if k and k.lower() == 'q':
                 self._save_and_quit('q')

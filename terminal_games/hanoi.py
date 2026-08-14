@@ -136,7 +136,7 @@ class HanoiGame(BaseGame):
                 if key == '?':
                     self._show_help()
                     continue
-                if key == 'p':
+                if key and key.lower() == 'p':
                     self._pause_game()
                     continue
 
