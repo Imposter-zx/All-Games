@@ -15,10 +15,10 @@
                         --- RETRO ARCADE SYSTEM ---       
 ```
 
-A collection of **36 classic terminal games** with XP progression, achievements, AI opponents, and an online leaderboard.
+A collection of **37 classic terminal games** with XP progression, achievements, AI opponents, and an online leaderboard.
 
 ![Python](https://img.shields.io/badge/python-3.6%2B-blue)
-![Tests](https://img.shields.io/badge/tests-126%2F126%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-126%20passing%2C%201%20skipped-brightgreen)
 ![Lint](https://img.shields.io/badge/lint-passing-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blueviolet)
 
@@ -74,7 +74,7 @@ python -m terminal_games.arcade
 |-------|--------|-------|------|
 | <pre lang="text">╔═════════╗<br>║  SNAKE  ║<br>╚═════════╝</pre> | <pre lang="text">╔══════════╗<br>║  TETRIS  ║<br>╚══════════╝</pre> | <pre lang="text">╔═════════╗<br>║  CHESS  ║<br>╚═════════╝</pre> | <pre lang="text">╔════════╗<br>║  PONG  ║<br>╚════════╝</pre> |
 
-## Games (36)
+## Games (37)
 
 | # | Game | Description |
 |---|------|-------------|
@@ -114,6 +114,7 @@ python -m terminal_games.arcade
 | 34 | Othello | Reversi board game vs AI |
 | 35 | Nonograms | Picross picture puzzle |
 | 36 | Sokoban | Warehouse box-pushing puzzle |
+| 37 | Invaders | Space Invaders-style shooter (unlocks after 5 achievements) |
 
 ## Features
 
@@ -130,7 +131,7 @@ python -m terminal_games.arcade
 ### 🥚 Hidden Features
 
 - **Konami Code** — Press ↑↑↓↓←→←→BA on main menu to unlock a secret developer menu
-- **Marathon Mode** — Play all 36 games in one session with cumulative score and limited lives
+- **Marathon Mode** — Play all 37 games in one session with cumulative score and limited lives
 - **Chaos Mutators** — Random game-altering effects (speed surges, screen shake, inverted controls, color flashes)
 - **Secret Boss Fight** — A 4-phase meta-boss combining mechanics from multiple games
 - **Rhythm Game** — Full terminal rhythm game with 3 songs and difficulty scaling
@@ -140,9 +141,9 @@ python -m terminal_games.arcade
 
 | Metric | Value |
 |--------|-------|
-| Games | 36 |
+| Games | 37 |
 | Hidden Modes | Marathon, Boss Fight, Rhythm, Chaos |
-| Tests | 126 passing |
+| Tests | 126 passing (1 skipped: optional python-chess) |
 | Achievements | 80+ |
 | Visual Themes | 8 |
 | Python Support | 3.6+ |

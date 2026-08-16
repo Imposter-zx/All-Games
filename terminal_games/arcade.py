@@ -122,6 +122,48 @@ GAME_DISPLAY_NAMES: List[str] = [
     "Sokoban", "Invaders",
 ]
 
+GAME_ICONS: Dict[str, str] = {
+    "snake": "🐍", "breakout": "🧱", "space_shooter": "🚀", "tetris": "🧩",
+    "pacman": "🟡", "dungeon": "⚔️", "minesweeper": "💣", "chess": "♟️",
+    "sudoku": "🔢", "2048": "🔢", "pong": "🏓", "asteroids": "☄️",
+    "frogger": "🐸", "flappy": "🐦", "racing": "🏎️", "blackjack": "🃏",
+    "connect_four": "🔴", "hangman": "📝", "wordle": "🔤", "tictactoe": "❌",
+    "simon": "🎨", "trivia": "❓", "slots": "🎰", "memory": "🃏",
+    "battleship": "🚢", "crossword": "📝", "hanoi": "🗼", "typer": "⌨️",
+    "solitaire": "🃏", "rpsls": "🖐️", "poker": "♠️", "mastermind": "🧠",
+    "gomoku": "⬛", "othello": "⬤", "nonograms": "🧩", "sokoban": "📦",
+    "invaders": "👾",
+}
+
+GAME_ICON_FALLBACK: Dict[str, str] = {
+    "snake": "S", "breakout": "B", "space_shooter": "X", "tetris": "T",
+    "pacman": "P", "dungeon": "D", "minesweeper": "M", "chess": "C",
+    "sudoku": "#", "2048": "2", "pong": "O", "asteroids": "A",
+    "frogger": "F", "flappy": "V", "racing": "R", "blackjack": "B",
+    "connect_four": "C", "hangman": "H", "wordle": "W", "tictactoe": "T",
+    "simon": "S", "trivia": "?", "slots": "$", "memory": "M",
+    "battleship": "B", "crossword": "C", "hanoi": "H", "typer": "K",
+    "solitaire": "S", "rpsls": "R", "poker": "P", "mastermind": "M",
+    "gomoku": "G", "othello": "O", "nonograms": "N", "sokoban": "K",
+    "invaders": "I",
+}
+
+COMPACT_GAME_SHORT_NAMES: Dict[str, str] = {
+    "snake": "Snake", "breakout": "Breakout", "space_shooter": "Shooter",
+    "tetris": "Tetris", "pacman": "Pac-Man", "dungeon": "Dungeon",
+    "minesweeper": "Mineswp", "chess": "Chess", "sudoku": "Sudoku",
+    "2048": "2048", "pong": "Pong", "asteroids": "Asteroid",
+    "frogger": "Frogger", "flappy": "Flappy", "racing": "Racing",
+    "blackjack": "Blackjack", "connect_four": "Connect4",
+    "hangman": "Hangman", "wordle": "Wordle", "tictactoe": "TTT",
+    "simon": "Simon", "trivia": "Trivia", "slots": "Slots",
+    "memory": "Memory", "battleship": "Battleship", "crossword": "Crossword",
+    "hanoi": "Hanoi", "typer": "Typer", "solitaire": "Solitaire",
+    "rpsls": "RPSLS", "poker": "Poker", "mastermind": "Mastermind",
+    "gomoku": "Gomoku", "othello": "Othello", "nonograms": "Nonograms",
+    "sokoban": "Sokoban", "invaders": "Invaders",
+}
+
 NAME_TO_KEY: Dict[str, str] = dict(zip(GAME_DISPLAY_NAMES, GAMES))
 
 
@@ -163,45 +205,7 @@ def draw_profile() -> None:
         u_safe("══════════════════════════════", "------------------------------"),
     ]
 
-    game_entries = [
-        ("snake", u_safe("🐍", "S")),
-        ("breakout", u_safe("🧱", "B")),
-        ("space_shooter", u_safe("🚀", "X")),
-        ("tetris", u_safe("🧩", "T")),
-        ("pacman", u_safe("🟡", "P")),
-        ("dungeon", u_safe("⚔️", "D")),
-        ("minesweeper", u_safe("💣", "M")),
-        ("chess", u_safe("♟️", "C")),
-        ("sudoku", u_safe("🔢", "#")),
-        ("2048", u_safe("🔢", "2")),
-        ("pong", u_safe("🏓", "O")),
-        ("asteroids", u_safe("☄️", "A")),
-        ("frogger", u_safe("🐸", "F")),
-        ("flappy", u_safe("🐦", "V")),
-        ("racing", u_safe("🏎️", "R")),
-        ("blackjack", u_safe("🃏", "B")),
-        ("connect_four", u_safe("🔴", "C")),
-        ("hangman", u_safe("📝", "H")),
-        ("wordle", u_safe("🔤", "W")),
-        ("tictactoe", u_safe("❌", "T")),
-        ("simon", u_safe("🎨", "S")),
-        ("trivia", u_safe("❓", "?")),
-        ("slots", u_safe("🎰", "$")),
-        ("memory", u_safe("🃏", "M")),
-        ("battleship", u_safe("🚢", "B")),
-        ("crossword", u_safe("📝", "C")),
-        ("hanoi", u_safe("🗼", "H")),
-        ("typer", u_safe("⌨️", "K")),
-        ("solitaire", u_safe("🃏", "S")),
-        ("rpsls", u_safe("🖐️ ", "R")),
-        ("poker", u_safe("♠️ ", "P")),
-        ("mastermind", u_safe("🧠", "M")),
-        ("gomoku", u_safe("⬛", "G")),
-        ("othello", u_safe("⬤", "O")),
-        ("nonograms", u_safe("🧩", "N")),
-        ("sokoban", u_safe("📦", "K")),
-        ("invaders", u_safe("👾", "I")),
-    ]
+    game_entries = [(g, u_safe(GAME_ICONS[g], GAME_ICON_FALLBACK[g])) for g in GAMES]
 
     for gname, icon in game_entries:
         hs = mgr.get_high_score(gname)
@@ -220,6 +224,38 @@ def draw_profile() -> None:
     draw_retro_box(box_width, f"{u_safe('👤', '')} {player_name}", profile_lines, color=C_WHITE, title_color=C_CYAN)
 
 
+def _build_menu_options(compact: bool, invaders_locked: bool = False) -> List[str]:
+    """Build the 41 menu entries so displayed order matches selection indices."""
+    if compact:
+        options = [f"{i + 1}.{COMPACT_GAME_SHORT_NAMES[g]}" for i, g in enumerate(GAMES)]
+    else:
+        options = [
+            f"{i + 1}. {u_safe(GAME_ICONS[g], GAME_ICON_FALLBACK[g])} {GAME_DISPLAY_NAMES[i]}"
+            for i, g in enumerate(GAMES)
+        ]
+    if invaders_locked:
+        if compact:
+            options[-1] += " 🔒"
+        else:
+            options[-1] += f" {C_RED}🔒{C_RESET}<5 ach"
+    options.append(f"L. {u_safe('🏆', 'L')} Leaderboard")
+    options.append(f"S. {u_safe('⚙️', 'S')} Settings")
+    options.append(f"H. {u_safe('📖', 'H')} Tutorial")
+    options.append(f"Q. {u_safe('🚪', 'Q')} Quit")
+    return options
+
+
+def _is_game_locked(game_key: str) -> bool:
+    """True if the game is gated behind an unlock condition."""
+    if game_key == "invaders":
+        from invaders import is_invaders_unlocked
+        return not is_invaders_unlocked()
+    return False
+
+
+MENU_VIEWPORT = 14
+
+
 def print_menu(selection: int, renderer: Renderer) -> None:
     """Render the main arcade menu, adapting to terminal size."""
     term_width, _ = get_terminal_size()
@@ -232,62 +268,29 @@ def print_menu(selection: int, renderer: Renderer) -> None:
     draw_profile()
     print("\n")
 
-    if use_compact:
-        options: list[str] = [
-            "1.Snake  2.Breakout  3.Shooter  4.Tetris",
-            "5.Pac-Man 6.Dungeon  7.Mineswp  8.Chess",
-            "9.Sudoku  10.2048   11.Pong   12.Asteroid",
-            "13.Frogger 14.Flappy 15.Racing 16.Blackjack",
-            "17.Connect4 18.Hangman 19.Wordle 20.TTT 21.Simon",
-            "M.Marathon  K.BossFight  Z.Roulette",
-            "V.VSMode  D.Daily  L.Leader  S.Settings",
-            "H.Help  Q.Quit",
-        ]
-        menu_cols = 30
-    else:
-        options: list[str] = [
-            f"1. {u_safe('🐍', 'S')} Snake",
-            f"2. {u_safe('🧱', 'B')} Breakout",
-            f"3. {u_safe('🚀', 'X')} Space Shooter",
-            f"4. {u_safe('🧩', 'T')} Tetris",
-            f"5. {u_safe('🟡', 'P')} Pacman",
-            f"6. {u_safe('⚔️', 'D')} Dungeon Crawler",
-            f"7. {u_safe('💣', 'M')} Minesweeper",
-            f"8. {u_safe('♟️', 'C')} Chess vs AI",
-            f"9. {u_safe('🔢', '#')} Sudoku",
-            f"10. {u_safe('🔢', '2')} 2048",
-            f"11. {u_safe('🏓', 'O')} Pong",
-            f"12. {u_safe('☄️', 'A')} Asteroids",
-            f"13. {u_safe('🐸', 'F')} Frogger",
-            f"14. {u_safe('🐦', 'V')} Flappy Bird",
-            f"15. {u_safe('🏎️', 'R')} Racing",
-            f"16. {u_safe('🃏', 'B')} Blackjack",
-            f"17. {u_safe('🔴', 'C')} Connect Four",
-            f"18. {u_safe('📝', 'H')} Hangman",
-            f"19. {u_safe('🔤', 'W')} Wordle",
-            f"20. {u_safe('❌', 'T')} Tic-Tac-Toe",
-            f"21. {u_safe('🎨', 'S')} Simon Says",
-            f"L. {u_safe('🏆', 'L')} Leaderboard",
-            f"S. {u_safe('⚙️', 'S')} Settings",
-            f"M. {u_safe('🏃', 'M')} Marathon (36 games!)",
-            f"K. {u_safe('👾', 'K')} Secret Boss Fight",
-            f"Z. {u_safe('🎲', 'Z')} Roulette",
-            f"V. {u_safe('⚡', 'V')} VS Mode (2-Player)",
-            f"D. {u_safe('📅', 'D')} Daily Challenge",
-            "H. Tutorial",
-            f"Q. {u_safe('🚪', 'Q')} Quit"
-        ]
-        menu_cols = 30
+    options: list[str] = _build_menu_options(use_compact, invaders_locked=_is_game_locked("invaders"))
+    total = len(options)
+    lo = min(max(selection - MENU_VIEWPORT // 2, 0), max(0, total - MENU_VIEWPORT))
+    visible = options[lo:lo + MENU_VIEWPORT]
+    menu_cols = 30
 
     menu_content: list[str] = []
-    for i, opt in enumerate(options):
-        is_sel = (i == selection)
+    if lo > 0:
+        menu_content.append(f"{C_CYAN}  ▲ {lo} more above{C_RESET}")
+    for i, opt in enumerate(visible):
+        abs_i = lo + i
+        is_sel = (abs_i == selection)
         prefix = f"{C_YELLOW}► {C_RESET}" if is_sel else "  "
         style = "\033[47;30m" if is_sel else f"{C_WHITE}"
         menu_content.append(f"{prefix}{style} {opt:<20} {C_RESET}")
+    if lo + len(visible) < total:
+        menu_content.append(f"{C_CYAN}  ▼ {total - lo - len(visible)} more below{C_RESET}")
 
     draw_retro_box(menu_cols, "🕹️ GAME MENU", menu_content, color=C_CYAN)
     print("\n" + " " * max(0, (term_width - 36) // 2) + f"{C_WHITE}Use Arrows to navigate, Enter to play{C_RESET}")
+    print(" " * max(0, (term_width - 60) // 2) +
+          f"{C_WHITE}M:Marathon  K:BossFight  Z:Roulette  V:VS  D:Daily  "
+          f"A:Achievements  R:Activity  H:Help  Q:Quit{C_RESET}")
 
 
 def select_game_difficulty() -> Optional[str]:
@@ -855,6 +858,10 @@ def main() -> None:
             elif selection == 35:
                 _play_and_submit(play_sokoban, "Sokoban", difficulty)
             elif selection == 36:
+                if _is_game_locked("invaders"):
+                    show_popup("🔒 INVADERS LOCKED — unlock 5 achievements first!", C_RED)
+                    start_background_music()
+                    continue
                 _play_and_submit(play_invaders, "Invaders", difficulty)
             elif selection == 37:
                 show_leaderboard()
@@ -930,6 +937,16 @@ def main() -> None:
         elif key and key.lower() == 's':
             stop_background_music()
             show_settings()
+            renderer.clear()
+            start_background_music()
+        elif key and key.lower() == 'm':
+            stop_background_music()
+            run_marathon()
+            renderer.clear()
+            start_background_music()
+        elif key and key.lower() == 'k':
+            stop_background_music()
+            _play_and_submit(play_boss_fight, "Secret Boss", 'hard')
             renderer.clear()
             start_background_music()
         elif key in [str(i) for i in range(1, 11)]:
