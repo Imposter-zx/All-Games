@@ -1,7 +1,6 @@
 """Smoke tests: every game must instantiate, run, and quit cleanly on synthetic input."""
 
 import itertools
-import msvcrt
 import os
 import sys
 import time
@@ -13,13 +12,28 @@ import arcade_utils
 import pytest
 import stats_manager
 
+IS_WINDOWS = os.name == 'nt'
+if IS_WINDOWS:
+    import msvcrt
+
 
 @pytest.fixture(autouse=True)
 def quit_env(monkeypatch, tmp_path):
     """Simulate keys: a few ENTERs to start, then Q to quit. Fresh stats DB per test."""
     keys = itertools.chain(['\r'] * 5, itertools.repeat('q'))
-    monkeypatch.setattr(msvcrt, 'getch', lambda: next(keys).encode())
-    monkeypatch.setattr(msvcrt, 'kbhit', lambda: True)
+
+    def fake_raw_get_key():
+        return next(keys)
+
+    # Every game reads keys through arcade_utils.get_key -> _chaos_get_key,
+    # which calls _raw_get_key() at runtime, so patching the module attribute
+    # works on Windows (msvcrt) and Unix (termios) alike.
+    monkeypatch.setattr(arcade_utils, '_raw_get_key', fake_raw_get_key)
+    if IS_WINDOWS:
+        monkeypatch.setattr(msvcrt, 'kbhit', lambda: True)
+    else:
+        import select
+        monkeypatch.setattr(select, 'select', lambda *a, **k: ([sys.stdin], [], []))
     monkeypatch.setattr(time, 'sleep', lambda *a, **k: None)
     monkeypatch.setattr(arcade_utils, 'play_sound', lambda *a, **k: None)
 

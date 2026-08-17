@@ -5,8 +5,11 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'server'))
 
-import main as srv
 import pytest
+
+pytest.importorskip('fastapi')
+
+import main as srv
 from fastapi.testclient import TestClient
 
 client = TestClient(srv.app)
