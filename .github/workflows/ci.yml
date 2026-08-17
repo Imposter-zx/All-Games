@@ -30,7 +30,7 @@ jobs:
           pip install pytest pytest-cov
           pip install -e .
           pip install -r server/requirements.txt
-          pip install httpx2
+          pip install httpx
 
       - name: Lint with Ruff
         run: |
