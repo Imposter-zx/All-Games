@@ -59,8 +59,8 @@ class TetrisGame(BaseGame):
     def save_state_json(self) -> dict:
         return {
             'board': self.board,
-            'piece': self.piece,
-            'next_piece': self.next_piece,
+            'piece': {**self.piece, 'color': str(self.piece['color'])},
+            'next_piece': {**self.next_piece, 'color': str(self.next_piece['color'])},
             'score': self.score,
             'level': self.level,
             'fall_speed': self.fall_speed,

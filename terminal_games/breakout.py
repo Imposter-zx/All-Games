@@ -46,7 +46,10 @@ class BreakoutGame(BaseGame):
             'ball_y': self.ball_y,
             'ball_dx': self.ball_dx,
             'ball_dy': self.ball_dy,
-            'bricks': self.bricks,
+            'bricks': [
+                {'x': b['x'], 'y': b['y'], 'color': str(b['color']), 'active': b['active']}
+                for b in self.bricks
+            ],
             'score': self.score,
             'lives': self.lives,
         }

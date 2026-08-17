@@ -362,7 +362,7 @@ class StatsManager:
         with self.conn:
             self.conn.execute(
                 "INSERT OR REPLACE INTO game_states (game_name, state_json, saved_at) VALUES (?, ?, ?)",
-                (game_name.lower(), json.dumps(state), time.time())
+                (game_name.lower(), json.dumps(state, default=str), time.time())
             )
 
     def load_game_state(self, game_name: str) -> Optional[Dict[str, Any]]:

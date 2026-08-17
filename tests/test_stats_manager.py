@@ -185,3 +185,32 @@ class TestStatsManagerGameCounter:
 
         final_count = manager._get_profile_int('games_played', 0)
         assert final_count >= initial_count + 2
+
+
+class TestStatsManagerGameState:
+    """Test save/load game state roundtrips."""
+
+    def test_save_and_load_state_roundtrip(self):
+        manager = StatsManager()
+        manager.delete_game_state('breakout')
+        state = {'score': 50, 'lives': 2}
+        manager.save_game_state('breakout', state)
+        loaded = manager.load_game_state('breakout')
+        assert loaded == state
+
+    def test_save_state_with_color_objects_serializes(self):
+        from arcade_utils import Color
+        manager = StatsManager()
+        manager.delete_game_state('tetris')
+        manager.save_game_state('tetris', {
+            'piece': {'color': Color('\033[36m'), 'x': 3},
+            'bricks': [{'active': True, 'color': Color('\033[31m')}],
+        })
+        loaded = manager.load_game_state('tetris')
+        assert loaded['piece']['color'] == '\033[36m'
+        assert loaded['bricks'][0]['color'] == '\033[31m'
+
+    def test_load_missing_state_returns_none(self):
+        manager = StatsManager()
+        manager.delete_game_state('nonexistent_xyz')
+        assert manager.load_game_state('nonexistent_xyz') is None

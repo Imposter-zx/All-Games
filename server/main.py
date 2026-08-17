@@ -92,7 +92,7 @@ def leaderboard(
     conn = get_db()
     if game_name:
         rows = conn.execute(
-            "SELECT player_name, score, difficulty, submitted_at FROM scores "
+            "SELECT player_name, game_name, score, difficulty, submitted_at FROM scores "
             "WHERE game_name = ? ORDER BY score DESC LIMIT ?",
             (game_name.strip().lower(), limit)
         ).fetchall()

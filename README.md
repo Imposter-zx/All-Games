@@ -119,7 +119,7 @@ python -m terminal_games.arcade
 ## Features
 
 - **XP & Leveling** — Gain XP across all games, level up, track progress
-- **Achievements** — Unlock over 80 achievements for milestones
+- **Achievements** — Unlock over 110 achievements for milestones
 - **Difficulty** — Easy / Normal / Hard per game affects speed and XP
 - **Visual Themes** — 8 color themes (classic, neon, retro, monochrome, matrix, cyberpunk, sunset, forest)
 - **AI Opponents** — Chess, Pac-Man, Pong, Connect Four, Gomoku, Othello, and more
@@ -144,7 +144,7 @@ python -m terminal_games.arcade
 | Games | 37 |
 | Hidden Modes | Marathon, Boss Fight, Rhythm, Chaos |
 | Tests | 126 passing (1 skipped: optional python-chess) |
-| Achievements | 80+ |
+| Achievements | 113 |
 | Visual Themes | 8 |
 | Python Support | 3.6+ |
 
