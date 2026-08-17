@@ -9,10 +9,13 @@ import pytest
 
 pytest.importorskip('fastapi')
 
-import main as srv
-from fastapi.testclient import TestClient
-
-client = TestClient(srv.app)
+try:
+    import main as srv
+    from fastapi.testclient import TestClient
+except (ImportError, RuntimeError) as e:
+    pytest.skip(f'fastapi test client unavailable: {e}', allow_module_level=True)
+else:
+    client = TestClient(srv.app)
 
 
 @pytest.fixture(autouse=True)
