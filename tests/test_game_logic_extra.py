@@ -788,3 +788,424 @@ class TestChessGuard:
         import subprocess
         monkeypatch.setattr('subprocess.run', fake_run)
         assert chess_game._find_stockfish() is None
+
+
+class TestChessEngine:
+    @pytest.fixture(autouse=True)
+    def requires_lib(self):
+        import chess_game
+        if not chess_game.CHESS_AVAILABLE:
+            pytest.skip('requires python-chess installed')
+
+    def test_initial_board_is_standard(self):
+        import chess
+        import chess_game
+        game = chess_game.ChessGame('normal')
+        assert game.board is not None
+        assert game.board.fen().split()[0] == 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
+        assert game.board.turn == chess.WHITE
+        assert len(list(game.board.legal_moves)) == 20
+
+    def test_state_roundtrip(self):
+        import chess
+        import chess_game
+        game = chess_game.ChessGame('normal')
+        game.board.push(chess.Move.from_uci('e2e4'))
+        game.board.push(chess.Move.from_uci('e7e5'))
+        game.score = 30
+        game.selected_square = chess.E2
+        state = game.save_state_json()
+        assert state['fen'].startswith('rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR')
+        assert state['score'] == 30
+        assert state['moves'] == ['e2e4', 'e7e5']
+        loaded = chess_game.ChessGame('normal')
+        loaded.load_state_json(state)
+        assert loaded.board.fen() == game.board.fen()
+        assert loaded.score == 30
+        assert loaded.selected_square == chess.E2
+
+    def test_load_state_with_custom_fen(self):
+        import chess_game
+        game = chess_game.ChessGame('normal')
+        game.load_state_json({'fen': '4k3/8/8/8/8/8/8/4K3 w - - 0 1'})
+        assert game.board.piece_at(chess_game.chess.E4) is None
+
+    def test_ai_move_returns_legal(self):
+        import chess_game
+        game = chess_game.ChessGame('normal')
+        game.engine = None
+        import random
+        random.seed(42)
+        move = game._get_ai_move()
+        assert move is not None
+        assert move in list(game.board.legal_moves)
+        game.board.push(move)
+        assert game.board.move_stack
+
+    def test_ai_move_none_when_checkmated(self):
+        import chess_game
+        game = chess_game.ChessGame('normal')
+        game.engine = None
+        game.board = chess_game.chess.Board(
+            'rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3')
+        assert game.board.is_checkmate()
+        assert game._get_ai_move() is None
+
+    def test_ai_move_prefers_captures(self, monkeypatch):
+        import chess_game
+        game = chess_game.ChessGame('normal')
+        game.engine = None
+        game.board = chess_game.chess.Board(
+            'rnbqkbnr/1p1ppppp/2p5/2PQ4/8/8/1PPP1PPP/RNB1KBNR b KQkq - 0 2')
+        capture_moves = [m for m in game.board.legal_moves if game.board.is_capture(m)]
+        assert capture_moves
+        monkeypatch.setattr('chess_game.random.random', lambda: 0.0)
+        monkeypatch.setattr('chess_game.random.choice', lambda seq: seq[0])
+        move = game._get_ai_move()
+        assert move in capture_moves
+
+    def test_handle_game_end_win(self, monkeypatch):
+        import chess_game
+        popups = []
+        unlocked = []
+        xp_gained = []
+        monkeypatch.setattr(chess_game, 'show_popup', lambda *a, **k: popups.append(a[0]))
+        monkeypatch.setattr(chess_game.ChessGame, 'unlock_achievement',
+                            lambda self, *a: unlocked.append(a))
+        monkeypatch.setattr(chess_game.ChessGame, 'award_xp_for_action',
+                            lambda self, n: xp_gained.append(n))
+        game = chess_game.ChessGame('normal')
+        game.u_white = True
+        game.board = chess_game.chess.Board()
+        for mv in ('e2e4', 'e7e5', 'f1c4', 'b8c6', 'd1h5', 'g8f6', 'h5f7'):
+            game.board.push_uci(mv)
+        assert game.board.is_checkmate()
+        game._handle_game_end()
+        assert game.game_over is True
+        assert unlocked == [('chess_win', 'Grandmaster')]
+        assert xp_gained == [100]
+        assert popups == ['VICTORY! YOU WON!']
+
+    def test_handle_game_end_draw(self, monkeypatch):
+        import chess_game
+        popups = []
+        xp_gained = []
+        monkeypatch.setattr(chess_game, 'show_popup', lambda *a, **k: popups.append(a[0]))
+        monkeypatch.setattr(chess_game.ChessGame, 'award_xp_for_action',
+                            lambda self, n: xp_gained.append(n))
+        game = chess_game.ChessGame('normal')
+        game.board = chess_game.chess.Board('7k/5Q2/6K1/8/8/8/8/8 b - - 0 1')
+        assert game.board.is_stalemate()
+        game._handle_game_end()
+        assert popups == ['DRAW!']
+        assert xp_gained == [50]
+
+    def test_handle_game_end_loss(self, monkeypatch):
+        import chess_game
+        popups = []
+        monkeypatch.setattr(chess_game, 'show_popup', lambda *a, **k: popups.append(a[0]))
+        monkeypatch.setattr(chess_game.ChessGame, 'unlock_achievement', lambda *a, **k: None)
+        monkeypatch.setattr(chess_game.ChessGame, 'award_xp_for_action', lambda *a, **k: None)
+        game = chess_game.ChessGame('normal')
+        game.u_white = False
+        game.board = chess_game.chess.Board()
+        for mv in ('e2e4', 'e7e5', 'f1c4', 'b8c6', 'd1h5', 'g8f6', 'h5f7'):
+            game.board.push_uci(mv)
+        assert game.board.is_checkmate()
+        game._handle_game_end()
+        assert popups == ['DEFEAT!']
+        assert game.game_over is True
+
+
+class TestWordle:
+    def test_guess_all_green(self):
+        from wordle import WordleGame
+        game = WordleGame('normal')
+        game.target = 'APPLE'
+        assert game._check_guess('APPLE') == [('A', 'green'), ('P', 'green'), ('P', 'green'),
+                                              ('L', 'green'), ('E', 'green')]
+
+    def test_guess_mixed_feedback(self):
+        from wordle import WordleGame
+        game = WordleGame('normal')
+        game.target = 'ABIDE'
+        result = game._check_guess('AEFIG')
+        assert result == [('A', 'green'), ('E', 'yellow'), ('F', 'gray'),
+                          ('I', 'yellow'), ('G', 'gray')]
+
+    def test_duplicate_letters_only_count_once(self):
+        from wordle import WordleGame
+        game = WordleGame('normal')
+        game.target = 'ABBA'
+        result = game._check_guess('AAAA')
+        assert result == [('A', 'green'), ('A', 'gray'), ('A', 'gray'), ('A', 'green')]
+
+    def test_daily_word_deterministic(self):
+        from wordle import WordleGame
+        assert WordleGame('normal', daily=True).target == \
+            WordleGame('normal', daily=True).target
+        assert len(WordleGame('normal', daily=True).target) == 5
+
+    def test_state_roundtrip(self):
+        from wordle import WordleGame
+        game = WordleGame('normal')
+        game.target = 'STARE'
+        game.attempts = ['SLATE', 'STARE']
+        game.round = 3
+        state = game.save_state_json()
+        loaded = WordleGame('normal')
+        loaded.load_state_json(state)
+        assert loaded.target == 'STARE'
+        assert loaded.attempts == ['SLATE', 'STARE']
+        assert loaded.round == 3
+
+
+class TestTicTacToe:
+    def test_check_winner_lines(self):
+        from tictactoe import _check_winner
+        X, Oh, E = 'X', 'O', '.'
+        assert _check_winner([[X, X, X], [Oh, Oh, E], [E, E, E]]) == 'X'
+        assert _check_winner([[Oh, X, E], [Oh, X, E], [Oh, E, E]]) == 'O'
+        assert _check_winner([[X, Oh, E], [E, X, Oh], [E, E, X]]) == 'X'
+        assert _check_winner([[E, Oh, X], [E, X, Oh], [X, Oh, E]]) == 'X'
+        assert _check_winner([[X, Oh, E], [E, Oh, E], [E, X, Oh]]) is None
+
+    def test_is_full(self):
+        from tictactoe import _is_full
+        assert _is_full([['X', 'O', 'X'], ['O', 'X', 'O'], ['O', 'X', 'O']]) is True
+        assert _is_full([['X', 'O', '.'], ['O', 'X', 'O'], ['O', 'X', 'O']]) is False
+
+    def test_winner_line_coordinates(self):
+        from tictactoe import _get_winner_line
+        assert _get_winner_line([['X', 'X', 'X'], ['O', 'O', '.'], ['.', '.', '.']], 'X') == \
+            [(0, 0), (0, 1), (0, 2)]
+        assert _get_winner_line([['O', 'X', '.'], ['O', 'X', '.'], ['O', '.', '.']], 'O') == \
+            [(0, 0), (1, 0), (2, 0)]
+
+    def test_parse_move(self):
+        from tictactoe import _parse_move
+        assert _parse_move('a1') == (0, 0)
+        assert _parse_move('C3') == (2, 2)
+        assert _parse_move('b2') == (1, 1)
+        assert _parse_move('d4') is None
+        assert _parse_move('x') is None
+        assert _parse_move('a4') is None
+
+    def test_empty_cells(self):
+        from tictactoe import _get_empty_cells
+        board = [['X', '.', '.'], ['.', 'O', '.'], ['.', '.', '.']]
+        assert len(_get_empty_cells(board)) == 7
+        assert (0, 0) not in _get_empty_cells(board)
+
+    def test_minimax_scores(self):
+        from tictactoe import _minimax
+        X, Oh, E = 'X', 'O', '.'
+        assert _minimax([[X, X, X], [Oh, Oh, E], [E, E, E]], 0, True, X, Oh) == 10
+        assert _minimax([[Oh, Oh, Oh], [X, X, E], [E, E, E]], 0, True, X, Oh) == -10
+        assert _minimax([[X, Oh, X], [X, Oh, Oh], [Oh, X, E]], 0, True, X, Oh) == 0
+
+    def test_ai_move_takes_win(self):
+        from tictactoe import _ai_move
+        board = [['X', 'X', '.'], ['O', 'O', '.'], ['.', '.', '.']]
+        assert _ai_move(board, 'X', 'hard') == (0, 2)
+
+    def test_ai_move_blocks_human(self):
+        from tictactoe import _ai_move
+        board = [['O', 'O', '.'], ['X', '.', '.'], ['.', '.', '.']]
+        assert _ai_move(board, 'X', 'normal') == (0, 2)
+
+    def test_ai_move_easy_random(self, monkeypatch):
+        import tictactoe
+        from tictactoe import _ai_move
+        board = [['X', '.', '.'], ['.', '.', '.'], ['.', '.', '.']]
+        monkeypatch.setattr(tictactoe.random, 'choice', lambda seq: (1, 1))
+        assert _ai_move(board, 'O', 'easy') == (1, 1)
+
+    def test_ai_move_first_play_corner(self):
+        from tictactoe import _ai_move
+        board = [['.', '.', '.'], ['.', '.', '.'], ['.', '.', '.']]
+        assert _ai_move(board, 'X', 'hard') == (0, 0)
+
+
+class TestArcadeDifficulty:
+    def test_default_normal(self, monkeypatch):
+        import arcade
+        monkeypatch.setattr(arcade_utils, 'get_key', lambda: '\r')
+        monkeypatch.setattr(arcade_utils, 'draw_retro_box', lambda *a, **k: None)
+        monkeypatch.setattr(arcade, 'beep', lambda *a, **k: None)
+        assert arcade.select_game_difficulty() == 'normal'
+
+    def test_down_then_enter(self, monkeypatch):
+        import arcade
+        keys = iter(['down', '\r'])
+        monkeypatch.setattr(arcade_utils, 'get_key', lambda: next(keys))
+        monkeypatch.setattr(arcade_utils, 'draw_retro_box', lambda *a, **k: None)
+        monkeypatch.setattr(arcade, 'beep', lambda *a, **k: None)
+        assert arcade.select_game_difficulty() == 'hard'
+
+    def test_up_then_enter(self, monkeypatch):
+        import arcade
+        keys = iter(['up', '\r'])
+        monkeypatch.setattr(arcade_utils, 'get_key', lambda: next(keys))
+        monkeypatch.setattr(arcade_utils, 'draw_retro_box', lambda *a, **k: None)
+        monkeypatch.setattr(arcade, 'beep', lambda *a, **k: None)
+        assert arcade.select_game_difficulty() == 'easy'
+
+    def test_quit_returns_none(self, monkeypatch):
+        import arcade
+        monkeypatch.setattr(arcade_utils, 'get_key', lambda: 'q')
+        monkeypatch.setattr(arcade_utils, 'draw_retro_box', lambda *a, **k: None)
+        monkeypatch.setattr(arcade, 'beep', lambda *a, **k: None)
+        assert arcade.select_game_difficulty() is None
+
+
+class TestArcadeMenuViewport:
+    def _capture_menu(self, monkeypatch, selection):
+        import arcade
+        boxes = []
+
+        def fake_box(width, title, content, **kw):
+            boxes.append(content)
+
+        class FakeStdout:
+            encoding = 'utf-8'
+
+            def write(self, s):
+                pass
+
+            def flush(self):
+                pass
+
+        monkeypatch.setattr(sys, 'stdout', FakeStdout())
+        monkeypatch.setattr(arcade, 'get_terminal_size', lambda: (120, 30))
+        monkeypatch.setattr(arcade, 'draw_profile', lambda: None)
+        monkeypatch.setattr(arcade, '_is_game_locked', lambda key: False)
+        monkeypatch.setattr(arcade, 'draw_retro_box', fake_box)
+        monkeypatch.setattr(arcade_utils, 'clear_screen', lambda: None)
+        from arcade import Renderer
+        arcade.print_menu(selection, Renderer())
+        return boxes[0]
+
+    def test_top_viewport(self, monkeypatch):
+        import arcade
+        from arcade_utils import strip_ansi
+        content = self._capture_menu(monkeypatch, 0)
+        opts = arcade._build_menu_options(False)
+        assert strip_ansi(opts[0]) in strip_ansi(content[0])
+        assert not any('more above' in line for line in content)
+        assert '27 more below' in ''.join(content)
+
+    def test_bottom_viewport(self, monkeypatch):
+        import arcade
+        from arcade_utils import strip_ansi
+        content = self._capture_menu(monkeypatch, 40)
+        opts = arcade._build_menu_options(False)
+        assert '27 more above' in ''.join(content)
+        assert strip_ansi(opts[40]) in strip_ansi(content[-1])
+
+    def test_middle_viewport(self, monkeypatch):
+        import arcade
+        from arcade_utils import strip_ansi
+        content = self._capture_menu(monkeypatch, 20)
+        opts = arcade._build_menu_options(False)
+        text = ''.join(content)
+        assert '13 more above' in text
+        assert '14 more below' in text
+        assert strip_ansi(opts[20]) in strip_ansi(content[8])
+
+    def test_selection_marker(self, monkeypatch):
+        content = self._capture_menu(monkeypatch, 0)
+        assert '►' in content[0]
+
+
+class TestCelebrationOutput:
+    def test_high_score_output(self, monkeypatch, capsys):
+        import random
+
+        import celebrations
+        monkeypatch.setattr(celebrations, 'clear_screen', lambda: None)
+        monkeypatch.setattr(celebrations.time, 'sleep', lambda *a: None)
+        random.seed(1)
+        celebrations.celebrate_high_score('Snake', 1500, 1000)
+        from arcade_utils import strip_ansi
+        out = strip_ansi(capsys.readouterr().out)
+        assert 'Snake' in out
+        assert '1500' in out
+        assert '+500' in out
+        assert '+50%' in out
+
+    def test_level_up_output(self, monkeypatch, capsys):
+        import celebrations
+        monkeypatch.setattr(celebrations, 'clear_screen', lambda: None)
+        monkeypatch.setattr(celebrations.time, 'sleep', lambda *a: None)
+        celebrations.celebrate_level_up(3)
+        from arcade_utils import strip_ansi
+        out = strip_ansi(capsys.readouterr().out)
+        assert 'LEVEL 3' in out
+
+
+class TestArcadePlayAndSubmit:
+    def test_submit_flow(self, monkeypatch):
+        import arcade
+
+        class Mgr:
+            def __init__(self):
+                self.unlocked = []
+
+            def get_level_and_xp(self):
+                return (7, 500)
+
+            def unlock_achievement(self, aid):
+                self.unlocked.append(aid)
+
+            def get_settings(self):
+                return {'player_name': 'TESTER'}
+
+        mgr = Mgr()
+        celebrated = []
+        summaries = []
+        submitted = []
+        monkeypatch.setattr(arcade, 'get_stats_manager', lambda: mgr)
+        monkeypatch.setattr(arcade, '_check_saved_state', lambda *a: None)
+        monkeypatch.setattr(arcade, 'safe_game_call',
+                            lambda func, name, **kw: {'high_score': 42, 'score': 42})
+        monkeypatch.setattr(arcade, '_show_game_summary', lambda *a: summaries.append(a))
+        monkeypatch.setattr(arcade, 'check_and_celebrate', lambda *a: celebrated.append(a))
+        monkeypatch.setattr(arcade, 'celebrate_level_up', lambda *a: None)
+        monkeypatch.setattr(arcade.olb, 'submit_score', lambda *a: submitted.append(a))
+        arcade._play_and_submit(lambda: None, 'Snake', 'normal')
+        assert 'first_game' in mgr.unlocked
+        assert 'level_5' in mgr.unlocked
+        assert celebrated == [('Snake', 42, 'snake')]
+        assert submitted == [('TESTER', 'snake', 42, 'normal')]
+        assert len(summaries) == 1
+
+    def test_no_submit_without_score(self, monkeypatch):
+        import arcade
+
+        class Mgr:
+            def __init__(self):
+                self.unlocked = []
+
+            def get_level_and_xp(self):
+                return (2, 100)
+
+            def unlock_achievement(self, aid):
+                self.unlocked.append(aid)
+
+            def get_settings(self):
+                return {'player_name': 'TESTER'}
+
+        mgr = Mgr()
+        submitted = []
+        celebrated = []
+        monkeypatch.setattr(arcade, 'get_stats_manager', lambda: mgr)
+        monkeypatch.setattr(arcade, '_check_saved_state', lambda *a: None)
+        monkeypatch.setattr(arcade, 'safe_game_call', lambda func, name, **kw: {})
+        monkeypatch.setattr(arcade, 'check_and_celebrate', lambda *a: celebrated.append(a))
+        monkeypatch.setattr(arcade.olb, 'submit_score', lambda *a: submitted.append(a))
+        arcade._play_and_submit(lambda: None, 'Snake', 'hard')
+        assert 'first_game' in mgr.unlocked
+        assert celebrated == []
+        assert submitted == []
+        assert 'level_5' not in mgr.unlocked
