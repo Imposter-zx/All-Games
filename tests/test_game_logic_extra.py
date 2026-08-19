@@ -1209,3 +1209,606 @@ class TestArcadePlayAndSubmit:
         assert celebrated == []
         assert submitted == []
         assert 'level_5' not in mgr.unlocked
+
+
+class _FakeStatsMgr:
+    def __init__(self):
+        self.unlocked = []
+        self.sessions = []
+        self.xp_added = 0
+        self.updated = None
+
+    def unlock_achievement(self, aid):
+        self.unlocked.append(aid)
+
+    def add_xp(self, xp):
+        self.xp_added += xp
+
+    def record_session(self, *args):
+        self.sessions.append(args)
+
+    def get_high_score(self, game):
+        return 0
+
+    def update_game_stats(self, *args):
+        self.updated = args
+
+
+class TestPong:
+    def _make(self, monkeypatch, difficulty='normal', **kw):
+        import pong
+        monkeypatch.setattr(pong, 'get_terminal_size', lambda: (120, 28))
+        monkeypatch.setattr(pong.random, 'choice', lambda seq: seq[0])
+        monkeypatch.setattr(pong, 'beep', lambda *a: None)
+        return pong.PongGame(difficulty, **kw)
+
+    def test_default_properties(self, monkeypatch):
+        game = self._make(monkeypatch)
+        assert game.paddle_size == 3
+        assert game.ai_paddle_size == 3
+        assert game.ball_speed == 1.0
+        assert game.ai_reaction_delay == 0.15
+        assert (game.player_score, game.ai_score) == (0, 0)
+        assert game.hits == 0
+        assert game.game_over is False
+        assert (game.width, game.height) == (80, 20)
+        assert (game.ball_x, game.ball_y) == (40.0, 10.0)
+        assert game.ball_dx == -1
+        assert game.ball_dy == -0.8
+
+    def test_easy_config(self, monkeypatch):
+        game = self._make(monkeypatch, 'easy')
+        assert (game.paddle_size, game.ai_paddle_size, game.ball_speed, game.ai_reaction_delay) \
+            == (4, 3, 0.9, 0.3)
+
+    def test_hard_config(self, monkeypatch):
+        game = self._make(monkeypatch, 'hard')
+        assert (game.paddle_size, game.ai_paddle_size, game.ball_speed, game.ai_reaction_delay) \
+            == (2, 4, 1.3, 0.05)
+
+    def test_unknown_difficulty_defaults_to_normal(self, monkeypatch):
+        game = self._make(monkeypatch, 'insane')
+        assert game.paddle_size == 3
+
+    def test_move_paddle_up(self, monkeypatch):
+        game = self._make(monkeypatch)
+        game.paddle_pos = 3
+        game.move_paddle('up')
+        assert game.paddle_pos == 2
+        game.paddle_pos = 0
+        game.move_paddle('up')
+        assert game.paddle_pos == 0
+
+    def test_move_paddle_down(self, monkeypatch):
+        game = self._make(monkeypatch)
+        assert game.paddle_pos == 9
+        game.move_paddle('down')
+        assert game.paddle_pos == 10
+        game.paddle_pos = 17
+        game.move_paddle('down')
+        assert game.paddle_pos == 17
+
+    def test_state_roundtrip(self, monkeypatch):
+        game = self._make(monkeypatch)
+        game.ball_x, game.ball_y = 12.5, 7.25
+        game.ball_dx, game.ball_dy = 1.0, -0.5
+        game.ball_speed = 1.7
+        game.paddle_pos, game.ai_paddle_pos = 4, 11
+        game.player_score, game.ai_score = 20, 30
+        game.hits = 5
+        other = self._make(monkeypatch)
+        other.load_state_json(game.save_state_json())
+        assert other.ball_x == 12.5
+        assert other.ball_dy == -0.5
+        assert (other.player_score, other.ai_score) == (20, 30)
+        assert other.hits == 5
+        assert (other.paddle_pos, other.ai_paddle_pos) == (4, 11)
+        assert other.ball_speed == 1.7
+
+    def test_load_state_defaults(self, monkeypatch):
+        game = self._make(monkeypatch)
+        game.load_state_json({})
+        assert game.ball_dx == 1.0
+        assert game.ball_dy == 0.5
+        assert game.player_score == 0
+
+    def test_update_ai_tracks_incoming_ball(self, monkeypatch):
+        game = self._make(monkeypatch, 'hard')
+        game.ball_dx = 1.0
+        game.ball_y = 12.0
+        game.ai_paddle_pos = 5
+        game._update_ai()
+        assert game.ai_paddle_pos == 6
+
+    def test_update_ai_recenters_when_ball_away(self, monkeypatch):
+        game = self._make(monkeypatch, 'hard')
+        game.ball_dx = -1.0
+        game.ball_y = 3.0
+        game.ai_paddle_pos = 0
+        game._update_ai()
+        assert game.ai_paddle_pos == 1
+
+    def test_update_ai_respects_reaction_delay(self, monkeypatch):
+        game = self._make(monkeypatch, 'hard')
+        game.ai_miss_timer = 2
+        pos = game.ai_paddle_pos
+        game._update_ai()
+        assert game.ai_paddle_pos == pos
+        assert game.ai_miss_timer == 1
+
+    def test_update_ai_clamped_to_board(self, monkeypatch):
+        game = self._make(monkeypatch, 'hard')
+        game.ball_dx = 1.0
+        game.ball_y = 0.0
+        game.ai_paddle_pos = 0
+        game._update_ai()
+        assert game.ai_paddle_pos == 0
+        game.ball_y = 19.0
+        game.ai_paddle_pos = 0
+        game._update_ai()
+        assert game.ai_paddle_pos == 1
+        game.ai_paddle_pos = 17
+        game._update_ai()
+        assert game.ai_paddle_pos == 16
+
+    def test_update_ai_easy_randomness(self, monkeypatch):
+        import pong
+        monkeypatch.setattr(pong.random, 'uniform', lambda a, b: 0.25)
+        game = self._make(monkeypatch, 'easy')
+        game.ball_dx = 1.0
+        game.ball_y = 10.0
+        game.ai_paddle_pos = 8
+        game._update_ai()
+        assert game.ai_paddle_pos == 9
+
+    def test_update_ball_wall_bounce(self, monkeypatch):
+        game = self._make(monkeypatch)
+        game.ball_x = 40.0
+        game.ball_y = 0.05
+        game.ball_dy = -0.5
+        game.ball_dx = 1.0
+        game.update_ball()
+        assert game.ball_dy > 0
+        assert game.ball_y == 0.1
+
+    def test_update_ball_player_paddle_hit(self, monkeypatch):
+        import pong
+        xp = []
+        unlocks = []
+        monkeypatch.setattr(pong.PongGame, 'award_xp_for_action',
+                            lambda self, v: xp.append(v))
+        monkeypatch.setattr(pong.PongGame, 'unlock_achievement',
+                            lambda self, *a: unlocks.append(a))
+        game = self._make(monkeypatch)
+        game.ball_x = 1.5
+        game.ball_dx = -1.0
+        game.ball_y = 6.0
+        game.paddle_pos = 5
+        game.update_ball()
+        assert game.ball_dx > 0
+        assert game.ball_x == 1.5
+        assert game.score == 10
+        assert game.hits == 1
+        assert game.ball_speed == 1.05
+        assert xp == [10]
+        assert unlocks == []
+
+    def test_update_ball_player_paddle_miss(self, monkeypatch):
+        game = self._make(monkeypatch)
+        game.ball_x = 1.5
+        game.ball_dx = -1.0
+        game.ball_y = 0.0
+        game.paddle_pos = 5
+        game.update_ball()
+        assert game.ai_score == 1
+        assert game.score == 0
+
+    def test_update_ball_ai_paddle_hit(self, monkeypatch):
+        game = self._make(monkeypatch)
+        game.ball_x = 77.5
+        game.ball_dx = 1.0
+        game.ball_y = 6.0
+        game.ai_paddle_pos = 5
+        game.update_ball()
+        assert game.ball_dx < 0
+        assert game.ball_x == 77.5
+        assert game.player_score == 0
+
+    def test_update_ball_ai_paddle_miss(self, monkeypatch):
+        game = self._make(monkeypatch)
+        game.ball_x = 77.5
+        game.ball_dx = 1.0
+        game.ball_y = 0.0
+        game.ai_paddle_pos = 5
+        game.update_ball()
+        assert game.player_score == 10
+        assert game.score == 10
+
+    def test_win_condition_player(self, monkeypatch):
+        game = self._make(monkeypatch)
+        game.player_score = 95
+        game.ball_x = 77.5
+        game.ball_dx = 1.0
+        game.ball_y = 0.0
+        game.ai_paddle_pos = 5
+        game.update_ball()
+        assert game.player_score == 105
+        assert game.game_over is True
+
+    def test_win_condition_ai(self, monkeypatch):
+        game = self._make(monkeypatch)
+        game.ai_score = 99
+        game.ball_x = 1.5
+        game.ball_dx = -1.0
+        game.ball_y = 0.0
+        game.paddle_pos = 5
+        game.update_ball()
+        assert game.ai_score == 100
+        assert game.game_over is True
+
+    def test_achievement_pong_pro(self, monkeypatch):
+        import pong
+        unlocks = []
+        monkeypatch.setattr(pong.PongGame, 'unlock_achievement',
+                            lambda self, *a: unlocks.append(a))
+        game = self._make(monkeypatch)
+        game.hits = 9
+        game.ball_x = 1.5
+        game.ball_dx = -1.0
+        game.ball_y = 6.0
+        game.paddle_pos = 5
+        game.update_ball()
+        assert unlocks == [('pong_pro', 'Pong Pro')]
+
+    def test_achievement_pong_master(self, monkeypatch):
+        import pong
+        unlocks = []
+        monkeypatch.setattr(pong.PongGame, 'unlock_achievement',
+                            lambda self, *a: unlocks.append(a))
+        game = self._make(monkeypatch)
+        game.hits = 24
+        game.ball_x = 1.5
+        game.ball_dx = -1.0
+        game.ball_y = 6.0
+        game.paddle_pos = 5
+        game.update_ball()
+        assert unlocks == [('pong_master', 'Pong Master')]
+
+    def test_select_mode_play(self, monkeypatch):
+        import pong
+
+        class IH:
+            def get_safe_key(self):
+                return 'p'
+
+        monkeypatch.setattr(pong, 'get_safe_input_handler', lambda: IH())
+        monkeypatch.setattr(pong, 'clear_screen', lambda: None)
+        monkeypatch.setattr(pong, 'draw_retro_box', lambda *a, **k: None)
+        game = self._make(monkeypatch)
+        assert game._select_mode() is True
+        assert game.online_mode is False
+
+    def test_select_mode_quit(self, monkeypatch):
+        import pong
+
+        class IH:
+            def get_safe_key(self):
+                return 'q'
+
+        monkeypatch.setattr(pong, 'get_safe_input_handler', lambda: IH())
+        monkeypatch.setattr(pong, 'clear_screen', lambda: None)
+        monkeypatch.setattr(pong, 'draw_retro_box', lambda *a, **k: None)
+        game = self._make(monkeypatch)
+        assert game._select_mode() is False
+
+    def test_select_mode_online(self, monkeypatch):
+        import pong
+
+        class IH:
+            def get_safe_key(self):
+                return 'o'
+
+        monkeypatch.setattr(pong, 'get_safe_input_handler', lambda: IH())
+        monkeypatch.setattr(pong, 'clear_screen', lambda: None)
+        monkeypatch.setattr(pong, 'draw_retro_box', lambda *a, **k: None)
+        monkeypatch.setattr(pong.PongGame, '_setup_online', lambda self: True)
+        game = self._make(monkeypatch)
+        assert game._select_mode() is True
+        assert game.online_mode is True
+
+    def test_setup_online_quit(self, monkeypatch):
+        import pong
+
+        class IH:
+            def get_safe_key(self):
+                return 'q'
+
+        monkeypatch.setattr(pong, 'get_safe_input_handler', lambda: IH())
+        monkeypatch.setattr(pong, 'clear_screen', lambda: None)
+        monkeypatch.setattr(pong, 'draw_retro_box', lambda *a, **k: None)
+        game = self._make(monkeypatch)
+        assert game._setup_online() is False
+
+    def test_play_quits_at_mode_select(self, monkeypatch):
+        import pong
+        monkeypatch.setattr(pong.PongGame, '_select_mode', lambda self: False)
+        game = self._make(monkeypatch)
+        result = game.play()
+        assert result['score'] == 0
+        assert 'duration_seconds' in result
+        assert 'xp_earned' in result
+
+    def test_play_full_loop_quit_key(self, monkeypatch):
+        import pong
+
+        class IH:
+            def get_direction(self):
+                return None
+
+            def get_safe_key(self):
+                return 'q'
+
+        saved = []
+        monkeypatch.setattr(pong, 'get_safe_input_handler', lambda: IH())
+        monkeypatch.setattr(pong.PongGame, '_select_mode', lambda self: True)
+        monkeypatch.setattr(pong.PongGame, '_save_and_quit', lambda self, k: True)
+        monkeypatch.setattr(pong.PongGame, 'render', lambda self: None)
+        monkeypatch.setattr(pong.time, 'sleep', lambda *a: None)
+        monkeypatch.setattr(pong.PongGame, 'save_stats', lambda self, s: saved.append(s))
+        game = self._make(monkeypatch)
+        result = game.play()
+        assert result['score'] == 0
+        assert result['high_score'] == 0
+        assert 'duration_seconds' in result
+        assert len(saved) == 1
+
+    def test_play_pong_wrapper(self, monkeypatch):
+        import pong
+        monkeypatch.setattr(pong, 'get_terminal_size', lambda: (120, 28))
+        monkeypatch.setattr(pong.PongGame, 'play', lambda self: {'score': 77, 'xp_earned': 5})
+        assert pong.play_pong('easy') == {'score': 77, 'xp_earned': 5}
+
+    def test_play_pong_online_wrapper(self, monkeypatch):
+        import pong
+        monkeypatch.setattr(pong, 'get_terminal_size', lambda: (120, 28))
+        monkeypatch.setattr(pong.PongGame, 'play', lambda self: {'online': True})
+        assert pong.play_pong_online('Bob', 'ROOM1', 'right', 'hard') == {'online': True}
+
+
+class TestRoulette:
+    def test_pick_prefers_least_played(self, monkeypatch):
+        import roulette
+
+        class Mgr:
+            def get_game_play_count(self, g):
+                return {'snake': 0, 'tetris': 0, 'slots': 9}.get(g, 0)
+
+        monkeypatch.setattr(roulette, 'get_stats_manager', lambda: Mgr())
+        monkeypatch.setattr(roulette.random, 'uniform', lambda a, b: 0.0)
+        assert roulette.pick_roulette_game(['snake', 'tetris', 'slots']) == 'snake'
+        monkeypatch.setattr(roulette.random, 'uniform', lambda a, b: 1.0)
+        assert roulette.pick_roulette_game(['snake', 'tetris', 'slots']) == 'snake'
+        monkeypatch.setattr(roulette.random, 'uniform', lambda a, b: 1.5)
+        assert roulette.pick_roulette_game(['snake', 'tetris', 'slots']) == 'tetris'
+        monkeypatch.setattr(roulette.random, 'uniform', lambda a, b: 2.09)
+        assert roulette.pick_roulette_game(['snake', 'tetris', 'slots']) == 'slots'
+
+    def test_spin_returns_game_on_enter(self, monkeypatch):
+        import roulette
+        monkeypatch.setattr(roulette, 'clear_screen', lambda: None)
+        monkeypatch.setattr(roulette.time, 'sleep', lambda *a: None)
+        monkeypatch.setattr(roulette.random, 'choice', lambda seq: seq[0])
+        for key in ['enter', '\r', '\n', ' ']:
+            monkeypatch.setattr(roulette, 'get_key', lambda: key)
+            assert roulette.show_roulette_spin('snake') == 'snake'
+        assert roulette.show_roulette_spin('space_shooter') == 'space_shooter'
+
+    def test_spin_cancel(self, monkeypatch):
+        import roulette
+        monkeypatch.setattr(roulette, 'clear_screen', lambda: None)
+        monkeypatch.setattr(roulette.time, 'sleep', lambda *a: None)
+        monkeypatch.setattr(roulette.random, 'choice', lambda seq: seq[0])
+        monkeypatch.setattr(roulette, 'get_key', lambda: 'Q')
+        assert roulette.show_roulette_spin('snake') is None
+
+    def test_spin_waits_for_valid_key(self, monkeypatch):
+        import roulette
+        keys = iter([None, 'x', '\r'])
+        monkeypatch.setattr(roulette, 'clear_screen', lambda: None)
+        monkeypatch.setattr(roulette.time, 'sleep', lambda *a: None)
+        monkeypatch.setattr(roulette.random, 'choice', lambda seq: seq[0])
+        monkeypatch.setattr(roulette, 'get_key', lambda: next(keys))
+        assert roulette.show_roulette_spin('slots') == 'slots'
+
+
+class TestRhythm:
+    def test_config_lookup(self):
+        from rhythm import RhythmGame
+        assert RhythmGame('easy').config['lane_count'] == 3
+        assert RhythmGame('hard').config == RhythmGame.DIFFICULTIES['hard']
+        assert RhythmGame('weird').config is RhythmGame.DIFFICULTIES['normal']
+
+    def test_song_selection_wraps(self):
+        from rhythm import RhythmGame
+        assert RhythmGame('normal', 1).song['name'] == 'Synthwave'
+        assert RhythmGame('normal', 5).song['name'] == 'Speed Core'
+
+    def test_generate_notes_base_pattern(self, monkeypatch):
+        import rhythm
+        monkeypatch.setattr(rhythm.random, 'randint', lambda a, b: 0)
+        monkeypatch.setattr(rhythm.random, 'uniform', lambda a, b: 0.0)
+        game = rhythm.RhythmGame('normal', 0)
+        game._generate_notes()
+        assert game.total_notes == 40
+        assert all(n['lane'] == 0 for n in game.notes)
+        assert [n['beat'] for n in game.notes] == [i * 0.6 for i in range(40)]
+
+    def test_generate_notes_synth_pattern(self, monkeypatch):
+        import rhythm
+        monkeypatch.setattr(rhythm.random, 'randint', lambda a, b: 1)
+        monkeypatch.setattr(rhythm.random, 'uniform', lambda a, b: 0.0)
+        game = rhythm.RhythmGame('easy', 1)
+        game._generate_notes()
+        assert game.total_notes == 30
+        assert all(n['lane'] == 1 for n in game.notes)
+        assert [n['beat'] for n in game.notes] == [i * 0.8 for i in range(30)]
+
+    def test_generate_notes_speed_pattern(self, monkeypatch):
+        import rhythm
+        game = rhythm.RhythmGame('hard', 2)
+        game._generate_notes()
+        assert game.total_notes == 60
+        assert [n['lane'] for n in game.notes] == [i % 4 for i in range(60)]
+        assert game.notes[0]['beat'] == 0.0
+        assert all(game.notes[i + 1]['beat'] > game.notes[i]['beat'] for i in range(59))
+        assert game.notes[59]['beat'] < 60 * game.config['interval']
+
+    def _script_play(self, monkeypatch, times, keys, mgr):
+        import rhythm
+        state = {'i': 0}
+
+        def fake_time():
+            i = state['i']
+            state['i'] += 1
+            return times[min(i, len(times) - 1)]
+
+        it = iter(keys)
+        monkeypatch.setattr(rhythm.time, 'time', fake_time)
+        monkeypatch.setattr(rhythm.time, 'sleep', lambda *a: None)
+        monkeypatch.setattr(rhythm, 'get_key', lambda: next(it))
+        monkeypatch.setattr(rhythm, 'clear_screen', lambda: None)
+        monkeypatch.setattr(rhythm, 'chaos_start_game', lambda: None)
+        monkeypatch.setattr(rhythm.random, 'randint', lambda a, b: 0)
+        monkeypatch.setattr(rhythm.random, 'uniform', lambda a, b: 0.0)
+        monkeypatch.setattr('stats_manager.get_stats_manager', lambda: mgr)
+        return rhythm.RhythmGame('normal', 0)
+
+    def test_play_hit_scoring_and_quit(self, monkeypatch):
+        mgr = _FakeStatsMgr()
+        times = [0.0, 0.0, 0.4, 0.6, 0.6, 1.2, 0.6, 1.8, 0.6, 2.4, 0.6]
+        game = self._script_play(monkeypatch, times, [None, 'd', None, None, 'q', 'x'], mgr)
+        result = game.play()
+        assert result['score'] == 150
+        assert result['duration_seconds'] == 2
+        assert game.notes_hit == 1
+        assert game.notes_missed == 0
+        assert game.max_combo == 1
+        from xp_config import get_xp_system
+        expected = get_xp_system('normal').calculate_xp('rhythm', 15)
+        assert result['xp_earned'] == expected
+        assert mgr.xp_added == expected
+        assert mgr.unlocked == ['rhythm_first']
+        assert mgr.sessions == [('rhythm', 150, expected, 2, 'normal')]
+        assert mgr.updated[0] == 'rhythm'
+        assert mgr.updated[1]['high_score'] == 150
+
+    def test_play_quit_immediately(self, monkeypatch):
+        mgr = _FakeStatsMgr()
+        times = [0.0, 0.0, 0.2, 0.2]
+        game = self._script_play(monkeypatch, times, ['q', 'x'], mgr)
+        result = game.play()
+        assert result['score'] == 0
+        assert result['duration_seconds'] == 0
+        assert game.notes_hit == 0
+        assert game.notes_missed == 0
+        assert mgr.unlocked == ['rhythm_first']
+
+
+class TestSecretMenu:
+    def test_feed_key_full_sequence(self, monkeypatch):
+        import secret_menu
+        secret_menu.reset()
+        for k in secret_menu.KONAMI_CODE[:-1]:
+            assert secret_menu.feed_key(k) is False
+        assert secret_menu.is_unlocked() is False
+        assert secret_menu.feed_key(secret_menu.KONAMI_CODE[-1]) is True
+        assert secret_menu.is_unlocked() is True
+        assert secret_menu.feed_key('up') is False
+        secret_menu.reset()
+        assert secret_menu.is_unlocked() is False
+
+    def test_wrong_key_resets_progress(self, monkeypatch):
+        import secret_menu
+        secret_menu.reset()
+        for k in ['up', 'up', 'x']:
+            assert secret_menu.feed_key(k) is False
+        assert secret_menu.is_unlocked() is False
+        assert secret_menu.feed_key('up') is False
+
+    def test_feed_key_normalizes_and_ignores_empty(self, monkeypatch):
+        import secret_menu
+        secret_menu.reset()
+        assert secret_menu.feed_key('') is False
+        assert secret_menu.feed_key(None) is False
+        assert secret_menu.feed_key('UP') is False
+        assert secret_menu.feed_key('UP') is False
+        secret_menu.reset()
+
+    def _run_menu(self, monkeypatch, keys, on_marathon=None, on_boss=None, on_rhythm=None):
+        import chaos_mutator
+        import secret_menu
+        mgr = _FakeStatsMgr()
+        calls = {'marathon': [], 'boss': [], 'rhythm': [], 'popups': [], 'chaos': []}
+        it = iter(keys)
+        monkeypatch.setattr(secret_menu, 'get_key', lambda: next(it))
+        monkeypatch.setattr(secret_menu, 'clear_screen', lambda: None)
+        monkeypatch.setattr(secret_menu, 'play_sound', lambda *a: None)
+        monkeypatch.setattr(secret_menu.random, 'choice', lambda seq: 'X')
+        monkeypatch.setattr(secret_menu, 'show_popup',
+                            lambda *a, **k: calls['popups'].append(a[0]))
+        monkeypatch.setattr(chaos_mutator, 'is_chaos', lambda: False)
+        monkeypatch.setattr(chaos_mutator, 'set_chaos',
+                            lambda v: calls['chaos'].append(v))
+        monkeypatch.setattr('stats_manager.get_stats_manager', lambda: mgr)
+        result = secret_menu.show_secret_menu(
+            on_marathon=on_marathon and (lambda: calls['marathon'].append(1)),
+            on_boss=on_boss and (lambda: calls['boss'].append(1)),
+            on_rhythm=on_rhythm and (lambda: calls['rhythm'].append(1)),
+        )
+        return result, calls, mgr
+
+    def test_marathon_selection(self, monkeypatch):
+        result, calls, _ = self._run_menu(monkeypatch, ['\r', 'q'], on_marathon=True)
+        assert calls['marathon'] == [1]
+        assert calls['boss'] == []
+        assert result is False
+
+    def test_chaos_toggle(self, monkeypatch):
+        result, calls, mgr = self._run_menu(monkeypatch, ['down', '\r', 'q'])
+        assert calls['chaos'] == [True]
+        assert calls['popups'] == ['Chaos Mode: ACTIVATED']
+        assert mgr.unlocked == ['chaos_first']
+        assert result is False
+
+    def test_boss_selection(self, monkeypatch):
+        result, calls, _ = self._run_menu(monkeypatch, ['down', 'down', '\r', 'q'], on_boss=True)
+        assert calls['boss'] == [1]
+        assert calls['marathon'] == []
+        assert result is False
+
+    def test_rhythm_selection(self, monkeypatch):
+        result, calls, _ = self._run_menu(
+            monkeypatch, ['down', 'down', 'down', '\r', 'q'], on_rhythm=True)
+        assert calls['rhythm'] == [1]
+        assert result is False
+
+    def test_back_selection(self, monkeypatch):
+        result, calls, _ = self._run_menu(monkeypatch, ['down'] * 5 + ['\r'])
+        assert calls['marathon'] == []
+        assert calls['chaos'] == []
+        assert result is False
+
+    def test_quit_key(self, monkeypatch):
+        result, calls, _ = self._run_menu(monkeypatch, ['q'])
+        assert calls['marathon'] == []
+        assert result is False
+
+    def test_easter_egg_os(self, monkeypatch, capsys):
+        import secret_menu
+        keys = iter(['h', 'e', 'l', 'p', '\r', 'l', 's', '\r', 'c', 'd', ' ', '.', '.', '\r', 'q'])
+        monkeypatch.setattr(secret_menu, 'get_key', lambda: next(keys))
+        monkeypatch.setattr(secret_menu, 'clear_screen', lambda: None)
+        secret_menu._show_easter_egg_os()
+        out = capsys.readouterr().out
+        assert 'Available commands' in out
+        assert 'notes.txt' in out
