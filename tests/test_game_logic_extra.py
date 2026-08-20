@@ -1812,3 +1812,521 @@ class TestSecretMenu:
         out = capsys.readouterr().out
         assert 'Available commands' in out
         assert 'notes.txt' in out
+
+
+class TestInputHandler:
+    def test_validate_direction_arrows(self):
+        from input_handler import InputValidator
+        v = InputValidator()
+        assert v.validate_direction('up') == 'up'
+        assert v.validate_direction('down') == 'down'
+        assert v.validate_direction('left') == 'left'
+        assert v.validate_direction('right') == 'right'
+        assert v.last_direction == 'right'
+
+    def test_validate_direction_wasd_case_insensitive(self):
+        from input_handler import InputValidator
+        v = InputValidator()
+        assert v.validate_direction('w') == 'up'
+        assert v.validate_direction('S') == 'down'
+        assert v.validate_direction('a') == 'left'
+        assert v.validate_direction('D') == 'right'
+
+    def test_validate_direction_invalid(self):
+        from input_handler import InputValidator
+        v = InputValidator()
+        assert v.validate_direction('x') is None
+        assert v.validate_direction(None) is None
+        assert v.validate_direction('') is None
+        assert v.last_direction is None
+
+    def test_validate_yes_no(self):
+        from input_handler import InputValidator
+        v = InputValidator()
+        for yes in ['y', 'Y', 'yes', '1', 'return', 'enter']:
+            assert v.validate_yes_no(yes) is True
+        for no in ['n', 'N', 'no', '0', 'escape']:
+            assert v.validate_yes_no(no) is False
+        assert v.validate_yes_no('x') is None
+        assert v.validate_yes_no(None) is None
+
+    def test_validate_selection(self):
+        from input_handler import InputValidator
+        v = InputValidator()
+        assert v.validate_selection('0', 3) == 0
+        assert v.validate_selection('2', 3) == 2
+        assert v.validate_selection('3', 3) is None
+        assert v.validate_selection('-1', 3) is None
+        assert v.validate_selection('a', 3) is None
+        assert v.validate_selection(None, 3) is None
+
+    def test_validate_coordinate(self):
+        from input_handler import InputValidator
+        v = InputValidator()
+        assert v.validate_coordinate('a1') == (0, 0)
+        assert v.validate_coordinate('h8') == (7, 7)
+        assert v.validate_coordinate('e4') == (4, 3)
+        assert v.validate_coordinate('A1') == (0, 0)
+        assert v.validate_coordinate('a9') is None
+        assert v.validate_coordinate('z1') is None
+        assert v.validate_coordinate('a0') is None
+        assert v.validate_coordinate('a') is None
+        assert v.validate_coordinate(None) is None
+
+    def test_is_quit(self):
+        from input_handler import InputValidator
+        v = InputValidator()
+        assert v.is_quit('q') is True
+        assert v.is_quit('Q') is True
+        assert v.is_quit('quit') is True
+        assert v.is_quit('esc') is True
+        assert v.is_quit('escape') is True
+        assert v.is_quit('x') is False
+        assert v.is_quit(None) is False
+
+    def test_validator_singleton(self):
+        from input_handler import get_input_validator
+        assert get_input_validator() is get_input_validator()
+
+    def test_handler_singleton(self):
+        from input_handler import get_safe_input_handler
+        assert get_safe_input_handler() is get_safe_input_handler()
+        assert get_safe_input_handler().timeout == 0.05
+
+    def test_get_direction_uses_validator(self, monkeypatch):
+        from input_handler import SafeInputHandler
+        seen = []
+        h = SafeInputHandler()
+
+        def fake_key(self):
+            seen.append(self.timeout)
+            return 'w'
+
+        monkeypatch.setattr(SafeInputHandler, 'get_safe_key', fake_key)
+        assert h.get_direction(0.5) == 'up'
+        assert h.timeout == 0.05
+        assert seen == [0.5]
+        monkeypatch.setattr(SafeInputHandler, 'get_safe_key',
+                            lambda self: 'bogus')
+        assert h.get_direction() is None
+
+    def test_get_yes_no(self, monkeypatch):
+        import arcade_utils
+        from input_handler import SafeInputHandler
+        h = SafeInputHandler()
+        monkeypatch.setattr(arcade_utils, 'get_key', lambda: 'y')
+        assert h.get_yes_no() is True
+        monkeypatch.setattr(arcade_utils, 'get_key', lambda: 'n')
+        assert h.get_yes_no() is False
+
+    def test_get_yes_no_loops_until_valid(self, monkeypatch):
+        import arcade_utils
+        from input_handler import SafeInputHandler
+        h = SafeInputHandler()
+        keys = iter(['x', 'Y'])
+        monkeypatch.setattr(arcade_utils, 'get_key', lambda: next(keys))
+        assert h.get_yes_no() is True
+
+    def test_get_yes_no_interrupt(self, monkeypatch):
+        import arcade_utils
+        from input_handler import SafeInputHandler
+        h = SafeInputHandler()
+
+        def boom():
+            raise KeyboardInterrupt
+
+        monkeypatch.setattr(arcade_utils, 'get_key', boom)
+        assert h.get_yes_no() is None
+
+
+class _WordleMgr(_FakeStatsMgr):
+    def __init__(self):
+        super().__init__()
+        self.wins = 0
+        self.losses = 0
+        self.saved = []
+
+    def has_game_state(self, game):
+        return False
+
+    def load_game_state(self, game):
+        return None
+
+    def save_game_state(self, game, state):
+        self.saved.append(state)
+
+    def register_win(self, game):
+        self.wins += 1
+        return self.wins
+
+    def register_loss(self, game):
+        self.losses += 1
+        return self.losses
+
+    def record_telemetry(self, *args):
+        pass
+
+    def delete_game_state(self, game):
+        pass
+
+    def record_session(self, *args, **kwargs):
+        self.sessions.append((args, kwargs))
+
+
+class TestWordlePlay:
+    def _play(self, monkeypatch, keys, daily=False, wins=0):
+        import wordle
+        popups = []
+        unlocks = []
+        xp = []
+        it = iter(keys)
+
+        class IH:
+            def get_safe_key(self):
+                return next(it)
+
+        monkeypatch.setattr(wordle.random, 'choice', lambda seq: 'APPLE')
+        monkeypatch.setattr(wordle, '_daily_word', lambda: 'APPLE')
+        monkeypatch.setattr(wordle, 'get_safe_input_handler', lambda: IH())
+        monkeypatch.setattr(wordle, 'clear_screen', lambda: None)
+        monkeypatch.setattr(wordle, 'beep', lambda *a: None)
+        monkeypatch.setattr(wordle, 'show_popup', lambda *a, **k: popups.append(a[0]))
+        monkeypatch.setattr(wordle.time, 'sleep', lambda *a: None)
+        monkeypatch.setattr(wordle.WordleGame, '_render', lambda self: None)
+        monkeypatch.setattr(wordle.WordleGame, '_render_grid', lambda self, w='': None)
+        monkeypatch.setattr(wordle.WordleGame, '_render_alphabet', lambda self: None)
+        monkeypatch.setattr(wordle.WordleGame, 'unlock_achievement',
+                            lambda self, *a: unlocks.append(a))
+        monkeypatch.setattr(wordle.WordleGame, 'award_xp_for_action',
+                            lambda self, v: xp.append(v))
+        game = wordle.WordleGame('normal', daily=daily)
+        mgr = _WordleMgr()
+        mgr.wins = wins
+        game.stats_manager = mgr
+        result = game.play()
+        return game, result, popups, unlocks, xp, mgr
+
+    def test_win_first_try(self, monkeypatch):
+        game, result, popups, unlocks, xp, _ = self._play(
+            monkeypatch, list('apple') + ['\r', 'q'], wins=1)
+        assert result['score'] == 340
+        assert result['high_score'] == 340
+        assert unlocks == [('wordle_first_try', 'Lucky Guess'),
+                           ('wordle_win', 'Wordle Wizard')]
+        assert xp == [230]
+        assert any('CORRECT!' in p for p in popups)
+        assert game.round == 2
+
+    def test_win_second_try_and_streak(self, monkeypatch):
+        keys = list('crane') + ['\r'] + list('apple') + ['\r', 'q']
+        game, result, popups, unlocks, xp, mgr = self._play(monkeypatch, keys, wins=2)
+        assert result['score'] == 320
+        assert unlocks == [('wordle_win', 'Wordle Wizard'),
+                           ('wordle_streak', 'Wordle Streak')]
+        assert xp == [200]
+        assert mgr.wins == 3
+        assert game.round == 2
+
+    def test_daily_win_ends_game(self, monkeypatch):
+        game, result, popups, unlocks, xp, _ = self._play(
+            monkeypatch, list('apple') + ['\r'], daily=True, wins=1)
+        assert result['score'] == 340
+        assert game.game_over is True
+        assert game.round == 1
+        assert unlocks == [('wordle_first_try', 'Lucky Guess'),
+                           ('wordle_win', 'Wordle Wizard')]
+
+    def test_loss_after_six_attempts(self, monkeypatch):
+        words = ['crane', 'stone', 'flame', 'grape', 'heart', 'juice']
+        keys = []
+        for w in words:
+            keys += list(w) + ['\r']
+        keys.append('q')
+        game, result, popups, unlocks, xp, mgr = self._play(monkeypatch, keys)
+        assert result['score'] == 60
+        assert xp == [10]
+        assert any('GAME OVER' in p for p in popups)
+        assert game.round == 2
+        assert game.attempts == []
+        assert mgr.losses == 1
+
+    def test_duplicate_guess_rejected(self, monkeypatch):
+        keys = list('crane') + ['\r'] + list('crane') + ['\r', 'q']
+        game, result, popups, unlocks, xp, _ = self._play(monkeypatch, keys)
+        assert any('Already guessed' in p for p in popups)
+        assert result['score'] == 10
+        assert game.attempts == ['CRANE']
+
+    def test_invalid_word_rejected(self, monkeypatch):
+        keys = list('zzzzz') + ['\r', 'q']
+        game, result, popups, unlocks, xp, _ = self._play(monkeypatch, keys)
+        assert any('Not a valid word' in p for p in popups)
+        assert result['score'] == 0
+        assert game.attempts == []
+
+    def test_short_word_rejected(self, monkeypatch):
+        keys = ['a', '\r', 'q']
+        game, result, popups, unlocks, xp, _ = self._play(monkeypatch, keys)
+        assert any('5 letters' in p for p in popups)
+        assert result['score'] == 0
+
+    def test_backspace_edits_word(self, monkeypatch):
+        keys = ['a', 'b', '\b', '\r', 'q']
+        game, result, popups, unlocks, xp, _ = self._play(monkeypatch, keys)
+        assert any('5 letters' in p for p in popups)
+
+    def test_used_letters_and_saved_state(self, monkeypatch):
+        keys = list('crane') + ['\r', 'q']
+        game, result, popups, unlocks, xp, mgr = self._play(monkeypatch, keys)
+        assert game.used_letters == {
+            'C': 'gray', 'R': 'gray', 'A': 'yellow', 'N': 'gray', 'E': 'green'}
+        assert mgr.saved and mgr.saved[-1]['target'] == 'APPLE'
+        assert mgr.saved[-1]['attempts'] == ['CRANE']
+
+
+class _PokerMgr(_FakeStatsMgr):
+    def __init__(self):
+        super().__init__()
+
+    def has_game_state(self, game):
+        return False
+
+    def load_game_state(self, game):
+        return None
+
+    def record_telemetry(self, *args):
+        pass
+
+    def delete_game_state(self, game):
+        pass
+
+    def record_session(self, *args, **kwargs):
+        self.sessions.append((args, kwargs))
+
+
+class TestPoker:
+    def _game(self, monkeypatch, keys):
+        import poker
+        it = iter(keys)
+
+        class IH:
+            def get_safe_key(self):
+                return next(it)
+
+        monkeypatch.setattr(poker.random, 'shuffle', lambda deck: None)
+        monkeypatch.setattr(poker, 'get_safe_input_handler', lambda: IH())
+        monkeypatch.setattr(poker, 'clear_screen', lambda: None)
+        monkeypatch.setattr(poker, 'beep', lambda *a: None)
+        monkeypatch.setattr(poker, 'show_popup', lambda *a, **k: None)
+        monkeypatch.setattr(poker.time, 'sleep', lambda *a: None)
+        monkeypatch.setattr(poker.PokerGame, 'show_table', lambda self: None)
+        game = poker.PokerGame('normal')
+        game.stats_manager = _PokerMgr()
+        return game
+
+    def test_build_deck(self, monkeypatch):
+        import poker
+        monkeypatch.setattr(poker.random, 'shuffle', lambda deck: None)
+        deck = poker.build_deck()
+        assert len(deck) == 52
+        assert len(set(deck)) == 52
+        assert deck[0] == ('2', 0)
+        assert deck[-1] == ('A', 3)
+        for s in range(4):
+            assert sum(1 for r, i in deck if i == s) == 13
+
+    def test_evaluate_royal_flush(self):
+        from poker import evaluate_hand
+        assert evaluate_hand([('10', 1), ('J', 1), ('Q', 1), ('K', 1), ('A', 1)]) \
+            == 'royal_flush'
+
+    def test_evaluate_straight_flush(self):
+        from poker import evaluate_hand
+        assert evaluate_hand([('5', 2), ('6', 2), ('7', 2), ('8', 2), ('9', 2)]) \
+            == 'straight_flush'
+
+    def test_evaluate_four_of_a_kind(self):
+        from poker import evaluate_hand
+        assert evaluate_hand([('9', 0), ('9', 1), ('9', 2), ('9', 3), ('2', 0)]) \
+            == 'four_of_a_kind'
+
+    def test_evaluate_full_house(self):
+        from poker import evaluate_hand
+        assert evaluate_hand([('7', 0), ('7', 1), ('7', 2), ('4', 0), ('4', 1)]) \
+            == 'full_house'
+
+    def test_evaluate_flush(self):
+        from poker import evaluate_hand
+        assert evaluate_hand([('2', 0), ('5', 0), ('7', 0), ('9', 0), ('K', 0)]) \
+            == 'flush'
+
+    def test_evaluate_straight(self):
+        from poker import evaluate_hand
+        assert evaluate_hand([('3', 0), ('4', 1), ('5', 2), ('6', 3), ('7', 0)]) \
+            == 'straight'
+
+    def test_evaluate_wheel_straight(self):
+        from poker import evaluate_hand
+        assert evaluate_hand([('A', 0), ('2', 1), ('3', 2), ('4', 3), ('5', 0)]) \
+            == 'straight'
+
+    def test_evaluate_three_of_a_kind(self):
+        from poker import evaluate_hand
+        assert evaluate_hand([('3', 0), ('3', 1), ('3', 2), ('9', 0), ('K', 1)]) \
+            == 'three_of_a_kind'
+
+    def test_evaluate_two_pair(self):
+        from poker import evaluate_hand
+        assert evaluate_hand([('5', 0), ('5', 1), ('9', 0), ('9', 1), ('K', 0)]) \
+            == 'two_pair'
+
+    def test_evaluate_jacks_or_better(self):
+        from poker import evaluate_hand
+        assert evaluate_hand([('J', 0), ('J', 1), ('3', 0), ('7', 0), ('2', 0)]) \
+            == 'jacks_or_better'
+        assert evaluate_hand([('A', 0), ('A', 1), ('3', 0), ('7', 0), ('2', 0)]) \
+            == 'jacks_or_better'
+
+    def test_evaluate_low_pair_is_nothing(self):
+        from poker import evaluate_hand
+        assert evaluate_hand([('7', 0), ('7', 1), ('3', 0), ('9', 0), ('K', 0)]) \
+            == 'nothing'
+
+    def test_evaluate_nothing(self):
+        from poker import evaluate_hand
+        assert evaluate_hand([('2', 0), ('4', 1), ('6', 2), ('8', 3), ('Q', 0)]) \
+            == 'nothing'
+
+    def test_hand_name(self):
+        from poker import hand_name
+        assert hand_name('royal_flush') == 'Royal Flush'
+        assert hand_name('jacks_or_better') == 'Jacks or Better'
+        assert hand_name('nothing') == 'Nothing'
+        assert hand_name('unknown') == 'unknown'
+
+    def test_card_str(self):
+        from poker import card_str
+        assert 'A' in card_str('A', 0)
+        assert '\u2665' in card_str('A', 0)
+        assert '\u2666' in card_str('Q', 1)
+
+    def test_setup_round(self, monkeypatch):
+        game = self._game(monkeypatch, [])
+        game.setup_round()
+        assert game.phase == 'bet'
+        assert game.hand == []
+        assert len(game.deck) == 52
+        assert game.held == [False] * 5
+
+    def test_deal(self, monkeypatch):
+        game = self._game(monkeypatch, [])
+        game.setup_round()
+        game.deal()
+        assert game.phase == 'hold'
+        assert game.hand == [('A', 3), ('K', 3), ('Q', 3), ('J', 3), ('10', 3)]
+        assert len(game.deck) == 47
+
+    def test_draw_no_holds(self, monkeypatch):
+        game = self._game(monkeypatch, [])
+        game.setup_round()
+        game.deal()
+        game.held = [False] * 5
+        game.draw()
+        assert game.phase == 'result'
+        assert game.hand_result == 'straight_flush'
+        assert game.payout == 50
+        assert game.credits == 150
+        assert game.total_won == 50
+        assert game.high_score == 150
+
+    def test_draw_with_hold(self, monkeypatch):
+        game = self._game(monkeypatch, [])
+        game.setup_round()
+        game.deal()
+        game.held[0] = True
+        game.draw()
+        assert game.hand[0] == ('A', 3)
+        assert game.hand_result == 'flush'
+        assert game.credits == 106
+
+    def test_draw_keeps_all_held(self, monkeypatch):
+        game = self._game(monkeypatch, [])
+        game.setup_round()
+        game.deal()
+        game.held = [True] * 5
+        game.draw()
+        assert game.hand_result == 'royal_flush'
+        assert game.payout == 250
+        assert game.credits == 350
+
+    def test_draw_bet_multiplier(self, monkeypatch):
+        game = self._game(monkeypatch, [])
+        game.setup_round()
+        game.bet = 3
+        game.deal()
+        game.held = [True] * 5
+        game.draw()
+        assert game.payout == 750
+        assert game.credits == 850
+        assert game.high_score == 850
+
+    def test_play_full_round_royal(self, monkeypatch):
+        import poker
+        unlocks = []
+        monkeypatch.setattr(poker.PokerGame, 'unlock_achievement',
+                            lambda self, *a: unlocks.append(a))
+        game = self._game(monkeypatch, ['d', 'a', 'd', '\r', 'q'])
+        result = game.play()
+        assert unlocks == [('poker_royal', 'Royal Flush!')]
+        assert result['credits'] == 349
+        assert result['high_score'] == 349
+        assert game.total_won == 250
+        assert result['duration_seconds'] == 0
+
+    def test_play_high_roller_unlocks(self, monkeypatch):
+        import poker
+        unlocks = []
+        monkeypatch.setattr(poker.PokerGame, 'unlock_achievement',
+                            lambda self, *a: unlocks.append(a))
+        game = self._game(monkeypatch, ['\r', 'q'])
+        game.phase = 'result'
+        game.hand_result = 'four_of_a_kind'
+        game.payout = 25
+        game.credits = 1050
+        game.total_won = 540
+        game.has_saved_state = lambda: True
+        game.stats_manager.load_game_state = lambda g: {'fake': 1}
+        result = game.play()
+        assert unlocks == [('poker_500', 'Poker High Roller'),
+                           ('poker_1000', 'Poker Millionaire')]
+        assert result['credits'] == 1050
+
+    def test_play_out_of_credits(self, monkeypatch):
+        game = self._game(monkeypatch, [])
+        game.credits = 0
+        result = game.play()
+        assert result['credits'] == 0
+        assert result['high_score'] == 0
+
+    def test_play_bet_and_quit(self, monkeypatch):
+        game = self._game(monkeypatch, ['2', 'd', 'q'])
+        result = game.play()
+        assert result['credits'] == 98
+        assert result['high_score'] == 0
+
+    def test_play_not_enough_credits_popup(self, monkeypatch):
+        import poker
+        game = self._game(monkeypatch, ['2', 'd', 'q'])
+        popups = []
+        monkeypatch.setattr(poker, 'show_popup', lambda *a, **k: popups.append(a[0]))
+        game.credits = 1
+        result = game.play()
+        assert any('Not enough credits' in p for p in popups)
+        assert result['credits'] == 1
+
+    def test_play_hold_controls(self, monkeypatch):
+        game = self._game(monkeypatch, ['d', '1', 'a', 'n', 'd', 'q'])
+        result = game.play()
+        assert result['credits'] == 149
+        assert game.total_won == 50
+        assert result['high_score'] == 149
