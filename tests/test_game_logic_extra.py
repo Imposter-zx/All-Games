@@ -2330,3 +2330,41 @@ class TestPoker:
         assert result['credits'] == 149
         assert game.total_won == 50
         assert result['high_score'] == 149
+
+class TestBreakout:
+    def test_init(self):
+        from terminal_games.breakout import BreakoutGame
+        game = BreakoutGame()
+        assert game.game_name == 'breakout'
+        assert game.paddle_x == 17
+        assert game.ball_x == 20.0
+        assert game.ball_y == 18.0
+        assert game.ball_dx == 1
+        assert game.ball_dy == -1
+        assert game.lives == 3
+        assert len(game.bricks) == 30
+
+    def test_save_load_state(self):
+        from terminal_games.breakout import BreakoutGame
+        game = BreakoutGame()
+        state = game.save_state_json()
+        assert 'paddle_x' in state
+        assert 'bricks' in state
+        assert 'score' in state
+        assert 'lives' in state
+        # Load state
+        game.load_state_json(state)
+        assert game.paddle_x == state['paddle_x']
+        assert game.lives == state['lives']
+        assert len(game.bricks) == len(state['bricks'])
+
+    def test_brick_colors(self):
+        from arcade_utils import C_GREEN, C_RED, C_YELLOW
+
+        from terminal_games.breakout import BreakoutGame
+        game = BreakoutGame()
+        colors = set(b['color'] for b in game.bricks)
+        # Should have red, yellow, green bricks
+        assert C_RED in colors
+        assert C_YELLOW in colors
+        assert C_GREEN in colors
