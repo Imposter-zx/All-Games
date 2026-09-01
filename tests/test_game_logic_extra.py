@@ -2331,6 +2331,163 @@ class TestPoker:
         assert game.total_won == 50
         assert result['high_score'] == 149
 
+class TestOthello:
+    def test_init(self):
+        from terminal_games.othello import OthelloGame
+        game = OthelloGame()
+        assert game.game_name == 'othello'
+        assert game.board[3][3] == 'W'
+        assert game.board[3][4] == 'B'
+        assert game.board[4][3] == 'B'
+        assert game.board[4][4] == 'W'
+        assert game.current_player == 'B'
+        assert game.wins == 0
+        assert game.streak == 0
+        assert game.high_score == 0
+        assert game.human_piece == 'B'
+        assert game.ai_piece == 'W'
+
+    def test_black_starts_with_valid_moves(self):
+        from terminal_games.othello import OthelloGame
+        game = OthelloGame()
+        moves = game._get_valid_moves('B')
+        # Black should have valid moves in the corners
+        assert len(moves) > 0
+        # Initial position: black at (3,4) and (4,3), valid moves include (2,3), (2,4), (3,2), (3,5), (4,2), (4,5), (5,2), (5,5)
+        # Corners (0,0), (0,7), (7,0), (7,7) are not valid in initial position
+        # Just check there are valid moves
+        assert len(moves) > 0
+
+    def test_white_starts_with_valid_moves(self):
+        from terminal_games.othello import OthelloGame
+        game = OthelloGame()
+        moves = game._get_valid_moves('W')
+        assert len(moves) > 0
+
+    def test_is_valid_move(self):
+        from terminal_games.othello import OthelloGame
+        game = OthelloGame()
+        # (3, 3) is white - not valid
+        assert not game._is_valid(3, 3, 'B')
+        # (2, 3) should be valid for black (sandwiches white at 3,3)
+        assert game._is_valid(2, 3, 'B')
+
+    def test_flip_pieces(self):
+        from terminal_games.othello import OthelloGame
+        game = OthelloGame()
+        # Black plays at (2, 3) - should flip the white at (3, 3)
+        game._flip(2, 3, 'B')
+        assert game.board[2][3] == 'B'
+        assert game.board[3][3] == 'B'  # white flipped to black
+        assert game.board[4][3] == 'B'  # white at (4,3) should also flip
+
+    def test_get_valid_moves(self):
+        from terminal_games.othello import OthelloGame
+        game = OthelloGame()
+        moves = game._get_valid_moves('B')
+        # Should have valid moves set up initially
+        assert len(moves) > 0
+
+    def test_is_game_over_no_moves(self):
+        from terminal_games.othello import OthelloGame
+        game = OthelloGame()
+        # Force game over by clearing board
+        game.board = [[ '.' for _ in range(8)] for _ in range(8)]
+        assert game._is_game_over() is True
+
+    def test_score_counting(self):
+        from terminal_games.othello import OthelloGame
+        game = OthelloGame()
+        black_count = game._count('B')
+        white_count = game._count('W')
+        assert black_count + white_count == 4  # initial 4 pieces
+        assert black_count == 2
+        assert white_count == 2
+
+    def test_opponent(self):
+        from terminal_games.othello import OthelloGame
+        from terminal_games.othello import opponent
+        assert opponent('B') == 'W'
+        assert opponent('W') == 'B'
+
+    def test_parse_move(self):
+        from terminal_games.othello import OthelloGame
+        game = OthelloGame()
+        # Valid moves
+        assert game._parse_move('a1') == (0, 0)
+        assert game._parse_move('h8') == (7, 7)
+        # e4: col 'e'=4 → col=4, row '4'-1=3 → (3, 4)
+        assert game._parse_move('e4') == (3, 4)
+        # Invalid
+        assert game._parse_move('') is None
+        assert game._parse_move('xyz') is None
+        assert game._parse_move('i9') is None
+
+def test_play_black_win(self, monkeypatch):
+        from terminal_games.othello import OthelloGame
+        # Create game where black wins - fill board with black pieces
+        game = OthelloGame()
+        for r in range(8):
+            for c in range(8):
+                if (r + c) % 2 == 0:
+                    game.board[r][c] = 'B'
+                else:
+                    game.board[r][c] = 'W'
+        # Black has more pieces, verify
+        b, w = game._count('B'), game._count('W')
+        assert b > w
+        # Verify game state
+        assert game.current_player == 'B'
+        assert game.wins == 0  # hasn't been called yet
+
+    def test_game_end_scoring_black_win(self, monkeypatch):
+        from terminal_games.othello import OthelloGame
+        popups = []
+        unlocked = []
+        xp_gained = []
+        monkeypatch.setattr(OthelloGame, 'unlock_achievement',
+                            lambda self, *a: unlocked.append(a))
+        monkeypatch.setattr(OthelloGame, 'award_xp_for_action',
+                            lambda self, n: xp_gained.append(n))
+        game = OthelloGame()
+        # Set up black win scenario
+        game.board = [['B' if (r + c) % 2 == 0 else 'W' for c in range(8)] for r in range(8)]
+        # Make sure black has more pieces
+        b, w = game._count('B'), game._count('W')
+        assert b > w
+        # Call _handle_game_end via game end logic
+        game.end_timer()
+        final_stats = game.get_final_stats()
+        assert final_stats['wins'] == 1
+        assert b > w
+
+    def test_ai_difficulty_easy(self):
+        from terminal_games.othello import OthelloGame
+        game = OthelloGame('easy')
+        moves = game._get_valid_moves(game.ai_piece)
+        assert len(moves) > 0
+        # Easy AI should just pick random
+        move = game._ai_move()
+        assert move is not None
+        assert move in moves
+
+    def test_ai_difficulty_hard(self):
+        from terminal_games.othello import OthelloGame
+        game = OthelloGame('hard')
+        moves = game._get_valid_moves(game.ai_piece)
+        assert len(moves) > 0
+        move = game._ai_move()
+        assert move is not None
+        assert move in moves
+
+    def test_position_weights(self):
+        from terminal_games.othello import OthelloGame
+        game = OthelloGame()
+        # Center pieces should have higher weight
+        score = game._score_board('B')
+        # Corners should be positive weight
+        assert isinstance(score, int)
+
 class TestBreakout:
     def test_init(self):
         from terminal_games.breakout import BreakoutGame
