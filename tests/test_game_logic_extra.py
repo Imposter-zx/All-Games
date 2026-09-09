@@ -2423,7 +2423,7 @@ class TestOthello:
         assert game._parse_move('xyz') is None
         assert game._parse_move('i9') is None
 
-def test_play_black_win(self, monkeypatch):
+    def test_play_black_win(self, monkeypatch):
         from terminal_games.othello import OthelloGame
         # Create game where black wins - fill board with black pieces
         game = OthelloGame()
