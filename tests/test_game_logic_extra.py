@@ -2425,14 +2425,13 @@ class TestOthello:
 
     def test_play_black_win(self, monkeypatch):
         from terminal_games.othello import OthelloGame
-        # Create game where black wins - fill board with black pieces
+        # Create game where black wins - fill board mostly with black pieces
         game = OthelloGame()
         for r in range(8):
             for c in range(8):
-                if (r + c) % 2 == 0:
-                    game.board[r][c] = 'B'
-                else:
-                    game.board[r][c] = 'W'
+                game.board[r][c] = 'B'
+        # Give white just one piece so black clearly wins (63 B vs 1 W)
+        game.board[7][7] = 'W'
         # Black has more pieces, verify
         b, w = game._count('B'), game._count('W')
         assert b > w
@@ -2450,8 +2449,9 @@ class TestOthello:
         monkeypatch.setattr(OthelloGame, 'award_xp_for_action',
                             lambda self, n: xp_gained.append(n))
         game = OthelloGame()
-        # Set up black win scenario
-        game.board = [['B' if (r + c) % 2 == 0 else 'W' for c in range(8)] for r in range(8)]
+        # Set up black win scenario (63 B vs 1 W - clear black majority)
+        game.board = [['B' for _ in range(8)] for _ in range(8)]
+        game.board[7][7] = 'W'
         # Make sure black has more pieces
         b, w = game._count('B'), game._count('W')
         assert b > w
