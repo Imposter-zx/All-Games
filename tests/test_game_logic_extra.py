@@ -1685,7 +1685,7 @@ class TestRhythm:
 
     def test_play_hit_scoring_and_quit(self, monkeypatch):
         mgr = _FakeStatsMgr()
-        times = [0.0, 0.0, 0.4, 0.6, 0.6, 1.2, 0.6, 1.8, 0.6, 2.4, 0.6]
+        times = [0.0, 0.0, 0.4, 0.6, 0.6, 1.2, 0.6, 1.8, 0.6, 2.4, 2.4, 2.4, 2.4]
         game = self._script_play(monkeypatch, times, [None, 'd', None, None, 'q', 'x'], mgr)
         result = game.play()
         assert result['score'] == 150

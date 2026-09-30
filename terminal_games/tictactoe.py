@@ -142,10 +142,6 @@ def _ai_move(board: List[List[str]], ai_piece: str, difficulty: str) -> Tuple[in
             best_score = score
             best_move = (r, c)
 
-    if difficulty == "hard":
-        return best_move
-    if random.random() < 0.3:
-        return random.choice(empty)
     return best_move
 
 
