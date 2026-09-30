@@ -146,6 +146,39 @@ class OthelloGame(BaseGame):
     def _is_game_over(self) -> bool:
         return not self._get_valid_moves(BLACK) and not self._get_valid_moves(WHITE)
 
+    def _handle_game_end(self) -> None:
+        """Apply win/loss scoring based on current board state. Idempotent."""
+        if getattr(self, '_game_end_handled', False):
+            return
+        self._game_end_handled = True
+        b = self._count(BLACK)
+        w = self._count(WHITE)
+        if b > w:
+            self.score += 100
+            self.wins += 1
+            self.streak += 1
+            self.unlock_achievement("othello_first_win", "First Flip")
+            if self.streak >= 3:
+                self.unlock_achievement("othello_streak_3", "Othello Streak")
+            if self.score > self.high_score:
+                self.high_score = self.score
+            self.award_xp_for_action(50)
+        elif w > b:
+            self.streak = 0
+        else:
+            self.award_xp_for_action(20)
+
+    def end_timer(self) -> None:
+        if self._is_game_over():
+            self._handle_game_end()
+        super().end_timer()
+
+    def get_final_stats(self) -> Dict:
+        stats = super().get_final_stats()
+        stats['wins'] = self.wins
+        stats['high_score'] = self.high_score
+        return stats
+
     def _render(self) -> None:
         lines = [
             f"{C_CYAN}DIFFICULTY: {self.difficulty.upper()}{C_RESET}",
@@ -236,26 +269,8 @@ class OthelloGame(BaseGame):
                 self._render()
 
                 if self._is_game_over():
-                    b = self._count(BLACK)
-                    w = self._count(WHITE)
-                    if b > w:
-                        self.score += 100
-                        self.wins += 1
-                        self.streak += 1
-                        self.unlock_achievement("othello_first_win", "First Flip")
-                        if self.streak >= 3:
-                            self.unlock_achievement("othello_streak_3", "Othello Streak")
-                        if self.score > self.high_score:
-                            self.high_score = self.score
-                        self.award_xp_for_action(50)
-                    elif w > b:
-                        self.streak = 0
-                    else:
-                        self.award_xp_for_action(20)
                     self.end_timer()
                     final_stats = self.get_final_stats()
-                    final_stats['high_score'] = self.high_score
-                    final_stats['wins'] = self.wins
                     self.save_stats(final_stats)
                     key = input_handler.get_safe_key()
                     if key and self._save_and_quit(key.lower()):
@@ -267,6 +282,7 @@ class OthelloGame(BaseGame):
                         self.board[4][3] = BLACK
                         self.board[4][4] = WHITE
                         self.current_player = BLACK
+                        self._game_end_handled = False
                         self.start_timer()
                     continue
 
