@@ -5,6 +5,8 @@ Unit tests for StatsManager (SQLite-backed).
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'terminal_games'))
 
 from stats_manager import StatsManager, get_stats_manager
@@ -214,3 +216,52 @@ class TestStatsManagerGameState:
         manager = StatsManager()
         manager.delete_game_state('nonexistent_xyz')
         assert manager.load_game_state('nonexistent_xyz') is None
+
+
+class TestStatsManagerDatabaseIsolation:
+    """Test database isolation, custom paths, and cleanup."""
+
+    def test_custom_db_path_initialization(self, tmp_path):
+        custom_db = str(tmp_path / 'custom_player.db')
+        mgr = StatsManager(db_path=custom_db)
+        assert mgr.db_path == custom_db
+        assert os.path.exists(custom_db)
+        mgr.close()
+
+    def test_env_var_db_path_override(self, tmp_path, monkeypatch):
+        env_db = str(tmp_path / 'env_player.db')
+        monkeypatch.setenv("RETRO_ARCADE_DB_PATH", env_db)
+        mgr = StatsManager()
+        assert mgr.db_path == env_db
+        assert os.path.exists(env_db)
+        mgr.close()
+
+    def test_independent_temporary_databases(self, tmp_path):
+        db1_path = str(tmp_path / 'db1.db')
+        db2_path = str(tmp_path / 'db2.db')
+        mgr1 = StatsManager(db_path=db1_path)
+        mgr2 = StatsManager(db_path=db2_path)
+
+        mgr1.add_xp(500)
+        assert mgr1._get_profile_int('total_xp', 0) == 500
+        assert mgr2._get_profile_int('total_xp', 0) == 0
+
+        mgr1.close()
+        mgr2.close()
+
+    def test_real_db_never_touched_during_tests(self):
+        # Verify that active test manager is NOT using the user's home player.db
+        mgr = get_stats_manager()
+        assert mgr.db_path != StatsManager.DB_PATH
+        assert "test_player.db" in mgr.db_path or "tmp" in mgr.db_path.lower()
+
+    def test_connection_close_cleanup(self, tmp_path):
+        db_path = str(tmp_path / 'cleanup.db')
+        mgr = StatsManager(db_path=db_path)
+        mgr.close()
+        # Ensure connection is closed by checking that execute raises ProgrammingError
+        import sqlite3
+        with pytest.raises(sqlite3.ProgrammingError):
+            mgr.conn.execute("SELECT 1")
+
+

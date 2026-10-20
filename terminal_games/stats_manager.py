@@ -18,10 +18,12 @@ class StatsManager:
 
     DB_PATH = str(Path.home() / ".retro_arcade" / "player.db")
 
-    def __init__(self) -> None:
+    def __init__(self, db_path: Optional[str] = None) -> None:
         """Initialize and ensure schema exists."""
-        os.makedirs(os.path.dirname(self.DB_PATH), exist_ok=True)
-        self.conn = sqlite3.connect(self.DB_PATH, check_same_thread=False)
+        self.db_path = db_path or os.environ.get("RETRO_ARCADE_DB_PATH") or self.DB_PATH
+        if self.db_path != ":memory:":
+            os.makedirs(os.path.dirname(os.path.abspath(self.db_path)), exist_ok=True)
+        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self._init_schema()
         self._ensure_defaults()
@@ -395,13 +397,33 @@ class StatsManager:
         ).fetchone()
         return row is not None
 
+    def close(self) -> None:
+        """Close database connection safely."""
+        if hasattr(self, "conn") and self.conn:
+            try:
+                self.conn.close()
+            except Exception:
+                pass
+
 
 # Global singleton
 _manager: Optional[StatsManager] = None
 
 
-def get_stats_manager() -> StatsManager:
+def get_stats_manager(db_path: Optional[str] = None) -> StatsManager:
     global _manager
-    if _manager is None:
-        _manager = StatsManager()
+    env_db = os.environ.get("RETRO_ARCADE_DB_PATH")
+    target_db = db_path or env_db
+    if _manager is None or (target_db is not None and getattr(_manager, 'db_path', None) != target_db):
+        if _manager is not None:
+            _manager.close()
+        _manager = StatsManager(db_path=target_db)
     return _manager
+
+
+def reset_stats_manager() -> None:
+    """Reset global singleton and close active connection."""
+    global _manager
+    if _manager is not None:
+        _manager.close()
+        _manager = None
