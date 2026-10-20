@@ -218,6 +218,67 @@ class TestStatsManagerGameState:
         assert manager.load_game_state('nonexistent_xyz') is None
 
 
+class TestStatsManagerAchievements:
+    """Test achievement unlocking, XP integration, and transactional consistency."""
+
+    def test_unlock_achievement_awards_configured_xp(self):
+        from achievements_config import ACHIEVEMENTS
+        manager = StatsManager()
+        ach_id = next(iter(ACHIEVEMENTS.keys()))
+        ach_xp = ACHIEVEMENTS[ach_id]['xp']
+        xp_before = manager._get_profile_int('total_xp', 0)
+
+        unlocked = manager.unlock_achievement(ach_id)
+        assert unlocked is True
+        xp_after = manager._get_profile_int('total_xp', 0)
+        assert xp_after == xp_before + ach_xp
+        assert ach_id in manager.get_unlocked_achievements()
+
+    def test_unlock_duplicate_achievement_never_repeats_xp(self):
+        from achievements_config import ACHIEVEMENTS
+        manager = StatsManager()
+        ach_id = next(iter(ACHIEVEMENTS.keys()))
+
+        assert manager.unlock_achievement(ach_id) is True
+        xp_after_first = manager._get_profile_int('total_xp', 0)
+
+        # Second attempt must return False and never award XP again
+        assert manager.unlock_achievement(ach_id) is False
+        assert manager._get_profile_int('total_xp', 0) == xp_after_first
+
+    def test_unlock_unknown_achievement_without_config(self):
+        manager = StatsManager()
+        xp_before = manager._get_profile_int('total_xp', 0)
+
+        # Unknown achievement not in config
+        unlocked = manager.unlock_achievement('completely_unknown_achievement_xyz')
+        assert unlocked is True
+        # Achievement is tracked, but 0 XP is added
+        assert manager._get_profile_int('total_xp', 0) == xp_before
+        assert 'completely_unknown_achievement_xyz' in manager.get_unlocked_achievements()
+
+    def test_unlock_achievement_rollback_on_failure(self):
+        manager = StatsManager()
+        from achievements_config import ACHIEVEMENTS
+        ach_id = next(iter(ACHIEVEMENTS.keys()))
+
+        # Create a trigger on profile that aborts any write to profile
+        manager.conn.execute("""
+            CREATE TRIGGER abort_profile_write
+            BEFORE INSERT ON profile
+            BEGIN
+                SELECT RAISE(ABORT, 'Simulated write failure');
+            END;
+        """)
+
+        # When unlock_achievement tries to update profile XP, the trigger aborts the transaction
+        res = manager.unlock_achievement(ach_id)
+        assert res is False
+
+        # Ensure that because of transaction rollback, the achievement was NOT recorded
+        assert ach_id not in manager.get_unlocked_achievements()
+
+
 class TestStatsManagerDatabaseIsolation:
     """Test database isolation, custom paths, and cleanup."""
 

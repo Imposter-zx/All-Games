@@ -178,7 +178,7 @@ class StatsManager:
         return new_level
 
     def unlock_achievement(self, achievement_id: str) -> bool:
-        """Unlock an achievement. Returns True if newly unlocked."""
+        """Unlock an achievement. Returns True if newly unlocked, and awards achievement XP transactionally."""
         now = time.time()
         try:
             with self.conn:
@@ -186,7 +186,34 @@ class StatsManager:
                     "INSERT OR IGNORE INTO achievements (achievement_id, unlocked_at) VALUES (?, ?)",
                     (achievement_id, now)
                 )
-                return cursor.rowcount > 0
+                if cursor.rowcount > 0:
+                    ach_xp = 0
+                    try:
+                        from achievements_config import get_achievement
+                        ach = get_achievement(achievement_id)
+                        if ach and isinstance(ach.get("xp"), int) and ach["xp"] > 0:
+                            ach_xp = ach["xp"]
+                    except Exception as e:
+                        logger.warning(f"Could not load achievement config for {achievement_id}: {e}")
+
+                    if ach_xp > 0:
+                        row = self.conn.execute("SELECT value FROM profile WHERE key = 'total_xp'").fetchone()
+                        try:
+                            current_xp = int(row['value']) if row else 0
+                        except (ValueError, TypeError):
+                            current_xp = 0
+                        new_xp = current_xp + ach_xp
+                        new_level = 1 + (new_xp // 500)
+                        self.conn.execute(
+                            "INSERT OR REPLACE INTO profile (key, value) VALUES ('total_xp', ?)",
+                            (str(new_xp),)
+                        )
+                        self.conn.execute(
+                            "INSERT OR REPLACE INTO profile (key, value) VALUES ('level', ?)",
+                            (str(new_level),)
+                        )
+                    return True
+                return False
         except sqlite3.IntegrityError:
             return False
 
